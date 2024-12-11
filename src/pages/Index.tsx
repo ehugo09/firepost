@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import { ArrowRight, BarChart2, MessageCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4 py-16">
@@ -39,7 +42,7 @@ const Index = () => {
           <p className="text-lg text-gray-600 mb-8">
             Manage all your social networks, schedule posts, and analyze performance from one beautiful interface.
           </p>
-          <Button size="lg" className="hover-scale">
+          <Button size="lg" className="hover-scale" onClick={() => navigate('/dashboard')}>
             Get Started <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </motion.div>

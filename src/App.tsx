@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Dashboard />} />
           </Routes>
         </AnimatePresence>
       </BrowserRouter>
