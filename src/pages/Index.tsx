@@ -12,12 +12,30 @@ const Index = () => {
           transition={{ duration: 0.6 }}
           className="text-center max-w-3xl mx-auto"
         >
+          <div className="flex flex-col items-center justify-center mb-8">
+            <motion.img
+              src="/lovable-uploads/09171096-3f2b-41d5-8b3e-092b36199d42.png"
+              alt="Pandapost Logo"
+              className="w-24 h-24 mb-4"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            />
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="text-4xl font-bold text-primary mb-2"
+            >
+              Pandapost
+            </motion.h1>
+          </div>
           <span className="px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium inline-block mb-6">
             Simplify Your Social Media Management
           </span>
-          <h1 className="text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
+          <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600">
             One Platform, All Your Social Media
-          </h1>
+          </h2>
           <p className="text-lg text-gray-600 mb-8">
             Manage all your social networks, schedule posts, and analyze performance from one beautiful interface.
           </p>

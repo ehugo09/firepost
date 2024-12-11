@@ -25,7 +25,7 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#6366F1",
+          DEFAULT: "#2ECC71", // Updated to match the logo's green color
           foreground: "#FFFFFF",
         },
         secondary: {
