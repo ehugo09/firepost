@@ -3,8 +3,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import TopNavigation from "@/components/TopNavigation";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import GridLayout from 'react-grid-layout';
+import { useState, useEffect } from 'react';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 
 const Dashboard = () => {
+  const [layout, setLayout] = useState([
+    { i: 'networks', x: 0, y: 0, w: 1, h: 1 },
+    { i: 'engagement', x: 1, y: 0, w: 1, h: 1 },
+    { i: 'followers', x: 2, y: 0, w: 1, h: 1 },
+    { i: 'scheduled', x: 0, y: 1, w: 1, h: 1 },
+    { i: 'messages', x: 1, y: 1, w: 1, h: 1 },
+    { i: 'actions', x: 2, y: 1, w: 1, h: 1 }
+  ]);
+
+  // Load saved layout from localStorage on component mount
+  useEffect(() => {
+    const savedLayout = localStorage.getItem('dashboardLayout');
+    if (savedLayout) {
+      setLayout(JSON.parse(savedLayout));
+    }
+  }, []);
+
+  // Save layout to localStorage when it changes
+  const handleLayoutChange = (newLayout: any) => {
+    setLayout(newLayout);
+    localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
+  };
+
   const chartData = [
     { name: 'Mon', value: 400 },
     { name: 'Tue', value: 300 },
@@ -15,20 +42,18 @@ const Dashboard = () => {
     { name: 'Sun', value: 300 },
   ];
 
-  return (
-    <div className="min-h-screen bg-gray-50/50">
-      <TopNavigation />
+  const networks = [
+    { name: 'Twitter', icon: 'https://api.iconify.design/logos:twitter.svg' },
+    { name: 'Instagram', icon: 'https://api.iconify.design/skill-icons:instagram.svg' },
+    { name: 'LinkedIn', icon: 'https://api.iconify.design/logos:linkedin-icon.svg' },
+    { name: 'Facebook', icon: 'https://api.iconify.design/logos:facebook.svg' },
+  ];
 
-      {/* Main Content Area */}
-      <main className="pt-20 px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {/* Connected Networks */}
-          <Card className="col-span-1">
+  const renderBox = (id: string) => {
+    switch(id) {
+      case 'networks':
+        return (
+          <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-medium">Connected Networks</CardTitle>
               <ArrowUpRight className="h-4 w-4 text-gray-400" />
@@ -44,9 +69,10 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Engagement Rate */}
-          <Card className="col-span-1">
+        );
+      case 'engagement':
+        return (
+          <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-medium">Engagement Rate</CardTitle>
               <ArrowUpRight className="h-4 w-4 text-gray-400" />
@@ -71,9 +97,10 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Total Followers */}
-          <Card className="col-span-1">
+        );
+      case 'followers':
+        return (
+          <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-medium">Total Followers</CardTitle>
               <Users className="h-4 w-4 text-gray-400" />
@@ -83,9 +110,10 @@ const Dashboard = () => {
               <p className="text-sm text-gray-500 mt-2">+12% from last month</p>
             </CardContent>
           </Card>
-
-          {/* Scheduled Posts */}
-          <Card className="col-span-1">
+        );
+      case 'scheduled':
+        return (
+          <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-medium">Scheduled Posts</CardTitle>
               <Clock className="h-4 w-4 text-gray-400" />
@@ -95,9 +123,10 @@ const Dashboard = () => {
               <p className="text-sm text-gray-500 mt-2">Posts scheduled for this week</p>
             </CardContent>
           </Card>
-
-          {/* Messages */}
-          <Card className="col-span-1">
+        );
+      case 'messages':
+        return (
+          <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-lg font-medium">Unread Messages</CardTitle>
               <Inbox className="h-4 w-4 text-gray-400" />
@@ -107,9 +136,10 @@ const Dashboard = () => {
               <p className="text-sm text-gray-500 mt-2">Across all platforms</p>
             </CardContent>
           </Card>
-
-          {/* Quick Actions */}
-          <Card className="col-span-1">
+        );
+      case 'actions':
+        return (
+          <Card className="h-full">
             <CardHeader>
               <CardTitle className="text-lg font-medium">Quick Actions</CardTitle>
             </CardHeader>
@@ -130,17 +160,42 @@ const Dashboard = () => {
               </div>
             </CardContent>
           </Card>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50/50">
+      <TopNavigation />
+      <main className="pt-20 px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <GridLayout
+            className="layout"
+            layout={layout}
+            cols={3}
+            rowHeight={300}
+            width={1200}
+            onLayoutChange={handleLayoutChange}
+            isDraggable={true}
+            isResizable={false}
+            margin={[24, 24]}
+          >
+            {layout.map((item) => (
+              <div key={item.i} className="cursor-move">
+                {renderBox(item.i)}
+              </div>
+            ))}
+          </GridLayout>
         </motion.div>
       </main>
     </div>
   );
 };
-
-const networks = [
-  { name: 'Twitter', icon: 'https://api.iconify.design/logos:twitter.svg' },
-  { name: 'Instagram', icon: 'https://api.iconify.design/skill-icons:instagram.svg' },
-  { name: 'LinkedIn', icon: 'https://api.iconify.design/logos:linkedin-icon.svg' },
-  { name: 'Facebook', icon: 'https://api.iconify.design/logos:facebook.svg' },
-];
 
 export default Dashboard;
