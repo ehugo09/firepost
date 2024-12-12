@@ -47,23 +47,23 @@ const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
 
   return (
     <div className="relative">
-      <div className="absolute right-0 -top-12 flex items-center gap-2">
+      <div className="mb-6 flex justify-end">
         <Button
           variant="outline"
-          size="sm"
+          size="lg"
           onClick={toggleEditMode}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
         >
-          <Grid2X2 className="h-4 w-4" />
+          <Grid2X2 className="h-5 w-5" />
           {isEditMode ? (
             <>
-              <UnlockIcon className="h-4 w-4" />
-              <span>Lock Layout</span>
+              <UnlockIcon className="h-5 w-5 text-primary" />
+              <span className="font-medium">Lock Layout</span>
             </>
           ) : (
             <>
-              <LockIcon className="h-4 w-4" />
-              <span>Edit Layout</span>
+              <LockIcon className="h-5 w-5" />
+              <span className="font-medium">Edit Layout</span>
             </>
           )}
         </Button>
