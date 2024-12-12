@@ -48,34 +48,33 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      <div className="pt-16 lg:flex">
-        {/* Sidebar */}
-        <aside className="fixed w-64 h-full bg-white border-r border-gray-100 pt-5">
-          <nav className="mt-5 px-2">
-            <a href="#" className="group flex items-center px-2 py-2 text-base leading-6 font-medium rounded-md text-primary bg-primary/10">
-              <MessageSquare className="mr-4 h-6 w-6" />
-              Messages
-            </a>
-            <a href="#" className="mt-1 group flex items-center px-2 py-2 text-base leading-6 font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50">
-              <BarChart2 className="mr-4 h-6 w-6" />
-              Analytics
-            </a>
-            <a href="#" className="mt-1 group flex items-center px-2 py-2 text-base leading-6 font-medium rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50">
-              <Calendar className="mr-4 h-6 w-6" />
-              Schedule
-            </a>
-          </nav>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 ml-64 p-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      {/* Quick Access Icons */}
+      <div className="fixed left-4 top-20 flex flex-col gap-2">
+        {[
+          { icon: MessageSquare, label: 'Messages' },
+          { icon: BarChart2, label: 'Analytics' },
+          { icon: Calendar, label: 'Schedule' },
+        ].map((item, index) => (
+          <motion.button
+            key={index}
+            whileHover={{ scale: 1.05 }}
+            className="p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-all"
+            title={item.label}
           >
-            {/* Social Network Card */}
+            <item.icon className="h-5 w-5 text-gray-600" />
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Main Content Area */}
+      <main className="pt-20 px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 ml-16"
+        >
+          {/* Keep existing cards code */}
             <Card className="col-span-1">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-medium">Connected Networks</CardTitle>
@@ -167,10 +166,8 @@ const Dashboard = () => {
                 </div>
               </CardContent>
             </Card>
-
-          </motion.div>
-        </main>
-      </div>
+        </motion.div>
+      </main>
     </div>
   );
 };
