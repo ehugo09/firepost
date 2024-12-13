@@ -1,4 +1,6 @@
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { ArrowUpRight, Users, Clock, Inbox, Send, Download } from "lucide-react";
+import { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area } from "recharts";
 
 interface DashboardBoxProps {
   id: string;
