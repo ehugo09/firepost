@@ -15,12 +15,12 @@ const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
   const [progress, setProgress] = useState(64);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
       {/* Activity Card */}
-      <Card className="p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Activity</h2>
-          <button className="px-4 py-1 text-sm bg-white rounded-full border">Last 7 days</button>
+      <Card className="p-5">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-lg font-semibold">Activity</h2>
+          <button className="px-3 py-1 text-xs bg-white rounded-full border">Last 7 days</button>
         </div>
         <div className="mb-4">
           <div className="flex items-baseline gap-2">
@@ -54,8 +54,8 @@ const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
       </Card>
 
       {/* Progress Statistics Card */}
-      <Card className="p-6">
-        <h2 className="text-xl font-semibold mb-6">Progress statistics</h2>
+      <Card className="p-5">
+        <h2 className="text-lg font-semibold mb-5">Progress statistics</h2>
         <div className="mb-8">
           <div className="flex items-baseline gap-2 mb-4">
             <span className="text-4xl font-bold">{progress}%</span>
@@ -91,14 +91,14 @@ const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
       </Card>
 
       {/* Course Card */}
-      <Card className="p-6">
+      <Card className="p-5">
         <div className="flex justify-between items-center mb-4">
           <div className="space-x-2">
             <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Group course</span>
             <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">Advanced</span>
           </div>
         </div>
-        <h2 className="text-xl font-semibold mb-2">English punctuation made easy</h2>
+        <h2 className="text-lg font-semibold mb-2">English punctuation made easy</h2>
         <p className="text-gray-500 text-sm mb-6">
           Punctuation — learn the basics without the pain. People will never laugh at your punctuation again.
         </p>
@@ -124,13 +124,13 @@ const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
       </Card>
 
       {/* Schedule Card */}
-      <Card className="p-6 col-span-full">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">My schedule</h2>
-          <div className="flex items-center gap-4">
-            <button className="p-2 rounded-lg border"><ChevronLeft className="w-5 h-5" /></button>
-            <span className="font-medium">Today</span>
-            <button className="p-2 rounded-lg border"><ChevronRight className="w-5 h-5" /></button>
+      <Card className="p-5 col-span-full">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-lg font-semibold">My schedule</h2>
+          <div className="flex items-center gap-3">
+            <button className="p-1.5 rounded-lg border"><ChevronLeft className="w-4 h-4" /></button>
+            <span className="font-medium text-sm">Today</span>
+            <button className="p-1.5 rounded-lg border"><ChevronRight className="w-4 h-4" /></button>
           </div>
         </div>
         <div className="grid grid-cols-3 gap-6">
