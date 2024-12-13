@@ -1,123 +1,194 @@
-import { motion, AnimatePresence } from "framer-motion";
-import GridLayout from 'react-grid-layout';
-import DashboardBox from "./DashboardBox";
+import { motion } from "framer-motion";
 import { useState, useEffect } from 'react';
-import { Grid2X2, LockIcon, UnlockIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import DashboardBox from "./DashboardBox";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DashboardGridProps {
   chartData: Array<{ name: string; value: number; }>;
-  networks: Array<{ name: string; icon: string; }>;
+  networks: Array<{ name: string; icon: string; lessons: number; hours: number; }>;
 }
 
 const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
-  const [layout, setLayout] = useState([
-    { i: 'networks', x: 0, y: 0, w: 1, h: 1 },
-    { i: 'engagement', x: 1, y: 0, w: 1, h: 1 },
-    { i: 'followers', x: 2, y: 0, w: 1, h: 1 },
-    { i: 'scheduled', x: 0, y: 1, w: 1, h: 1 },
-    { i: 'messages', x: 1, y: 1, w: 1, h: 1 },
-    { i: 'actions', x: 2, y: 1, w: 1, h: 1 }
-  ]);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const { toast } = useToast();
-
-  useEffect(() => {
-    const savedLayout = localStorage.getItem('dashboardLayout');
-    if (savedLayout) {
-      try {
-        setLayout(JSON.parse(savedLayout));
-      } catch (error) {
-        console.error('Error loading layout:', error);
-      }
-    }
-  }, []);
-
-  const handleLayoutChange = (newLayout: any) => {
-    try {
-      setLayout(newLayout);
-      localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
-    } catch (error) {
-      console.error('Error saving layout:', error);
-    }
-  };
-
-  const toggleEditMode = () => {
-    setIsEditMode(!isEditMode);
-    toast({
-      title: isEditMode ? "Edit mode disabled" : "Edit mode enabled",
-      description: isEditMode 
-        ? "Dashboard layout is now locked" 
-        : "You can now drag and drop boxes to reorganize your dashboard",
-    });
-  };
+  const [totalHours, setTotalHours] = useState(24.9);
+  const [progress, setProgress] = useState(64);
 
   return (
-    <div className="relative">
-      <div className="mb-6 flex justify-end">
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={toggleEditMode}
-          className="flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
-        >
-          <Grid2X2 className="h-5 w-5" />
-          {isEditMode ? (
-            <>
-              <UnlockIcon className="h-5 w-5 text-primary" />
-              <span className="font-medium">Lock Layout</span>
-            </>
-          ) : (
-            <>
-              <LockIcon className="h-5 w-5" />
-              <span className="font-medium">Edit Layout</span>
-            </>
-          )}
-        </Button>
-      </div>
-
-      <AnimatePresence mode="wait">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <GridLayout
-            className="layout"
-            layout={layout}
-            cols={3}
-            rowHeight={300}
-            width={1200}
-            onLayoutChange={handleLayoutChange}
-            isDraggable={isEditMode}
-            isResizable={false}
-            margin={[24, 24]}
-            draggableHandle=".cursor-move"
-          >
-            {layout.map((item) => (
-              <div key={item.i}>
-                <motion.div
-                  className={isEditMode ? "cursor-move" : ""}
-                  whileHover={isEditMode ? { scale: 1.02 } : {}}
-                  whileDrag={{ scale: 1.05 }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 400,
-                    damping: 25
-                  }}
-                >
-                  <DashboardBox 
-                    id={item.i} 
-                    networks={networks}
-                    chartData={chartData}
-                  />
-                </motion.div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Activity Card */}
+      <Card className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">Activity</h2>
+          <button className="px-4 py-1 text-sm bg-white rounded-full border">Last 7 days</button>
+        </div>
+        <div className="mb-4">
+          <div className="flex items-baseline gap-2">
+            <span className="text-4xl font-bold">{totalHours}</span>
+            <span className="text-gray-500">Hours spent</span>
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div className="h-[200px] relative">
+            {/* Chart will go here */}
+            <div className="absolute top-1/2 w-full border-dashed border-t border-gray-300">
+              <span className="absolute -left-16 -translate-y-3 text-sm text-gray-500">4.2 hours</span>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <h3 className="font-medium">By platform</h3>
+            {networks.map((network, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <img src={network.icon} alt={network.name} className="w-6 h-6" />
+                  <div>
+                    <p className="font-medium">{network.name}</p>
+                    <p className="text-sm text-gray-500">{network.lessons} lessons</p>
+                  </div>
+                </div>
+                <span className="text-gray-600">{network.hours}h</span>
               </div>
             ))}
-          </GridLayout>
-        </motion.div>
-      </AnimatePresence>
+          </div>
+        </div>
+      </Card>
+
+      {/* Progress Statistics Card */}
+      <Card className="p-6">
+        <h2 className="text-xl font-semibold mb-6">Progress statistics</h2>
+        <div className="mb-8">
+          <div className="flex items-baseline gap-2 mb-4">
+            <span className="text-4xl font-bold">{progress}%</span>
+            <span className="text-gray-500">Total activity</span>
+          </div>
+          <Progress value={progress} className="h-2 mb-2" />
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>24%</span>
+            <span>35%</span>
+            <span>41%</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2">
+              <span className="text-xl font-semibold text-purple-600">8</span>
+            </div>
+            <p className="text-sm text-gray-500">In progress</p>
+          </div>
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
+              <span className="text-xl font-semibold text-green-600">12</span>
+            </div>
+            <p className="text-sm text-gray-500">Completed</p>
+          </div>
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-2">
+              <span className="text-xl font-semibold text-orange-600">14</span>
+            </div>
+            <p className="text-sm text-gray-500">Upcoming</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Course Card */}
+      <Card className="p-6">
+        <div className="flex justify-between items-center mb-4">
+          <div className="space-x-2">
+            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Group course</span>
+            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">Advanced</span>
+          </div>
+        </div>
+        <h2 className="text-xl font-semibold mb-2">English punctuation made easy</h2>
+        <p className="text-gray-500 text-sm mb-6">
+          Punctuation — learn the basics without the pain. People will never laugh at your punctuation again.
+        </p>
+        <div className="space-y-4 mb-6">
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Participants</p>
+            <div className="flex -space-x-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white" />
+              ))}
+            </div>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500 mb-2">Course progress</p>
+            <Progress value={75} className="h-2 bg-yellow-100">
+              <div className="h-full bg-yellow-400" style={{ width: '75%' }} />
+            </Progress>
+          </div>
+        </div>
+        <button className="w-full py-3 bg-black text-white rounded-lg font-medium">
+          Continue learning
+        </button>
+      </Card>
+
+      {/* Schedule Card */}
+      <Card className="p-6 col-span-full">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-semibold">My schedule</h2>
+          <div className="flex items-center gap-4">
+            <button className="p-2 rounded-lg border"><ChevronLeft className="w-5 h-5" /></button>
+            <span className="font-medium">Today</span>
+            <button className="p-2 rounded-lg border"><ChevronRight className="w-5 h-5" /></button>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-6">
+          {[
+            {
+              time: "10:30 — 12:00",
+              title: "Technical English for Beginners",
+              level: "Beginner",
+              mentor: { name: "Kristin Watson", role: "Mentor" }
+            },
+            {
+              time: "13:00 — 14:00",
+              title: "English punctuation made easy",
+              level: "Advanced",
+              mentor: { name: "Cody Fisher", role: "Mentor" },
+              active: true
+            },
+            {
+              time: "16:00 — 17:00",
+              title: "Technical Spanish for Beginners",
+              level: "Beginner",
+              mentor: { name: "Jacob Jones", role: "Mentor" }
+            }
+          ].map((session, index) => (
+            <div
+              key={index}
+              className={`p-6 rounded-2xl ${
+                session.active 
+                  ? 'bg-purple-600 text-white' 
+                  : 'bg-white border'
+              }`}
+            >
+              <p className="text-sm mb-4">{session.time}</p>
+              <h3 className="font-semibold mb-2">{session.title}</h3>
+              <span className={`px-3 py-1 rounded-full text-sm ${
+                session.active
+                  ? 'bg-white/20'
+                  : session.level === 'Beginner'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-purple-100 text-purple-700'
+              }`}>
+                {session.level}
+              </span>
+              <div className="mt-8 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gray-200" />
+                <div>
+                  <p className={`font-medium ${session.active ? 'text-white' : 'text-gray-900'}`}>
+                    {session.mentor.name}
+                  </p>
+                  <p className={session.active ? 'text-white/80' : 'text-gray-500'}>
+                    {session.mentor.role}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 };
