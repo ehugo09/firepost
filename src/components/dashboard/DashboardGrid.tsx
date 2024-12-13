@@ -26,13 +26,21 @@ const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
   useEffect(() => {
     const savedLayout = localStorage.getItem('dashboardLayout');
     if (savedLayout) {
-      setLayout(JSON.parse(savedLayout));
+      try {
+        setLayout(JSON.parse(savedLayout));
+      } catch (error) {
+        console.error('Error loading layout:', error);
+      }
     }
   }, []);
 
   const handleLayoutChange = (newLayout: any) => {
-    setLayout(newLayout);
-    localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
+    try {
+      setLayout(newLayout);
+      localStorage.setItem('dashboardLayout', JSON.stringify(newLayout));
+    } catch (error) {
+      console.error('Error saving layout:', error);
+    }
   };
 
   const toggleEditMode = () => {

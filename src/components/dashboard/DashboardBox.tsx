@@ -9,6 +9,10 @@ interface DashboardBoxProps {
 }
 
 const DashboardBox = ({ id, networks, chartData }: DashboardBoxProps) => {
+  const sanitizeUrl = (url: string) => {
+    return url.replace(/:\/$/, '');
+  };
+
   switch(id) {
     case 'networks':
       return (
@@ -21,7 +25,7 @@ const DashboardBox = ({ id, networks, chartData }: DashboardBoxProps) => {
             <div className="grid grid-cols-2 gap-4">
               {networks?.map((network, index) => (
                 <div key={index} className="flex items-center p-2 rounded-full border border-gray-100 bg-white">
-                  <img src={network.icon} alt={network.name} className="h-5 w-5" />
+                  <img src={sanitizeUrl(network.icon)} alt={network.name} className="h-5 w-5" />
                   <span className="ml-2 text-sm font-medium">{network.name}</span>
                 </div>
               ))}
