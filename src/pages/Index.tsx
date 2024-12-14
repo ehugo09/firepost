@@ -2,9 +2,24 @@ import { motion } from "framer-motion";
 import { ArrowRight, BarChart2, MessageCircle, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/dashboard");
+      }
+    });
+  }, [navigate]);
+
+  const handleGetStarted = () => {
+    navigate('/auth');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -42,7 +57,11 @@ const Index = () => {
           <p className="text-lg text-gray-600 mb-8">
             Manage all your social networks, schedule posts, and analyze performance from one beautiful interface.
           </p>
-          <Button size="lg" className="hover-scale" onClick={() => navigate('/dashboard')}>
+          <Button 
+            size="lg" 
+            className="hover-scale" 
+            onClick={handleGetStarted}
+          >
             Get Started <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </motion.div>
