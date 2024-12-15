@@ -1,189 +1,171 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from 'react';
-import DashboardBox from "./DashboardBox";
+import { useState } from 'react';
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, MessageSquare, Users, Clock, BarChart3 } from "lucide-react";
 
-interface DashboardGridProps {
-  chartData: Array<{ name: string; value: number; }>;
-  networks: Array<{ name: string; icon: string; lessons: number; hours: number; }>;
-}
-
-const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
-  const [totalHours, setTotalHours] = useState(24.9);
+const DashboardGrid = () => {
   const [progress, setProgress] = useState(64);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-      {/* Activity Card */}
-      <Card className="p-5">
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-semibold">Activity</h2>
-          <button className="px-3 py-1 text-xs bg-white rounded-full border">Last 7 days</button>
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+      {/* Social Media Overview */}
+      <Card className="p-4">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-sm font-semibold">Connected Networks</h2>
+          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">4 Active</span>
         </div>
-        <div className="mb-4">
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-bold">{totalHours}</span>
-            <span className="text-gray-500">Hours spent</span>
-          </div>
-        </div>
-        <div className="space-y-6">
-          <div className="h-[200px] relative">
-            {/* Chart will go here */}
-            <div className="absolute top-1/2 w-full border-dashed border-t border-gray-300">
-              <span className="absolute -left-16 -translate-y-3 text-sm text-gray-500">4.2 hours</span>
+        <div className="space-y-2">
+          {['Twitter', 'Instagram', 'LinkedIn', 'Facebook'].map((network, index) => (
+            <div key={index} className="flex items-center justify-between text-sm">
+              <span>{network}</span>
+              <span className="text-green-500">●</span>
             </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Messages Overview */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-blue-500" />
+            <h2 className="text-sm font-semibold">Messages</h2>
           </div>
-          <div className="space-y-4">
-            <h3 className="font-medium">By platform</h3>
-            {networks.map((network, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <img src={network.icon} alt={network.name} className="w-6 h-6" />
-                  <div>
-                    <p className="font-medium">{network.name}</p>
-                    <p className="text-sm text-gray-500">{network.lessons} lessons</p>
-                  </div>
-                </div>
-                <span className="text-gray-600">{network.hours}h</span>
+          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">12 New</span>
+        </div>
+        <div className="space-y-2">
+          <div className="text-2xl font-bold">48</div>
+          <div className="text-xs text-gray-500">Total unread messages</div>
+          <Progress value={75} className="h-1" />
+        </div>
+      </Card>
+
+      {/* Audience Growth */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-purple-500" />
+            <h2 className="text-sm font-semibold">Audience</h2>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="text-2xl font-bold">12.5K</div>
+          <div className="text-xs text-gray-500">Total followers</div>
+          <div className="text-xs text-green-500">+2.4% this week</div>
+        </div>
+      </Card>
+
+      {/* Scheduled Posts */}
+      <Card className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-orange-500" />
+            <h2 className="text-sm font-semibold">Scheduled</h2>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="text-2xl font-bold">8</div>
+          <div className="text-xs text-gray-500">Pending posts</div>
+          <div className="text-xs text-orange-500">Next in 2 hours</div>
+        </div>
+      </Card>
+
+      {/* Engagement Stats */}
+      <Card className="p-4 md:col-span-2">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-indigo-500" />
+            <h2 className="text-sm font-semibold">Engagement Rate</h2>
+          </div>
+          <select className="text-xs border rounded px-2 py-1">
+            <option>Last 7 days</option>
+            <option>Last 30 days</option>
+          </select>
+        </div>
+        <div className="h-[120px] flex items-end justify-between gap-2">
+          {[45, 30, 60, 25, 75, 35, 50].map((height, index) => (
+            <div key={index} className="w-full">
+              <div 
+                className="bg-indigo-100 rounded-sm" 
+                style={{ height: `${height}%` }}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-between mt-2 text-xs text-gray-500">
+          <span>Mon</span>
+          <span>Tue</span>
+          <span>Wed</span>
+          <span>Thu</span>
+          <span>Fri</span>
+          <span>Sat</span>
+          <span>Sun</span>
+        </div>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card className="p-4 md:col-span-2">
+        <h2 className="text-sm font-semibold mb-3">Recent Activity</h2>
+        <div className="space-y-2">
+          {[
+            { network: 'Twitter', action: 'New follower', time: '2m ago' },
+            { network: 'Instagram', action: 'Post liked', time: '5m ago' },
+            { network: 'LinkedIn', action: 'Message received', time: '15m ago' },
+            { network: 'Facebook', action: 'Comment on post', time: '1h ago' },
+          ].map((activity, index) => (
+            <div key={index} className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{activity.network}</span>
+                <span className="text-gray-500">{activity.action}</span>
               </div>
-            ))}
-          </div>
+              <span className="text-xs text-gray-400">{activity.time}</span>
+            </div>
+          ))}
         </div>
       </Card>
 
-      {/* Progress Statistics Card */}
-      <Card className="p-5">
-        <h2 className="text-lg font-semibold mb-5">Progress statistics</h2>
-        <div className="mb-8">
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-4xl font-bold">{progress}%</span>
-            <span className="text-gray-500">Total activity</span>
-          </div>
-          <Progress value={progress} className="h-2 mb-2" />
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>24%</span>
-            <span>35%</span>
-            <span>41%</span>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2">
-              <span className="text-xl font-semibold text-purple-600">8</span>
-            </div>
-            <p className="text-sm text-gray-500">In progress</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
-              <span className="text-xl font-semibold text-green-600">12</span>
-            </div>
-            <p className="text-sm text-gray-500">Completed</p>
-          </div>
-          <div className="text-center">
-            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-2">
-              <span className="text-xl font-semibold text-orange-600">14</span>
-            </div>
-            <p className="text-sm text-gray-500">Upcoming</p>
-          </div>
-        </div>
-      </Card>
-
-      {/* Course Card */}
-      <Card className="p-5">
+      {/* Quick Actions */}
+      <Card className="p-4 md:col-span-4">
         <div className="flex justify-between items-center mb-4">
-          <div className="space-x-2">
-            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Group course</span>
-            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">Advanced</span>
+          <h2 className="text-sm font-semibold">Today's Schedule</h2>
+          <div className="flex items-center gap-2">
+            <button className="p-1 rounded-lg border"><ChevronLeft className="w-3 h-3" /></button>
+            <button className="p-1 rounded-lg border"><ChevronRight className="w-3 h-3" /></button>
           </div>
         </div>
-        <h2 className="text-lg font-semibold mb-2">English punctuation made easy</h2>
-        <p className="text-gray-500 text-sm mb-6">
-          Punctuation — learn the basics without the pain. People will never laugh at your punctuation again.
-        </p>
-        <div className="space-y-4 mb-6">
-          <div>
-            <p className="text-sm text-gray-500 mb-2">Participants</p>
-            <div className="flex -space-x-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white" />
-              ))}
-            </div>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 mb-2">Course progress</p>
-            <Progress value={75} className="h-2 bg-yellow-100">
-              <div className="h-full bg-yellow-400" style={{ width: '75%' }} />
-            </Progress>
-          </div>
-        </div>
-        <button className="w-full py-3 bg-black text-white rounded-lg font-medium">
-          Continue learning
-        </button>
-      </Card>
-
-      {/* Schedule Card */}
-      <Card className="p-5 col-span-full">
-        <div className="flex justify-between items-center mb-5">
-          <h2 className="text-lg font-semibold">My schedule</h2>
-          <div className="flex items-center gap-3">
-            <button className="p-1.5 rounded-lg border"><ChevronLeft className="w-4 h-4" /></button>
-            <span className="font-medium text-sm">Today</span>
-            <button className="p-1.5 rounded-lg border"><ChevronRight className="w-4 h-4" /></button>
-          </div>
-        </div>
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
-              time: "10:30 — 12:00",
-              title: "Technical English for Beginners",
-              level: "Beginner",
-              mentor: { name: "Kristin Watson", role: "Mentor" }
+              time: "10:00 AM",
+              title: "Tweet about product update",
+              platform: "Twitter",
+              status: "pending"
             },
             {
-              time: "13:00 — 14:00",
-              title: "English punctuation made easy",
-              level: "Advanced",
-              mentor: { name: "Cody Fisher", role: "Mentor" },
-              active: true
+              time: "2:00 PM",
+              title: "Share customer success story",
+              platform: "LinkedIn",
+              status: "pending"
             },
             {
-              time: "16:00 — 17:00",
-              title: "Technical Spanish for Beginners",
-              level: "Beginner",
-              mentor: { name: "Jacob Jones", role: "Mentor" }
+              time: "4:30 PM",
+              title: "Post weekly highlights",
+              platform: "Instagram",
+              status: "pending"
             }
-          ].map((session, index) => (
+          ].map((post, index) => (
             <div
               key={index}
-              className={`p-6 rounded-2xl ${
-                session.active 
-                  ? 'bg-purple-600 text-white' 
-                  : 'bg-white border'
-              }`}
+              className="p-3 rounded-lg border bg-gray-50"
             >
-              <p className="text-sm mb-4">{session.time}</p>
-              <h3 className="font-semibold mb-2">{session.title}</h3>
-              <span className={`px-3 py-1 rounded-full text-sm ${
-                session.active
-                  ? 'bg-white/20'
-                  : session.level === 'Beginner'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-purple-100 text-purple-700'
-              }`}>
-                {session.level}
-              </span>
-              <div className="mt-8 flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gray-200" />
-                <div>
-                  <p className={`font-medium ${session.active ? 'text-white' : 'text-gray-900'}`}>
-                    {session.mentor.name}
-                  </p>
-                  <p className={session.active ? 'text-white/80' : 'text-gray-500'}>
-                    {session.mentor.role}
-                  </p>
-                </div>
+              <div className="text-xs text-gray-500">{post.time}</div>
+              <div className="font-medium text-sm mt-1">{post.title}</div>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-xs text-gray-500">{post.platform}</span>
+                <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">
+                  {post.status}
+                </span>
               </div>
             </div>
           ))}
