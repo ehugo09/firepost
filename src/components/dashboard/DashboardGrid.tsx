@@ -4,7 +4,12 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ChevronRight, MessageSquare, Users, Clock, BarChart3 } from "lucide-react";
 
-const DashboardGrid = () => {
+interface DashboardGridProps {
+  chartData: Array<{ name: string; value: number }>;
+  networks: Array<{ name: string; icon: string; lessons: number; hours: number }>;
+}
+
+const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
   const [progress, setProgress] = useState(64);
 
   return (
@@ -16,9 +21,9 @@ const DashboardGrid = () => {
           <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">4 Active</span>
         </div>
         <div className="space-y-2">
-          {['Twitter', 'Instagram', 'LinkedIn', 'Facebook'].map((network, index) => (
+          {networks.map((network, index) => (
             <div key={index} className="flex items-center justify-between text-sm">
-              <span>{network}</span>
+              <span>{network.name}</span>
               <span className="text-green-500">●</span>
             </div>
           ))}
@@ -84,23 +89,19 @@ const DashboardGrid = () => {
           </select>
         </div>
         <div className="h-[120px] flex items-end justify-between gap-2">
-          {[45, 30, 60, 25, 75, 35, 50].map((height, index) => (
+          {chartData.map((item, index) => (
             <div key={index} className="w-full">
               <div 
                 className="bg-indigo-100 rounded-sm" 
-                style={{ height: `${height}%` }}
+                style={{ height: `${item.value}%` }}
               />
             </div>
           ))}
         </div>
         <div className="flex justify-between mt-2 text-xs text-gray-500">
-          <span>Mon</span>
-          <span>Tue</span>
-          <span>Wed</span>
-          <span>Thu</span>
-          <span>Fri</span>
-          <span>Sat</span>
-          <span>Sun</span>
+          {chartData.map((item, index) => (
+            <span key={index}>{item.name}</span>
+          ))}
         </div>
       </Card>
 
