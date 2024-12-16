@@ -9,7 +9,9 @@ const LatestActivityContainer = () => {
       content: "New follower: John Doe",
       time: "2m ago",
       icon: <UserPlus className="w-4 h-4" />,
-      networkIcon: <Twitter className="w-4 h-4" />
+      networkIcon: <Twitter className="w-4 h-4" />,
+      networkColor: "text-[#1DA1F2]", // Twitter blue
+      typeColor: "text-primary" // Keep green for followers
     },
     {
       type: "message",
@@ -17,7 +19,9 @@ const LatestActivityContainer = () => {
       content: "Message: Hey, love your content!",
       time: "5m ago",
       icon: <MessageCircle className="w-4 h-4" />,
-      networkIcon: <Instagram className="w-4 h-4" />
+      networkIcon: <Instagram className="w-4 h-4" />,
+      networkColor: "text-[#E4405F]", // Instagram pink/red
+      typeColor: "text-[#0EA5E9]" // Blue for messages
     },
     {
       type: "follower",
@@ -25,7 +29,9 @@ const LatestActivityContainer = () => {
       content: "New follower: Jane Smith",
       time: "10m ago",
       icon: <UserPlus className="w-4 h-4" />,
-      networkIcon: <Linkedin className="w-4 h-4" />
+      networkIcon: <Linkedin className="w-4 h-4" />,
+      networkColor: "text-[#0A66C2]", // LinkedIn blue
+      typeColor: "text-primary" // Keep green for followers
     }
   ];
 
@@ -35,13 +41,13 @@ const LatestActivityContainer = () => {
       <div className="space-y-3">
         {activities.map((activity, index) => (
           <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-gray-50">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
-              {activity.icon}
+            <div className={`flex items-center justify-center w-8 h-8 rounded-full bg-opacity-10 ${activity.typeColor} bg-current`}>
+              <div className={activity.typeColor}>{activity.icon}</div>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-900">{activity.content}</span>
-                <div className="text-primary">{activity.networkIcon}</div>
+                <div className={activity.networkColor}>{activity.networkIcon}</div>
               </div>
               <p className="text-xs text-gray-500">{activity.time}</p>
             </div>
