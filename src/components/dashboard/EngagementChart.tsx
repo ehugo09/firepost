@@ -7,7 +7,7 @@ interface EngagementChartProps {
 
 const EngagementChart = ({ chartData }: EngagementChartProps) => {
   return (
-    <Card className="p-4 md:col-span-2">
+    <Card className="p-4 h-full">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <BarChart3 className="w-4 h-4 text-indigo-500" />

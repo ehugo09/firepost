@@ -2,9 +2,7 @@ import { useState } from 'react';
 import NetworksCard from './NetworksCard';
 import MessagesCard from './MessagesCard';
 import AudienceCard from './AudienceCard';
-import ScheduledCard from './ScheduledCard';
 import EngagementChart from './EngagementChart';
-import RecentActivity from './RecentActivity';
 import ScheduleTimeline from './ScheduleTimeline';
 
 interface DashboardGridProps {
@@ -22,21 +20,21 @@ const DashboardGrid = ({ chartData, networks }: DashboardGridProps) => {
         </div>
 
         {/* Middle column - two boxes stacked */}
-        <div className="col-span-12 md:col-span-5 space-y-4">
+        <div className="col-span-12 md:col-span-9 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <MessagesCard />
             <AudienceCard />
           </div>
-          <EngagementChart chartData={chartData} />
-        </div>
-
-        {/* Right column - two boxes stacked */}
-        <div className="col-span-12 md:col-span-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <RecentActivity />
-            <ScheduledCard />
+          <div className="grid grid-cols-1">
+            <div className="flex space-x-4">
+              <div className="w-1/2">
+                <EngagementChart chartData={chartData} />
+              </div>
+              <div className="w-1/2">
+                <ScheduleTimeline />
+              </div>
+            </div>
           </div>
-          <ScheduleTimeline />
         </div>
       </div>
     </div>

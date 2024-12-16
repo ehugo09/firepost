@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const ScheduleTimeline = () => {
   return (
-    <Card className="p-4 md:col-span-4">
+    <Card className="p-4 h-full">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm font-semibold">Today's Schedule</h2>
         <div className="flex items-center gap-2">
@@ -11,7 +11,7 @@ const ScheduleTimeline = () => {
           <button className="p-1 rounded-lg border"><ChevronRight className="w-3 h-3" /></button>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {[
           {
             time: "10:00 AM",
