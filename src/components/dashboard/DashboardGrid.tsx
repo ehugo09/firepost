@@ -15,8 +15,8 @@ const DashboardGrid = ({ progressData }: DashboardGridProps) => {
   ];
 
   return (
-    <div className="max-w-[800px] mx-auto px-2 mt-8"> {/* Reduced top margin from mt-16 to mt-8 */}
-      <div className="grid grid-cols-12 gap-1"> {/* Reduced gap from 2 to 1 */}
+    <div className="max-w-[800px] mx-auto px-2 mt-8">
+      <div className="grid grid-cols-12 gap-1">
         {/* Tall vertical container on the left */}
         <div className="col-span-3 row-span-2">
           <NetworksCard networks={networks} />
