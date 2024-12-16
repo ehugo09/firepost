@@ -8,15 +8,15 @@ interface DashboardGridProps {
 
 const DashboardGrid = ({ progressData }: DashboardGridProps) => {
   return (
-    <div className="max-w-[1400px] mx-auto px-4 pt-24">
+    <div className="max-w-[1400px] mx-auto px-4 pt-6">
       <div className="grid grid-cols-12 gap-4">
         {/* Left box - Progress Statistics */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-4">
+        <div className="col-span-12 md:col-span-5">
           <ProgressStats data={progressData} />
         </div>
 
         {/* Right box - Course Details */}
-        <div className="col-span-12 md:col-span-6 lg:col-span-8">
+        <div className="col-span-12 md:col-span-7">
           <CourseDetails />
         </div>
 

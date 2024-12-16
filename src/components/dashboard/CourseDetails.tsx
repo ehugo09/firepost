@@ -1,9 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 
 const CourseDetails = () => {
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-white h-full">
       <div className="flex gap-2 mb-4">
         <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">Group course</span>
         <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">Advanced</span>

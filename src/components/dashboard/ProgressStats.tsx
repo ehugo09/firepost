@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card";
 import { Clock, CheckCircle, Coffee } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
 
 interface ProgressStatsProps {
   data: Array<{ label: string; value: number; color: string }>;
@@ -20,7 +19,7 @@ const ProgressStats = ({ data }: ProgressStatsProps) => {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6 bg-white h-full">
       <h2 className="text-2xl font-semibold mb-6">Progress statistics</h2>
       <div className="mb-8">
         <div className="flex items-baseline gap-1">
