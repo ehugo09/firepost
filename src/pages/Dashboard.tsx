@@ -3,35 +3,21 @@ import DashboardGrid from "@/components/dashboard/DashboardGrid";
 import { motion } from "framer-motion";
 
 const Dashboard = () => {
-  const chartData = [
-    { name: 'Mon', value: 25 },
-    { name: 'Tue', value: 21 },
-    { name: 'Wed', value: 38 },
-    { name: 'Thu', value: 24 },
-    { name: 'Fri', value: 42 },
-    { name: 'Sat', value: 31 },
-    { name: 'Sun', value: 28 },
-  ];
-
-  const networks = [
-    { name: 'Mondly', icon: 'https://api.iconify.design/logos:twitter.svg', lessons: 8, hours: 12.5 },
-    { name: 'Zoom', icon: 'https://api.iconify.design/logos:zoom.svg', lessons: 5, hours: 6.8 },
-    { name: 'Google Meet', icon: 'https://api.iconify.design/logos:google-meet.svg', lessons: 3, hours: 4.2 },
-    { name: 'Skype', icon: 'https://api.iconify.design/logos:skype.svg', lessons: 2, hours: 2.5 },
+  const progressData = [
+    { label: 'In progress', value: 8, color: '#8B5CF6' },
+    { label: 'Completed', value: 12, color: '#2ECC71' },
+    { label: 'Upcoming', value: 14, color: '#F97316' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8F9FE]">
+    <div className="min-h-screen bg-[#f3f3f3]">
       <TopNavigation />
       <motion.main 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="min-h-screen"
       >
-        <DashboardGrid 
-          chartData={chartData}
-          networks={networks}
-        />
+        <DashboardGrid progressData={progressData} />
       </motion.main>
     </div>
   );
