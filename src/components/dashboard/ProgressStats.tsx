@@ -19,17 +19,17 @@ const ProgressStats = ({ data }: ProgressStatsProps) => {
   };
 
   return (
-    <Card className="p-6 bg-white h-full">
-      <h2 className="text-2xl font-semibold mb-6">Progress statistics</h2>
-      <div className="mb-8">
+    <Card className="p-4 bg-white h-full">
+      <h2 className="text-xl font-semibold mb-4">Progress statistics</h2>
+      <div className="mb-4">
         <div className="flex items-baseline gap-1">
-          <span className="text-6xl font-semibold">64</span>
-          <span className="text-xl text-gray-500">%</span>
+          <span className="text-4xl font-semibold">64</span>
+          <span className="text-lg text-gray-500">%</span>
         </div>
-        <p className="text-gray-500">Total activity</p>
+        <p className="text-sm text-gray-500">Total activity</p>
       </div>
 
-      <div className="flex gap-1 mb-4">
+      <div className="flex gap-1 mb-3">
         {percentages.map((item, index) => (
           <div
             key={index}
@@ -39,19 +39,19 @@ const ProgressStats = ({ data }: ProgressStatsProps) => {
         ))}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-2">
         {data.map((item, index) => {
           const Icon = icons[item.label as keyof typeof icons];
           return (
-            <div key={index} className="bg-gray-50 p-4 rounded-lg text-center">
+            <div key={index} className="bg-gray-50 p-2 rounded-lg text-center">
               <div 
-                className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center"
+                className="w-8 h-8 rounded-full mx-auto mb-1 flex items-center justify-center"
                 style={{ backgroundColor: item.color }}
               >
-                <Icon className="w-5 h-5 text-white" />
+                <Icon className="w-4 h-4 text-white" />
               </div>
-              <div className="text-2xl font-semibold">{item.value}</div>
-              <div className="text-sm text-gray-500">{item.label}</div>
+              <div className="text-lg font-semibold">{item.value}</div>
+              <div className="text-xs text-gray-500">{item.label}</div>
             </div>
           );
         })}
