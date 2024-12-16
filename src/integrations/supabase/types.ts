@@ -33,6 +33,42 @@ export type Database = {
         }
         Relationships: []
       }
+      social_connections: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          id: string
+          platform: string
+          platform_user_id: string | null
+          profile_picture: string | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          platform: string
+          platform_user_id?: string | null
+          profile_picture?: string | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          id?: string
+          platform?: string
+          platform_user_id?: string | null
+          profile_picture?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

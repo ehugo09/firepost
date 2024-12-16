@@ -2,12 +2,18 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Instagram } from "lucide-react";
 
 interface SocialConnection {
   id: string;
+  user_id: string;
   platform: string;
+  access_token: string | null;
+  platform_user_id: string | null;
   username: string | null;
   profile_picture: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export const ConnectInstagram = () => {
@@ -15,7 +21,10 @@ export const ConnectInstagram = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchConnections();
+    const session = supabase.auth.getSession();
+    if (session) {
+      fetchConnections();
+    }
   }, []);
 
   const fetchConnections = async () => {
@@ -33,7 +42,7 @@ export const ConnectInstagram = () => {
       }
 
       console.log("Fetched connections:", data);
-      setConnections(data);
+      setConnections(data || []);
     } catch (error) {
       console.error("Error in fetchConnections:", error);
       toast.error("Something went wrong");
@@ -75,7 +84,8 @@ export const ConnectInstagram = () => {
       ) : (
         <div className="text-center py-6">
           <p className="text-gray-500 mb-4">No Instagram account connected</p>
-          <Button onClick={handleConnect}>
+          <Button onClick={handleConnect} className="gap-2">
+            <Instagram className="w-4 h-4" />
             Connect Instagram
           </Button>
         </div>
