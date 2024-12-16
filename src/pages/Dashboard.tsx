@@ -15,7 +15,7 @@ const Dashboard = () => {
       <motion.main 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="h-screen pt-20 pb-4" // Reduced padding to fit in viewport
+        className="pt-16 pb-2" // Reduced padding-top and bottom
       >
         <DashboardGrid progressData={progressData} />
       </motion.main>
