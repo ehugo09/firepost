@@ -6,7 +6,7 @@ interface NetworksCardProps {
 
 const NetworksCard = ({ networks }: NetworksCardProps) => {
   return (
-    <Card className="p-4 h-full min-h-[600px]">
+    <Card className="p-4 h-full bg-white">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-sm font-semibold">Connected Networks</h2>
         <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">4 Active</span>
