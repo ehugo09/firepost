@@ -3,17 +3,44 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.onAuthStateChange((event, session) => {
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error("Error checking session:", error);
+        toast.error("Error checking authentication status");
+        return;
+      }
+
       if (session) {
+        console.log("User already authenticated, redirecting to dashboard");
+        navigate("/dashboard");
+      }
+    };
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session ? "Session exists" : "No session");
+      
+      if (event === 'SIGNED_IN' && session) {
+        toast.success("Successfully signed in!");
         navigate("/dashboard");
       }
     });
+
+    checkSession();
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
