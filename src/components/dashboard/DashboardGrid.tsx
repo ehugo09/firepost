@@ -2,6 +2,8 @@ import ProgressStats from './ProgressStats';
 import CourseDetails from './CourseDetails';
 import ScheduleView from './ScheduleView';
 import NetworksCard from './NetworksCard';
+import ShortcutsContainer from './ShortcutsContainer';
+import LatestActivityContainer from './LatestActivityContainer';
 
 interface DashboardGridProps {
   progressData: Array<{ label: string; value: number; color: string }>;
@@ -22,14 +24,14 @@ const DashboardGrid = ({ progressData }: DashboardGridProps) => {
           <NetworksCard networks={networks} />
         </div>
 
-        {/* Progress Statistics */}
+        {/* Shortcuts Container */}
         <div className="col-span-4">
-          <ProgressStats data={progressData} />
+          <ShortcutsContainer />
         </div>
 
-        {/* Course Details */}
+        {/* Latest Activity Container */}
         <div className="col-span-5">
-          <CourseDetails />
+          <LatestActivityContainer />
         </div>
 
         {/* Bottom Schedule - spans across Progress Stats and Course Details */}
