@@ -12,7 +12,7 @@ const LatestActivityContainer = () => {
       networkIcon: <Twitter className="w-4 h-4" />,
       networkColor: "text-[#1DA1F2]", // Twitter blue
       typeColor: "text-primary", // Keep green for followers
-      bgColor: "bg-primary/10" // Light green background
+      bgColor: "bg-primary" // Full opacity green background
     },
     {
       type: "message",
@@ -23,7 +23,7 @@ const LatestActivityContainer = () => {
       networkIcon: <Instagram className="w-4 h-4" />,
       networkColor: "text-[#E4405F]", // Instagram pink/red
       typeColor: "text-[#0EA5E9]", // Blue for messages
-      bgColor: "bg-[#0EA5E9]/10" // Light blue background
+      bgColor: "bg-[#0EA5E9]" // Full opacity blue background
     },
     {
       type: "follower",
@@ -34,7 +34,7 @@ const LatestActivityContainer = () => {
       networkIcon: <Linkedin className="w-4 h-4" />,
       networkColor: "text-[#0A66C2]", // LinkedIn blue
       typeColor: "text-primary", // Keep green for followers
-      bgColor: "bg-primary/10" // Light green background
+      bgColor: "bg-primary" // Full opacity green background
     }
   ];
 
