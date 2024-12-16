@@ -8,8 +8,14 @@ const Index = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("Checking auth state:", session ? "User is authenticated" : "No active session");
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log("Index page - Checking auth state:", session ? "User is authenticated" : "No active session");
+      
+      if (error) {
+        console.error("Error checking session:", error);
+        navigate('/auth');
+        return;
+      }
       
       if (session) {
         navigate('/dashboard');
@@ -21,7 +27,6 @@ const Index = () => {
     checkAuth();
   }, [navigate]);
 
-  // Show loading state while checking auth
   return (
     <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center">
       <motion.div 
