@@ -26,14 +26,12 @@ const Dashboard = () => {
       <motion.main 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="pt-20 px-8 max-w-[1400px] mx-auto"
+        className="min-h-screen"
       >
-        <div className="py-4">
-          <DashboardGrid 
-            chartData={chartData}
-            networks={networks}
-          />
-        </div>
+        <DashboardGrid 
+          chartData={chartData}
+          networks={networks}
+        />
       </motion.main>
     </div>
   );
