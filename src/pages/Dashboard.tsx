@@ -4,13 +4,13 @@ import { motion } from "framer-motion";
 
 const Dashboard = () => {
   const chartData = [
-    { name: 'Mon', value: 2.5 },
-    { name: 'Tue', value: 2.1 },
-    { name: 'Wed', value: 3.8 },
-    { name: 'Thu', value: 2.4 },
-    { name: 'Fri', value: 4.2 },
-    { name: 'Sat', value: 3.1 },
-    { name: 'Sun', value: 2.8 },
+    { name: 'Mon', value: 25 },
+    { name: 'Tue', value: 21 },
+    { name: 'Wed', value: 38 },
+    { name: 'Thu', value: 24 },
+    { name: 'Fri', value: 42 },
+    { name: 'Sat', value: 31 },
+    { name: 'Sun', value: 28 },
   ];
 
   const networks = [
