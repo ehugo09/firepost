@@ -1,69 +1,88 @@
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 
 const ScheduleView = () => {
-  const scheduleItems = [
+  const scheduledPosts = [
     {
-      time: "10:30 — 12:00",
-      title: "Technical English for Beginners",
-      level: "Beginner",
-      mentor: { name: "Kristin Watson", role: "Mentor" }
+      time: "10:30 AM",
+      content: "Introducing our latest product features! 🚀",
+      networks: ["instagram", "twitter"],
+      status: "scheduled"
     },
     {
-      time: "13:00 — 14:00",
-      title: "English punctuation made easy",
-      level: "Advanced",
-      mentor: { name: "Cody Fisher", role: "Mentor" },
+      time: "2:00 PM",
+      content: "Join our webinar on social media strategy",
+      networks: ["linkedin", "facebook"],
+      status: "draft",
       current: true
     },
     {
-      time: "16:00 — 17:00",
-      title: "Technical Spanish for Beginners",
-      level: "Beginner",
-      mentor: { name: "Jacob Jones", role: "Mentor" }
+      time: "4:30 PM",
+      content: "Customer spotlight: How Company X achieved 300% growth",
+      networks: ["linkedin", "twitter", "instagram"],
+      status: "scheduled"
     }
   ];
 
+  const getNetworkIcon = (network: string) => {
+    switch (network) {
+      case "instagram":
+        return <Instagram className="w-4 h-4 text-pink-500" />;
+      case "twitter":
+        return <Twitter className="w-4 h-4 text-blue-400" />;
+      case "facebook":
+        return <Facebook className="w-4 h-4 text-blue-600" />;
+      case "linkedin":
+        return <Linkedin className="w-4 h-4 text-blue-700" />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Card className="p-4 bg-white"> {/* Reduced padding from p-6 to p-4 */}
-      <div className="flex justify-between items-center mb-4"> {/* Reduced margin from mb-6 to mb-4 */}
-        <h2 className="text-xl font-semibold">My schedule</h2> {/* Reduced text size from 2xl to xl */}
+    <Card className="p-4 bg-white">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Scheduled Posts</h2>
         <div className="flex gap-2">
-          <button className="p-1.5 rounded-full hover:bg-gray-100"> {/* Reduced padding */}
-            <ChevronLeft className="w-4 h-4" /> {/* Reduced icon size */}
+          <button className="p-1.5 rounded-full hover:bg-gray-100">
+            <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="py-1.5 px-3">Today</span> {/* Reduced padding */}
-          <button className="p-1.5 rounded-full hover:bg-gray-100"> {/* Reduced padding */}
-            <ChevronRight className="w-4 h-4" /> {/* Reduced icon size */}
+          <span className="py-1.5 px-3">Today</span>
+          <button className="p-1.5 rounded-full hover:bg-gray-100">
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3"> {/* Reduced gap from gap-4 to gap-3 */}
-        {scheduleItems.map((item, index) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {scheduledPosts.map((post, index) => (
           <div 
             key={index}
-            className={`p-4 rounded-xl ${  /* Reduced padding from p-6 to p-4 */
-              item.current ? 'bg-[#8B5CF6] text-white' : 'bg-gray-50'
+            className={`p-4 rounded-xl ${
+              post.current ? 'bg-[#8B5CF6] text-white' : 'bg-gray-50'
             }`}
           >
-            <div className="text-sm mb-1">{item.time}</div> {/* Reduced margin */}
-            <h3 className="text-base font-medium mb-1.5">{item.title}</h3> {/* Reduced text size and margin */}
-            <span className={`inline-block px-2.5 py-0.5 rounded-full text-sm mb-3 ${
-              item.current ? 'bg-white/20' : 'bg-blue-100 text-blue-700'
-            }`}>
-              {item.level}
-            </span>
-            <div className="flex items-center gap-2"> {/* Reduced gap */}
-              <div className="w-6 h-6 rounded-full bg-gray-200" /> {/* Reduced avatar size */}
-              <div>
-                <div className={`font-medium ${item.current ? 'text-white' : 'text-gray-900'}`}>
-                  {item.mentor.name}
-                </div>
-                <div className={item.current ? 'text-white/80' : 'text-gray-500'}>
-                  {item.mentor.role}
-                </div>
+            <div className="text-sm mb-2">{post.time}</div>
+            <p className="text-sm font-medium mb-3 line-clamp-2">{post.content}</p>
+            
+            <div className="flex justify-between items-center mb-2">
+              <div className="flex gap-1.5">
+                {post.networks.map((network, idx) => (
+                  <span key={idx} className={`${post.current ? 'text-white' : ''}`}>
+                    {getNetworkIcon(network)}
+                  </span>
+                ))}
               </div>
+              <span className={`text-xs px-2 py-1 rounded-full ${
+                post.current 
+                  ? 'bg-white/20' 
+                  : post.status === 'draft' 
+                    ? 'bg-yellow-100 text-yellow-700' 
+                    : 'bg-green-100 text-green-700'
+              }`}>
+                {post.status}
+              </span>
             </div>
           </div>
         ))}
