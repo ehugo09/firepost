@@ -60,7 +60,7 @@ const ScheduleView = () => {
           <div 
             key={index}
             className={`p-4 rounded-xl ${
-              post.current ? 'bg-[#8B5CF6] text-white' : 'bg-gray-50'
+              post.current ? 'bg-primary text-white' : 'bg-gray-50'
             }`}
           >
             <div className="text-sm mb-2">{post.time}</div>
