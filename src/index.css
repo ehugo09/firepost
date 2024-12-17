@@ -31,7 +31,7 @@
   .dark {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 15%;
+    --card: 217 33% 17%;
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
@@ -73,4 +73,29 @@
 
 .font-inter {
   font-family: 'Inter', sans-serif;
+}
+
+.dark .card,
+.dark [class*="bg-white"] {
+  @apply bg-gray-800 text-gray-100;
+}
+
+.dark .bg-gray-50 {
+  @apply bg-gray-900;
+}
+
+.dark .border {
+  @apply border-gray-700;
+}
+
+.dark .text-gray-500 {
+  @apply text-gray-400;
+}
+
+.dark .text-gray-600 {
+  @apply text-gray-300;
+}
+
+.dark .text-gray-900 {
+  @apply text-white;
 }
