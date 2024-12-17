@@ -10,7 +10,7 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f3f3f3] dark:bg-gray-900 transition-colors">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0f172a] transition-colors">
       <TopNavigation />
       <motion.main 
         initial={{ opacity: 0, y: 20 }}
