@@ -2,9 +2,34 @@ import { Card } from "@/components/ui/card";
 import { Send, FilePlus, ChartBar, MessageSquare, Twitter, Instagram, Facebook, Linkedin } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface SocialConnection {
+  platform: string;
+  username: string | null;
+}
 
 const ShortcutsContainer = () => {
   const navigate = useNavigate();
+  const [connections, setConnections] = useState<SocialConnection[]>([]);
+  
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  const fetchConnections = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('social_connections')
+        .select('platform, username');
+
+      if (error) throw error;
+      setConnections(data || []);
+    } catch (error) {
+      console.error("Error fetching connections:", error);
+    }
+  };
   
   const shortcuts = [
     { icon: <Send className="w-5 h-5" />, label: "New Post", action: () => console.log("New post") },
@@ -17,28 +42,36 @@ const ShortcutsContainer = () => {
     { 
       icon: <Twitter className="w-6 h-6" />, 
       label: "Twitter/X", 
+      platform: "twitter",
       action: () => navigate("/compose/twitter"),
       bgColor: "hover:bg-blue-50 dark:hover:bg-blue-950"
     },
     { 
       icon: <Instagram className="w-6 h-6" />, 
       label: "Instagram",
+      platform: "instagram",
       action: () => console.log("Instagram selected"),
       bgColor: "hover:bg-pink-50 dark:hover:bg-pink-950"
     },
     { 
       icon: <Facebook className="w-6 h-6" />, 
       label: "Facebook",
+      platform: "facebook",
       action: () => console.log("Facebook selected"),
       bgColor: "hover:bg-blue-50 dark:hover:bg-blue-950"
     },
     { 
       icon: <Linkedin className="w-6 h-6" />, 
       label: "LinkedIn",
+      platform: "linkedin",
       action: () => console.log("LinkedIn selected"),
       bgColor: "hover:bg-blue-50 dark:hover:bg-blue-950"
     }
   ];
+
+  const isConnected = (platform: string) => {
+    return connections.some(conn => conn.platform === platform);
+  };
 
   return (
     <Card className="p-4 h-full bg-white dark:bg-gray-800">
@@ -60,16 +93,29 @@ const ShortcutsContainer = () => {
                   <DialogTitle>Choose Platform</DialogTitle>
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4 py-4">
-                  {socialNetworks.map((network, idx) => (
-                    <button
-                      key={idx}
-                      onClick={network.action}
-                      className={`flex items-center gap-3 p-4 rounded-lg border ${network.bgColor} transition-colors`}
-                    >
-                      {network.icon}
-                      <span className="text-sm font-medium">{network.label}</span>
-                    </button>
-                  ))}
+                  {socialNetworks.map((network, idx) => {
+                    const connected = isConnected(network.platform);
+                    return (
+                      <button
+                        key={idx}
+                        onClick={connected ? network.action : undefined}
+                        disabled={!connected}
+                        className={`flex items-center gap-3 p-4 rounded-lg border ${network.bgColor} transition-colors ${
+                          !connected ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                      >
+                        {network.icon}
+                        <div className="text-left">
+                          <span className="text-sm font-medium block">{network.label}</span>
+                          {connected ? (
+                            <span className="text-xs text-green-600">Connected</span>
+                          ) : (
+                            <span className="text-xs text-gray-500">Not connected</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </DialogContent>
             </Dialog>

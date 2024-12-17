@@ -49,51 +49,47 @@ const NetworksCard = ({ networks }: NetworksCardProps) => {
     }
   };
 
-  const socialStats = [
-    {
-      icon: <Users className="w-4 h-4 text-purple-500" />,
-      label: "Total Followers",
-      value: "12.5K",
-      change: "+2.4%",
-      changeColor: "text-green-500"
-    },
-    {
-      icon: <BarChart3 className="w-4 h-4 text-blue-500" />,
-      label: "Engagement Rate",
-      value: "4.8%",
-      change: "+0.8%",
-      changeColor: "text-green-500"
-    },
-    {
-      icon: <MessageSquare className="w-4 h-4 text-orange-500" />,
-      label: "Messages",
-      value: "48",
-      change: "12 new",
-      changeColor: "text-blue-500"
-    }
-  ];
+  const openTwitterPopup = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('twitter', {
+        body: { action: 'connect' }
+      });
 
-  const socialNetworks = [
-    { name: "Instagram", icon: <Instagram className="w-4 h-4" />, platform: "instagram" },
-    { name: "Twitter", icon: <Twitter className="w-4 h-4" />, platform: "twitter" },
-    { name: "Facebook", icon: <Facebook className="w-4 h-4" />, platform: "facebook" },
-    { name: "LinkedIn", icon: <Linkedin className="w-4 h-4" />, platform: "linkedin" }
-  ];
+      if (error) throw error;
+      
+      if (data.url) {
+        const width = 600;
+        const height = 600;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+        
+        const popup = window.open(
+          data.url,
+          'Twitter Auth',
+          `width=${width},height=${height},left=${left},top=${top}`
+        );
+
+        // Poll for popup close and refresh connections
+        const checkPopup = setInterval(() => {
+          if (!popup || popup.closed) {
+            clearInterval(checkPopup);
+            fetchConnections(); // Refresh the connections list
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Connection error:", error);
+      toast.error("Failed to connect to Twitter");
+    }
+  };
 
   const handleConnect = async (networkName: string, platform: string) => {
     console.log(`Connecting to ${networkName}...`);
+    toast.info(`Connecting to ${networkName}...`);
     
     try {
       if (platform === "twitter") {
-        const { data, error } = await supabase.functions.invoke('twitter', {
-          body: { action: 'connect' }
-        });
-
-        if (error) throw error;
-        
-        if (data.url) {
-          window.location.href = data.url;
-        }
+        await openTwitterPopup();
       } else {
         toast.info(`${networkName} integration coming soon!`);
       }
@@ -123,6 +119,37 @@ const NetworksCard = ({ networks }: NetworksCardProps) => {
       </Card>
     );
   }
+
+  const socialNetworks = [
+    { name: "Twitter", icon: <Twitter className="w-4 h-4" />, platform: "twitter" },
+    { name: "Instagram", icon: <Instagram className="w-4 h-4" />, platform: "instagram" },
+    { name: "Facebook", icon: <Facebook className="w-4 h-4" />, platform: "facebook" },
+    { name: "LinkedIn", icon: <Linkedin className="w-4 h-4" />, platform: "linkedin" }
+  ];
+
+  const socialStats = [
+    {
+      icon: <Users className="w-4 h-4 text-purple-500" />,
+      label: "Total Followers",
+      value: "12.5K",
+      change: "+2.4%",
+      changeColor: "text-green-500"
+    },
+    {
+      icon: <BarChart3 className="w-4 h-4 text-blue-500" />,
+      label: "Engagement Rate",
+      value: "4.8%",
+      change: "+0.8%",
+      changeColor: "text-green-500"
+    },
+    {
+      icon: <MessageSquare className="w-4 h-4 text-orange-500" />,
+      label: "Messages",
+      value: "48",
+      change: "12 new",
+      changeColor: "text-blue-500"
+    }
+  ];
 
   return (
     <Card className="p-2 h-full bg-white">
