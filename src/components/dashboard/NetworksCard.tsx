@@ -2,12 +2,53 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Facebook, Twitter, Instagram, Linkedin, Users, BarChart3, MessageSquare, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 interface NetworksCardProps {
   networks: Array<{ name: string; icon: string; lessons: number; hours: number }>;
 }
 
+interface SocialConnection {
+  id: string;
+  platform: string;
+  username: string | null;
+  profile_picture: string | null;
+}
+
 const NetworksCard = ({ networks }: NetworksCardProps) => {
+  const [connections, setConnections] = useState<SocialConnection[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchConnections();
+  }, []);
+
+  const fetchConnections = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log("No active session");
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('social_connections')
+        .select('*');
+
+      if (error) throw error;
+
+      console.log("Fetched connections:", data);
+      setConnections(data || []);
+    } catch (error) {
+      console.error("Error fetching connections:", error);
+      toast.error("Failed to load social connections");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const socialStats = [
     {
       icon: <Users className="w-4 h-4 text-purple-500" />,
@@ -33,27 +74,63 @@ const NetworksCard = ({ networks }: NetworksCardProps) => {
   ];
 
   const socialNetworks = [
-    { name: "Instagram", icon: <Instagram className="w-4 h-4" />, status: "disconnected" },
-    { name: "Twitter", icon: <Twitter className="w-4 h-4" />, status: "disconnected" },
-    { name: "Facebook", icon: <Facebook className="w-4 h-4" />, status: "disconnected" },
-    { name: "LinkedIn", icon: <Linkedin className="w-4 h-4" />, status: "disconnected" }
+    { name: "Instagram", icon: <Instagram className="w-4 h-4" />, platform: "instagram" },
+    { name: "Twitter", icon: <Twitter className="w-4 h-4" />, platform: "twitter" },
+    { name: "Facebook", icon: <Facebook className="w-4 h-4" />, platform: "facebook" },
+    { name: "LinkedIn", icon: <Linkedin className="w-4 h-4" />, platform: "linkedin" }
   ];
 
-  const handleConnect = (networkName: string) => {
+  const handleConnect = async (networkName: string, platform: string) => {
     console.log(`Connecting to ${networkName}...`);
-    if (networkName === "Twitter") {
-      // Handle Twitter connection
-      toast.info("Connecting to Twitter...");
-    } else {
-      toast.info(`${networkName} integration coming soon!`);
+    
+    try {
+      if (platform === "twitter") {
+        const { data, error } = await supabase.functions.invoke('twitter', {
+          body: { action: 'connect' }
+        });
+
+        if (error) throw error;
+        
+        if (data.url) {
+          window.location.href = data.url;
+        }
+      } else {
+        toast.info(`${networkName} integration coming soon!`);
+      }
+    } catch (error) {
+      console.error("Connection error:", error);
+      toast.error(`Failed to connect to ${networkName}`);
     }
   };
+
+  const isConnected = (platform: string) => {
+    return connections.some(conn => conn.platform === platform);
+  };
+
+  const activeConnections = connections.length;
+
+  if (loading) {
+    return (
+      <Card className="p-2 h-full bg-white">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-10 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-2 h-full bg-white">
       <div className="flex justify-between items-center mb-2">
         <h2 className="text-sm font-semibold">Social Networks</h2>
-        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">0 Active</span>
+        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">
+          {activeConnections} Active
+        </span>
       </div>
 
       {/* Social Networks Section */}
@@ -65,11 +142,11 @@ const NetworksCard = ({ networks }: NetworksCardProps) => {
                 {network.icon}
                 <span className="text-sm font-medium">{network.name}</span>
               </div>
-              {network.status === "connected" ? (
+              {isConnected(network.platform) ? (
                 <span className="text-green-500">●</span>
               ) : (
                 <button 
-                  onClick={() => handleConnect(network.name)}
+                  onClick={() => handleConnect(network.name, network.platform)}
                   className="text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
