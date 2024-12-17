@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
+import ComposeTwitter from "./pages/ComposeTwitter";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -65,6 +66,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/compose/twitter" 
+              element={
+                <ProtectedRoute>
+                  <ComposeTwitter />
                 </ProtectedRoute>
               } 
             />
