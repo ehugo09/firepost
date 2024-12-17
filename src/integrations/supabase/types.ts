@@ -41,6 +41,7 @@ export type Database = {
           platform: string
           platform_user_id: string | null
           profile_picture: string | null
+          twitter_credentials: Json | null
           updated_at: string
           user_id: string
           username: string | null
@@ -52,6 +53,7 @@ export type Database = {
           platform: string
           platform_user_id?: string | null
           profile_picture?: string | null
+          twitter_credentials?: Json | null
           updated_at?: string
           user_id: string
           username?: string | null
@@ -63,6 +65,7 @@ export type Database = {
           platform?: string
           platform_user_id?: string | null
           profile_picture?: string | null
+          twitter_credentials?: Json | null
           updated_at?: string
           user_id?: string
           username?: string | null

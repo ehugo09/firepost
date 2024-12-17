@@ -10,12 +10,12 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f3f3f3]">
+    <div className="min-h-screen bg-[#f3f3f3] dark:bg-gray-900 transition-colors">
       <TopNavigation />
       <motion.main 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="pt-16 pb-2" // Reduced padding-top and bottom
+        className="pt-16 pb-2"
       >
         <DashboardGrid progressData={progressData} />
       </motion.main>
