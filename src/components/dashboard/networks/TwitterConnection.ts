@@ -3,13 +3,19 @@ import { toast } from "sonner";
 
 export const handleTwitterCallback = async (code: string, state: string) => {
   try {
+    console.log("Starting Twitter callback handling with code:", code);
+    
     // Verify state matches
     const storedState = localStorage.getItem('twitter_oauth_state');
+    console.log("Comparing states:", { stored: storedState, received: state });
+    
     if (state !== storedState) {
+      console.error("State mismatch:", { stored: storedState, received: state });
       throw new Error('Invalid state parameter');
     }
 
     // Exchange code for token
+    console.log("Exchanging code for token...");
     const { data: callbackData, error: callbackError } = await supabase.functions.invoke('twitter', {
       body: { 
         action: 'callback',
@@ -18,12 +24,21 @@ export const handleTwitterCallback = async (code: string, state: string) => {
       }
     });
 
-    if (callbackError) throw callbackError;
+    if (callbackError) {
+      console.error("Callback error:", callbackError);
+      throw callbackError;
+    }
+
+    console.log("Received callback data:", callbackData);
 
     // Save connection to database
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) throw new Error('No active session');
+    if (!session?.user) {
+      console.error("No active session found");
+      throw new Error('No active session');
+    }
 
+    console.log("Saving connection to database...");
     const { error: insertError } = await supabase
       .from('social_connections')
       .upsert({
@@ -34,7 +49,10 @@ export const handleTwitterCallback = async (code: string, state: string) => {
         twitter_credentials: callbackData
       });
 
-    if (insertError) throw insertError;
+    if (insertError) {
+      console.error("Database insert error:", insertError);
+      throw insertError;
+    }
 
     // Clean up
     localStorage.removeItem('twitter_oauth_state');
@@ -53,11 +71,18 @@ export const handleTwitterCallback = async (code: string, state: string) => {
 
 export const openTwitterPopup = async () => {
   try {
+    console.log("Starting Twitter connection process...");
+    
     const { data, error } = await supabase.functions.invoke('twitter', {
       body: { action: 'connect' }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Connection error:", error);
+      throw error;
+    }
+    
+    console.log("Received auth data:", data);
     
     if (data.url) {
       const width = 600;
@@ -65,6 +90,7 @@ export const openTwitterPopup = async () => {
       const left = window.screen.width / 2 - width / 2;
       const top = window.screen.height / 2 - height / 2;
       
+      console.log("Opening popup with URL:", data.url);
       const popup = window.open(
         data.url,
         'Twitter Auth',
@@ -74,11 +100,14 @@ export const openTwitterPopup = async () => {
       // Store state and verifier
       localStorage.setItem('twitter_oauth_state', data.state);
       localStorage.setItem('twitter_code_verifier', data.codeVerifier);
+      console.log("Stored state and verifier in localStorage");
 
       if (popup) {
+        console.log("Popup opened successfully");
         const checkPopup = setInterval(async () => {
           try {
             if (popup.closed) {
+              console.log("Popup was closed");
               clearInterval(checkPopup);
               localStorage.removeItem('twitter_oauth_state');
               localStorage.removeItem('twitter_code_verifier');
@@ -87,6 +116,7 @@ export const openTwitterPopup = async () => {
 
             // Check if the popup URL contains the code parameter
             if (popup.location.href.includes('code=')) {
+              console.log("Found code in popup URL:", popup.location.href);
               const url = new URL(popup.location.href);
               const code = url.searchParams.get('code');
               const state = url.searchParams.get('state');
@@ -95,6 +125,9 @@ export const openTwitterPopup = async () => {
               
               popup.close();
               clearInterval(checkPopup);
+              
+              // Force a page reload to update the UI
+              window.location.reload();
             }
           } catch (error: any) {
             // Ignore errors from cross-origin frames
@@ -104,6 +137,9 @@ export const openTwitterPopup = async () => {
             }
           }
         }, 1000);
+      } else {
+        console.error("Failed to open popup window");
+        toast.error("Failed to open authentication window");
       }
     }
   } catch (error) {

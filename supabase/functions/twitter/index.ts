@@ -27,8 +27,8 @@ serve(async (req) => {
       throw new Error("Twitter credentials not configured");
     }
 
-    const { action, code, state } = await req.json();
-    console.log("Received request:", { action, code, state });
+    const { action, code, codeVerifier } = await req.json();
+    console.log("Received request:", { action, code: code ? "present" : "absent" });
 
     if (action === 'connect') {
       // Generate OAuth URL for Twitter
@@ -36,11 +36,10 @@ serve(async (req) => {
       const codeVerifier = crypto.randomUUID();
       const codeChallenge = codeVerifier; // For simplicity, using plain method
       
-      // Store the code verifier in the session for later use
       const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
       const redirectUri = new URL('/auth/callback/twitter', SUPABASE_URL).toString();
       
-      console.log("Redirect URI:", redirectUri);
+      console.log("Generated redirect URI:", redirectUri);
       
       // Add all required parameters
       const params = new URLSearchParams({
@@ -71,9 +70,12 @@ serve(async (req) => {
       );
     } else if (action === 'callback') {
       if (!code) {
+        console.error("No code provided in callback");
         throw new Error('No code provided');
       }
 
+      console.log("Processing callback with code");
+      
       // Exchange the code for access token
       const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
       const redirectUri = new URL('/auth/callback/twitter', SUPABASE_URL).toString();
@@ -82,7 +84,8 @@ serve(async (req) => {
         grant_type: 'authorization_code',
         code,
         redirect_uri: redirectUri,
-        code_verifier: state // We're using the state as code verifier for simplicity
+        code_verifier: codeVerifier,
+        client_id: TWITTER_CLIENT_ID,
       });
 
       console.log("Token request params:", params.toString());
@@ -96,14 +99,16 @@ serve(async (req) => {
         body: params
       });
 
+      const responseText = await response.text();
+      console.log("Token response:", responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Token exchange failed:", errorText);
-        throw new Error(`Failed to exchange code: ${errorText}`);
+        console.error("Token exchange failed:", responseText);
+        throw new Error(`Failed to exchange code: ${responseText}`);
       }
 
-      const tokenData = await response.json();
-      console.log("Received token data:", tokenData);
+      const tokenData = JSON.parse(responseText);
+      console.log("Parsed token data:", tokenData);
 
       // Get user info
       const userResponse = await fetch('https://api.twitter.com/2/users/me', {
@@ -112,17 +117,23 @@ serve(async (req) => {
         }
       });
 
+      const userResponseText = await userResponse.text();
+      console.log("User info response:", userResponseText);
+
       if (!userResponse.ok) {
-        const errorText = await userResponse.text();
-        console.error("User info request failed:", errorText);
-        throw new Error(`Failed to get user info: ${errorText}`);
+        console.error("User info request failed:", userResponseText);
+        throw new Error(`Failed to get user info: ${userResponseText}`);
       }
 
-      const userData = await userResponse.json();
-      console.log("Received user data:", userData);
+      const userData = JSON.parse(userResponseText);
+      console.log("Parsed user data:", userData);
 
       return new Response(
-        JSON.stringify({ success: true, user: userData.data }),
+        JSON.stringify({ 
+          success: true, 
+          user: userData.data,
+          tokens: tokenData
+        }),
         { 
           headers: { 
             ...corsHeaders, 
