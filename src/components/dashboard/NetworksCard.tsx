@@ -66,12 +66,63 @@ const NetworksCard = () => {
           `width=${width},height=${height},left=${left},top=${top}`
         );
 
-        const checkPopup = setInterval(() => {
-          if (!popup || popup.closed) {
-            clearInterval(checkPopup);
-            fetchConnections();
-          }
-        }, 1000);
+        // Store state and verifier
+        localStorage.setItem('twitter_oauth_state', data.state);
+        localStorage.setItem('twitter_code_verifier', data.codeVerifier);
+
+        if (popup) {
+          const checkPopup = setInterval(async () => {
+            try {
+              // Check if the popup URL contains the code parameter
+              if (popup.location.href.includes('code=')) {
+                const url = new URL(popup.location.href);
+                const code = url.searchParams.get('code');
+                const state = url.searchParams.get('state');
+                
+                // Verify state matches
+                const storedState = localStorage.getItem('twitter_oauth_state');
+                if (state !== storedState) {
+                  throw new Error('Invalid state parameter');
+                }
+
+                // Exchange code for token
+                const { data: callbackData, error: callbackError } = await supabase.functions.invoke('twitter', {
+                  body: { 
+                    action: 'callback',
+                    code,
+                    state: localStorage.getItem('twitter_code_verifier')
+                  }
+                });
+
+                if (callbackError) throw callbackError;
+
+                console.log("Twitter connection successful:", callbackData);
+                toast.success("Successfully connected to Twitter!");
+                
+                // Clean up
+                localStorage.removeItem('twitter_oauth_state');
+                localStorage.removeItem('twitter_code_verifier');
+                popup.close();
+                clearInterval(checkPopup);
+                
+                // Refresh connections
+                fetchConnections();
+              }
+              
+              if (popup.closed) {
+                clearInterval(checkPopup);
+                localStorage.removeItem('twitter_oauth_state');
+                localStorage.removeItem('twitter_code_verifier');
+              }
+            } catch (error) {
+              // Ignore errors from cross-origin frames
+              if (!error.message.includes('cross-origin')) {
+                console.error("Error in popup check:", error);
+                clearInterval(checkPopup);
+              }
+            }
+          }, 1000);
+        }
       }
     } catch (error) {
       console.error("Connection error:", error);
