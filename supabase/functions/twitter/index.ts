@@ -1,18 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CONSUMER_KEY')?.trim();
 const TWITTER_CLIENT_SECRET = Deno.env.get('TWITTER_CONSUMER_SECRET')?.trim();
-
-// Initialize Supabase client with service role key for admin access
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -34,14 +28,14 @@ serve(async (req) => {
       // Generate OAuth URL for Twitter
       const state = crypto.randomUUID();
       const codeVerifier = crypto.randomUUID();
-      const codeChallenge = codeVerifier; // For simplicity, using plain method
+      const codeChallenge = codeVerifier; // Using plain method as per Twitter docs
       
       const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
-      const redirectUri = new URL('/auth/callback/twitter', SUPABASE_URL).toString();
+      const redirectUri = `${Deno.env.get('SUPABASE_URL')}/auth/callback/twitter`;
       
       console.log("Generated redirect URI:", redirectUri);
       
-      // Add all required parameters
+      // Add required OAuth 2.0 parameters
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: TWITTER_CLIENT_ID,
@@ -76,9 +70,9 @@ serve(async (req) => {
 
       console.log("Processing callback with code");
       
-      // Exchange the code for access token
+      // Exchange code for access token
       const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
-      const redirectUri = new URL('/auth/callback/twitter', SUPABASE_URL).toString();
+      const redirectUri = `${Deno.env.get('SUPABASE_URL')}/auth/callback/twitter`;
       
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
@@ -90,11 +84,12 @@ serve(async (req) => {
 
       console.log("Token request params:", params.toString());
 
+      const basicAuth = btoa(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`);
       const response = await fetch(tokenUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${btoa(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`)}`
+          'Authorization': `Basic ${basicAuth}`
         },
         body: params
       });
