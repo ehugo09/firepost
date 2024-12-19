@@ -10,18 +10,12 @@ interface DashboardGridProps {
 }
 
 const DashboardGrid = ({ progressData }: DashboardGridProps) => {
-  const networks = [
-    { name: 'Instagram', icon: '/instagram.png', lessons: 12, hours: 24 },
-    { name: 'Twitter', icon: '/twitter.png', lessons: 8, hours: 16 },
-    { name: 'LinkedIn', icon: '/linkedin.png', lessons: 6, hours: 12 },
-  ];
-
   return (
     <div className="max-w-[800px] mx-auto px-2 mt-8">
       <div className="grid grid-cols-12 gap-1">
         {/* Tall vertical container on the left */}
         <div className="col-span-3 row-span-2">
-          <NetworksCard networks={networks} />
+          <NetworksCard />
         </div>
 
         {/* Shortcuts Container */}
