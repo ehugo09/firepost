@@ -21,13 +21,27 @@ serve(async (req) => {
   }
 
   try {
+    // Log request details
+    console.log("Request method:", req.method);
+    console.log("Request headers:", Object.fromEntries(req.headers.entries()));
+
     const { action } = await req.json();
     console.log("Received action:", action);
+
+    // Verify environment variables
+    if (!TWITTER_CLIENT_ID || !TWITTER_CLIENT_SECRET) {
+      console.error("Missing Twitter credentials");
+      throw new Error("Twitter credentials not configured");
+    }
 
     if (action === 'connect') {
       // Generate OAuth URL for Twitter
       const state = Math.random().toString(36).substring(7);
       const codeVerifier = Math.random().toString(36).substring(7);
+      
+      console.log("Generated state:", state);
+      console.log("Generated code verifier:", codeVerifier);
+      console.log("Callback URL:", CALLBACK_URL);
       
       const authUrl = `https://twitter.com/i/oauth2/authorize` +
         `?response_type=code` +
