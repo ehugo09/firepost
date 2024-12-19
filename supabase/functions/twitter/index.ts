@@ -30,8 +30,8 @@ serve(async (req) => {
       const codeVerifier = crypto.randomUUID();
       const codeChallenge = codeVerifier; // Using plain method as per Twitter docs
       
-      // Use the exact redirect URI that matches Supabase configuration
-      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/callback/twitter';
+      // Use the exact redirect URI provided by Supabase
+      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
       
       console.log("Using redirect URI:", redirectUri);
       
@@ -72,7 +72,7 @@ serve(async (req) => {
       console.log("Processing callback with code");
       
       // Use the same redirect URI as in the connect flow
-      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/callback/twitter';
+      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
       
       // Exchange code for access token
       const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
