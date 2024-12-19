@@ -1,5 +1,5 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,29 +15,38 @@ const CALLBACK_URL = `${SUPABASE_URL}/auth/v1/callback`;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { action } = await req.json();
+    console.log("Received action:", action);
 
     if (action === 'connect') {
       // Generate OAuth URL for Twitter
       const state = Math.random().toString(36).substring(7);
-      const authUrl = `https://twitter.com/i/oauth2/authorize?` +
-        `response_type=code` +
-        `&client_id=${TWITTER_CLIENT_ID}` +
+      const codeVerifier = Math.random().toString(36).substring(7);
+      
+      const authUrl = `https://twitter.com/i/oauth2/authorize` +
+        `?response_type=code` +
+        `&client_id=${encodeURIComponent(TWITTER_CLIENT_ID)}` +
         `&redirect_uri=${encodeURIComponent(CALLBACK_URL)}` +
         `&scope=tweet.read tweet.write users.read offline.access` +
         `&state=${state}` +
-        `&code_challenge_method=plain` +
-        `&code_challenge=${state}`;
+        `&code_challenge=${codeVerifier}` +
+        `&code_challenge_method=plain`;
+
+      console.log("Generated auth URL:", authUrl);
 
       return new Response(
         JSON.stringify({ url: authUrl }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          },
         },
       );
     }
