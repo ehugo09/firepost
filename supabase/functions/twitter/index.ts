@@ -30,12 +30,13 @@ serve(async (req) => {
       const codeVerifier = crypto.randomUUID();
       const codeChallenge = codeVerifier; // Using plain method as per Twitter docs
       
-      const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
-      const redirectUri = `${Deno.env.get('SUPABASE_URL')}/auth/callback/twitter`;
+      // Use the exact redirect URI that matches Supabase configuration
+      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/callback/twitter';
       
-      console.log("Generated redirect URI:", redirectUri);
+      console.log("Using redirect URI:", redirectUri);
       
       // Add required OAuth 2.0 parameters
+      const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: TWITTER_CLIENT_ID,
@@ -70,9 +71,11 @@ serve(async (req) => {
 
       console.log("Processing callback with code");
       
+      // Use the same redirect URI as in the connect flow
+      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/callback/twitter';
+      
       // Exchange code for access token
       const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
-      const redirectUri = `${Deno.env.get('SUPABASE_URL')}/auth/callback/twitter`;
       
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
