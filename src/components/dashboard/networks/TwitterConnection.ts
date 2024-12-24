@@ -46,7 +46,7 @@ export const handleTwitterCallback = async (code: string, state: string) => {
         platform: 'twitter',
         username: callbackData.user.username,
         platform_user_id: callbackData.user.id,
-        twitter_credentials: callbackData
+        twitter_credentials: callbackData.tokens
       });
 
     if (insertError) {

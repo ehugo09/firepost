@@ -7,6 +7,7 @@ const corsHeaders = {
 
 const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CONSUMER_KEY')?.trim();
 const TWITTER_CLIENT_SECRET = Deno.env.get('TWITTER_CONSUMER_SECRET')?.trim();
+const CALLBACK_URL = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -30,17 +31,14 @@ serve(async (req) => {
       const codeVerifier = crypto.randomUUID();
       const codeChallenge = codeVerifier; // Using plain method as per Twitter docs
       
-      // Use the exact redirect URI provided by Supabase
-      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
-      
-      console.log("Using redirect URI:", redirectUri);
+      console.log("Using callback URL:", CALLBACK_URL);
       
       // Add required OAuth 2.0 parameters
       const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: TWITTER_CLIENT_ID,
-        redirect_uri: redirectUri,
+        redirect_uri: CALLBACK_URL,
         scope: 'tweet.read tweet.write users.read offline.access',
         state: state,
         code_challenge: codeChallenge,
@@ -71,16 +69,13 @@ serve(async (req) => {
 
       console.log("Processing callback with code");
       
-      // Use the same redirect URI as in the connect flow
-      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
-      
       // Exchange code for access token
       const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
       
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
         code,
-        redirect_uri: redirectUri,
+        redirect_uri: CALLBACK_URL,
         code_verifier: codeVerifier,
         client_id: TWITTER_CLIENT_ID,
       });
@@ -108,7 +103,7 @@ serve(async (req) => {
       const tokenData = JSON.parse(responseText);
       console.log("Parsed token data:", tokenData);
 
-      // Get user info
+      // Get user info using the new access token
       const userResponse = await fetch('https://api.twitter.com/2/users/me', {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`
