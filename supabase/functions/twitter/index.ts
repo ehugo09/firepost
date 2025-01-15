@@ -1,156 +1,121 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { generateCodeVerifier, generateState } from 'https://esm.sh/pkce-gen@1.1.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+}
 
-const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CONSUMER_KEY')?.trim();
-const TWITTER_CLIENT_SECRET = Deno.env.get('TWITTER_CONSUMER_SECRET')?.trim();
-const CALLBACK_URL = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
+const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CONSUMER_KEY')
+const TWITTER_CLIENT_SECRET = Deno.env.get('TWITTER_CONSUMER_SECRET')
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Verify environment variables
-    if (!TWITTER_CLIENT_ID || !TWITTER_CLIENT_SECRET) {
-      console.error("Missing Twitter credentials");
-      throw new Error("Twitter credentials not configured");
-    }
-
-    const { action, code, codeVerifier } = await req.json();
-    console.log("Received request:", { action, code: code ? "present" : "absent" });
+    const { action, code, codeVerifier } = await req.json()
+    console.log('Received request with action:', action)
 
     if (action === 'connect') {
-      // Generate OAuth URL for Twitter
-      const state = crypto.randomUUID();
-      const codeVerifier = crypto.randomUUID();
-      const codeChallenge = codeVerifier; // Using plain method as per Twitter docs
-      
-      console.log("Using callback URL:", CALLBACK_URL);
-      
-      // Add required OAuth 2.0 parameters
-      const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
-      const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: TWITTER_CLIENT_ID,
-        redirect_uri: CALLBACK_URL,
-        scope: 'tweet.read tweet.write users.read offline.access',
-        state: state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'plain'
-      });
-      
-      authUrl.search = params.toString();
-      console.log("Generated auth URL:", authUrl.toString());
+      const state = generateState()
+      const newCodeVerifier = generateCodeVerifier()
+      const challenge = newCodeVerifier // For Twitter, the challenge is the same as verifier
+
+      // Get the host from the request URL
+      const url = new URL(req.url)
+      const redirectUri = `${url.protocol}//${url.host}/dashboard`
+      console.log('Generated redirect URI:', redirectUri)
+
+      const authUrl = new URL('https://twitter.com/i/oauth2/authorize')
+      authUrl.searchParams.append('response_type', 'code')
+      authUrl.searchParams.append('client_id', TWITTER_CLIENT_ID!)
+      authUrl.searchParams.append('redirect_uri', redirectUri)
+      authUrl.searchParams.append('scope', 'tweet.read tweet.write users.read offline.access')
+      authUrl.searchParams.append('state', state)
+      authUrl.searchParams.append('code_challenge', challenge)
+      authUrl.searchParams.append('code_challenge_method', 'plain')
+
+      console.log('Generated auth URL:', authUrl.toString())
 
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           url: authUrl.toString(),
           state,
-          codeVerifier
+          codeVerifier: newCodeVerifier,
         }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          },
-        },
-      );
-    } else if (action === 'callback') {
-      if (!code) {
-        console.error("No code provided in callback");
-        throw new Error('No code provided');
-      }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-      console.log("Processing callback with code");
+    if (action === 'callback') {
+      console.log('Processing callback with code:', code)
       
-      // Exchange code for access token
-      const tokenUrl = 'https://api.twitter.com/2/oauth2/token';
-      
-      const params = new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: CALLBACK_URL,
-        code_verifier: codeVerifier,
-        client_id: TWITTER_CLIENT_ID,
-      });
+      // Get the host from the request URL
+      const url = new URL(req.url)
+      const redirectUri = `${url.protocol}//${url.host}/dashboard`
+      console.log('Using redirect URI for token exchange:', redirectUri)
 
-      console.log("Token request params:", params.toString());
-
-      const basicAuth = btoa(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`);
-      const response = await fetch(tokenUrl, {
+      const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${basicAuth}`
+          Authorization: `Basic ${btoa(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`)}`,
         },
-        body: params
-      });
+        body: new URLSearchParams({
+          code,
+          grant_type: 'authorization_code',
+          redirect_uri: redirectUri,
+          code_verifier: codeVerifier,
+        }),
+      })
 
-      const responseText = await response.text();
-      console.log("Token response:", responseText);
-
-      if (!response.ok) {
-        console.error("Token exchange failed:", responseText);
-        throw new Error(`Failed to exchange code: ${responseText}`);
+      if (!tokenResponse.ok) {
+        const errorData = await tokenResponse.text()
+        console.error('Token exchange failed:', errorData)
+        throw new Error(`Token exchange failed: ${errorData}`)
       }
 
-      const tokenData = JSON.parse(responseText);
-      console.log("Parsed token data:", tokenData);
+      const tokens = await tokenResponse.json()
+      console.log('Received tokens from Twitter')
 
-      // Get user info using the new access token
+      // Get user information
       const userResponse = await fetch('https://api.twitter.com/2/users/me', {
         headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`
-        }
-      });
-
-      const userResponseText = await userResponse.text();
-      console.log("User info response:", userResponseText);
+          Authorization: `Bearer ${tokens.access_token}`,
+        },
+      })
 
       if (!userResponse.ok) {
-        console.error("User info request failed:", userResponseText);
-        throw new Error(`Failed to get user info: ${userResponseText}`);
+        const errorData = await userResponse.text()
+        console.error('User info fetch failed:', errorData)
+        throw new Error(`Failed to fetch user info: ${errorData}`)
       }
 
-      const userData = JSON.parse(userResponseText);
-      console.log("Parsed user data:", userData);
+      const userData = await userResponse.json()
+      console.log('Received user data from Twitter')
 
       return new Response(
-        JSON.stringify({ 
-          success: true, 
+        JSON.stringify({
+          tokens,
           user: userData.data,
-          tokens: tokenData
         }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          },
-        }
-      );
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    return new Response(
-      JSON.stringify({ error: 'Invalid action' }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      },
-    );
+    throw new Error('Invalid action')
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in Twitter function:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      },
-    );
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
-});
+})
