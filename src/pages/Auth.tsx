@@ -52,7 +52,7 @@ const Auth = () => {
             alt="Logo" 
             className="h-12 w-12 mx-auto mb-4"
           />
-          <h1 className="text-2xl font-semibold text-gray-900">Welcome to PandaPost</h1>
+          <h1 className="text-2xl font-semibold text-gray-900">Welcome to FirePost</h1>
           <p className="text-gray-500 mt-2">Sign in to manage your social media presence</p>
         </div>
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
