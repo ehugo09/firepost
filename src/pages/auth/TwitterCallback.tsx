@@ -1,11 +1,9 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const TwitterCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get URL parameters
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
         const state = params.get('state');
@@ -16,7 +14,6 @@ const TwitterCallback = () => {
 
         console.log('Received OAuth callback with code:', code);
         
-        // Send message to parent window
         if (window.opener) {
           console.log('Sending message to parent window');
           window.opener.postMessage({
@@ -24,20 +21,20 @@ const TwitterCallback = () => {
             code,
             state
           }, window.location.origin);
-          window.close();
         } else {
           console.error('No parent window found');
           throw new Error('Authentication window not found');
         }
       } catch (error) {
-        console.error('Error handling Twitter callback:', error);
+        console.error('Error in Twitter callback:', error);
         if (window.opener) {
           window.opener.postMessage({
             type: 'twitter_callback_error',
             error: error.message
           }, window.location.origin);
-          window.close();
         }
+      } finally {
+        window.close();
       }
     };
 
