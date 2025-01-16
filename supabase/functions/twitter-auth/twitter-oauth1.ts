@@ -4,9 +4,17 @@ const TWITTER_API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY") || "";
 const TWITTER_API_SECRET_KEY = Deno.env.get("TWITTER_CONSUMER_SECRET") || "";
 const CALLBACK_URL = "https://preview--pandapost.lovable.app/auth/callback/twitter";
 
-// Validation des clés d'API
+// API Key validation with detailed logging
+console.log('Initializing Twitter OAuth with:', {
+  hasApiKey: !!TWITTER_API_KEY,
+  apiKeyLength: TWITTER_API_KEY.length,
+  hasSecretKey: !!TWITTER_API_SECRET_KEY,
+  secretKeyLength: TWITTER_API_SECRET_KEY.length,
+  callbackUrl: CALLBACK_URL
+});
+
 if (!TWITTER_API_KEY || !TWITTER_API_SECRET_KEY) {
-  console.error('Twitter API keys are missing!', {
+  console.error('Twitter API keys are missing or invalid:', {
     hasConsumerKey: !!TWITTER_API_KEY,
     hasConsumerSecret: !!TWITTER_API_SECRET_KEY
   });
@@ -31,10 +39,10 @@ function percentEncode(str: string) {
 }
 
 function createSignature(method: string, url: string, parameters: Record<string, string>, tokenSecret = "") {
-  console.log('Creating signature with parameters:', {
+  console.log('Creating OAuth signature:', {
     method,
     url,
-    parameters,
+    parameterCount: Object.keys(parameters).length,
     hasTokenSecret: !!tokenSecret
   });
   
@@ -49,19 +57,17 @@ function createSignature(method: string, url: string, parameters: Record<string,
     ),
   ].join("&");
 
-  console.log('Signature base string:', signatureBase);
-
+  console.log('Generated signature base string');
+  
   const signingKey = `${percentEncode(TWITTER_API_SECRET_KEY)}&${percentEncode(tokenSecret)}`;
   const signature = hmac("sha1", signingKey, signatureBase, "utf8", "base64");
   
-  console.log('Generated signature:', signature);
+  console.log('Signature generated successfully');
   return signature;
 }
 
 export async function createOAuthRequestToken() {
-  console.log('Starting createOAuthRequestToken');
-  console.log('Using API Key:', TWITTER_API_KEY.substring(0, 5) + '...');
-  console.log('Callback URL:', CALLBACK_URL);
+  console.log('Starting OAuth request token process');
 
   const url = "https://api.twitter.com/oauth/request_token";
   const method = "POST";
@@ -74,6 +80,8 @@ export async function createOAuthRequestToken() {
     oauth_version: "1.0",
   };
 
+  console.log('Generated OAuth parameters');
+
   const signature = createSignature(method, url, parameters);
   parameters["oauth_signature"] = signature;
 
@@ -81,9 +89,11 @@ export async function createOAuthRequestToken() {
     .map(([key, value]) => `${key}="${percentEncode(value)}"`)
     .join(", ")}`;
 
-  console.log('Authorization header:', authHeader);
+  console.log('Prepared OAuth header');
 
   try {
+    console.log('Sending request to Twitter API');
+    
     const response = await fetch(url, {
       method,
       headers: { 
@@ -92,9 +102,15 @@ export async function createOAuthRequestToken() {
       },
     });
 
+    console.log('Received response from Twitter:', {
+      status: response.status,
+      statusText: response.statusText,
+      headers: Object.fromEntries(response.headers.entries())
+    });
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Twitter API error:', {
+      console.error('Twitter API error response:', {
         status: response.status,
         statusText: response.statusText,
         body: errorText,
@@ -104,7 +120,7 @@ export async function createOAuthRequestToken() {
     }
 
     const data = await response.text();
-    console.log('Request token response:', data);
+    console.log('Successfully received request token');
     
     const parsed = Object.fromEntries(
       data.split("&").map((pair) => pair.split("="))
@@ -112,7 +128,7 @@ export async function createOAuthRequestToken() {
 
     return parsed;
   } catch (error) {
-    console.error('Error in createOAuthRequestToken:', error);
+    console.error('Error in OAuth request token process:', error);
     throw error;
   }
 }

@@ -7,28 +7,27 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { action, oauth_token, oauth_verifier, user_id } = await req.json();
-    console.log('Twitter auth function called with:', { action, oauth_token, oauth_verifier, user_id });
+    console.log('Twitter auth function called:', { action });
 
     if (action === 'request_token') {
-      console.log('Starting OAuth request token process...');
+      console.log('Initiating OAuth request token flow');
       try {
         const requestToken = await createOAuthRequestToken();
-        console.log('Successfully obtained request token:', requestToken);
+        console.log('Successfully obtained request token');
         return new Response(JSON.stringify(requestToken), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
         });
       } catch (error) {
-        console.error('Error getting request token:', error);
+        console.error('Failed to get request token:', error);
         return new Response(JSON.stringify({ 
-          error: `Failed to get request token: ${error.message}`,
+          error: `Authentication failed: ${error.message}`,
           details: error.toString()
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -106,11 +105,10 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Error in twitter-auth function:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        details: error.toString()
-      }), {
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error',
+      details: error.toString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
