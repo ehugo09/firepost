@@ -9,7 +9,7 @@ const corsHeaders = {
 const TWITTER_OAUTH_URL = 'https://twitter.com/i/oauth2/authorize';
 const TWITTER_TOKEN_URL = 'https://api.twitter.com/2/oauth2/token';
 const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CONSUMER_KEY')?.trim();
-const CALLBACK_URL = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/functions/v1/twitter/callback';
+const CALLBACK_URL = 'https://preview--pandapost.lovable.app/auth/callback/twitter';
 
 serve(async (req) => {
   // Handle CORS preflight requests
