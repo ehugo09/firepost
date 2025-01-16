@@ -21,17 +21,21 @@ const SocialNetworkItem = ({
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
+        console.log('Initiating Twitter OAuth flow...');
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'twitter',
           options: {
-            redirectTo: window.location.origin + '/auth/callback/twitter',
+            redirectTo: 'https://preview--pandapost.lovable.app/auth/callback/twitter',
             queryParams: {
               force_login: 'true'
             }
           }
         });
         
-        if (error) throw error;
+        if (error) {
+          console.error('Twitter OAuth error:', error);
+          throw error;
+        }
         console.log("Twitter OAuth initiated:", data);
       } else {
         toast.info(`${name} integration coming soon!`);
