@@ -27,9 +27,9 @@ const SocialNetworkItem = ({
   };
 
   return (
-    <div className="p-3 rounded-lg border border-gray-700/50 bg-[#1A2235] hover:bg-[#1E2943] transition-colors">
+    <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700/50 bg-gray-50 dark:bg-[#1A2235] hover:bg-gray-100 dark:hover:bg-[#1E2943] transition-colors">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-gray-300">
+        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
           {icon}
           <span className="text-sm font-medium">{name}</span>
         </div>
@@ -38,7 +38,7 @@ const SocialNetworkItem = ({
         ) : (
           <button 
             onClick={handleConnect}
-            className="text-gray-500 hover:text-gray-400 transition-colors"
+            className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
           >
             <Plus className="w-4 h-4" />
           </button>

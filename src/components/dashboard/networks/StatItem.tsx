@@ -14,12 +14,12 @@ const StatItem = ({ icon, label, value, change, changeColor }: StatItemProps) =>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           {icon}
-          <span className="text-sm font-medium text-gray-300">{label}</span>
+          <span className="text-sm font-medium text-gray-600 dark:text-gray-300">{label}</span>
         </div>
-        <span className="text-base font-medium text-white tracking-wider">{value}</span>
+        <span className="text-base font-medium text-gray-900 dark:text-white tracking-wider">{value}</span>
       </div>
       <div className="flex justify-between items-center gap-4">
-        <Progress value={75} className="h-1 bg-gray-700/40" />
+        <Progress value={75} className="h-1 bg-gray-200 dark:bg-gray-700/40" />
         <span className={`text-xs ${changeColor} ml-2 whitespace-nowrap font-medium`}>{change}</span>
       </div>
     </div>
