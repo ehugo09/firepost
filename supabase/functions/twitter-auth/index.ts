@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -19,7 +20,7 @@ Deno.serve(async (req) => {
       console.log('Initiating OAuth request token flow');
       try {
         const requestToken = await createOAuthRequestToken();
-        console.log('Successfully obtained request token');
+        console.log('Successfully obtained request token:', requestToken);
         return new Response(JSON.stringify(requestToken), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200,
