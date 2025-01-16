@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 import { generateCodeVerifier, generateCodeChallenge } from './pkce.ts';
 
 const corsHeaders = {
@@ -54,67 +53,50 @@ serve(async (req) => {
       );
     }
 
-    // Handle callback
-    const { code, state } = await req.json();
-    console.log('Handling callback with code:', code, 'and state:', state);
-
-    // Verify state matches
-    const storedState = localStorage.getItem('twitter_oauth_state');
-    console.log("Comparing states:", { stored: storedState, received: state });
-    
-    if (state !== storedState) {
-      console.error("State mismatch:", { stored: storedState, received: state });
-      throw new Error('Invalid state parameter');
-    }
-
-    // Exchange code for token
-    console.log("Exchanging code for token...");
-    const { data: callbackData, error: callbackError } = await supabase.functions.invoke('twitter', {
-      body: { 
-        action: 'callback',
-        code,
-        codeVerifier: localStorage.getItem('twitter_code_verifier')
-      }
-    });
-
-    if (callbackError) {
-      console.error("Callback error:", callbackError);
-      throw callbackError;
-    }
-
-    console.log("Received callback data:", callbackData);
-
-    // Save connection to database
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
-      console.error("No active session found");
-      throw new Error('No active session');
-    }
-
-    console.log("Saving connection to database...");
-    const { error: insertError } = await supabase
-      .from('social_connections')
-      .upsert({
-        user_id: session.user.id,
-        platform: 'twitter',
-        username: callbackData.user.username,
-        platform_user_id: callbackData.user.id,
-        twitter_credentials: callbackData.tokens
+    if (action === 'callback') {
+      const { code, codeVerifier } = await req.json();
+      console.log('Processing callback with code:', code);
+      
+      // Exchange code for tokens
+      const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          code,
+          redirect_uri: 'https://kyzayqvlqnunzzjtnnsm.supabase.co/functions/v1/twitter/callback',
+          code_verifier: codeVerifier,
+          client_id: TWITTER_CLIENT_ID!,
+        }),
       });
 
-    if (insertError) {
-      console.error("Database insert error:", insertError);
-      throw insertError;
+      const tokens = await tokenResponse.json();
+      console.log('Received tokens from Twitter');
+
+      // Get user information
+      const userResponse = await fetch('https://api.twitter.com/2/users/me', {
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`,
+        },
+      });
+
+      const userData = await userResponse.json();
+      console.log('Retrieved user data from Twitter');
+
+      return new Response(
+        JSON.stringify({
+          tokens,
+          user: userData.data,
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
-    // Clean up
-    localStorage.removeItem('twitter_oauth_state');
-    localStorage.removeItem('twitter_code_verifier');
-
-    console.log("Twitter connection successful:", callbackData);
-    toast.success("Successfully connected to Twitter!");
-
-    return callbackData;
+    throw new Error(`Unknown action: ${action}`);
   } catch (error) {
     console.error('Error in Twitter function:', error);
     return new Response(
