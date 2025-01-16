@@ -6,9 +6,7 @@ const CALLBACK_URL = "https://preview--pandapost.lovable.app/auth/callback/twitt
 
 // Validate API keys on startup
 console.log('Twitter OAuth Configuration:', {
-  hasApiKey: !!TWITTER_API_KEY,
   apiKeyLength: TWITTER_API_KEY.length,
-  hasSecretKey: !!TWITTER_API_SECRET_KEY,
   secretKeyLength: TWITTER_API_SECRET_KEY.length,
   callbackUrl: CALLBACK_URL
 });
@@ -36,40 +34,48 @@ function percentEncode(str: string) {
     .replace(/\*/g, '%2A')
     .replace(/'/g, '%27')
     .replace(/\(/g, '%28')
-    .replace(/\)/g, '%29');
+    .replace(/\)/g, '%29')
+    .replace(/\+/g, '%2B');
 }
 
 function createSignature(method: string, url: string, parameters: Record<string, string>, tokenSecret = "") {
-  console.log('Creating signature with parameters:', {
+  console.log('Creating OAuth signature with parameters:', {
     method,
     url,
     parameterCount: Object.keys(parameters).length,
-    parameters: Object.keys(parameters).join(', '),
+    parameters: JSON.stringify(parameters),
     hasTokenSecret: !!tokenSecret
   });
 
-  // Sort parameters alphabetically as required by OAuth 1.0a
+  // Sort parameters alphabetically and encode values
   const sortedParams = Object.keys(parameters).sort().reduce((acc: Record<string, string>, key) => {
-    acc[key] = parameters[key];
+    acc[key] = percentEncode(parameters[key]);
     return acc;
   }, {});
+
+  const paramString = Object.entries(sortedParams)
+    .map(([key, value]) => `${percentEncode(key)}=${value}`)
+    .join("&");
 
   const signatureBase = [
     method.toUpperCase(),
     percentEncode(url),
-    percentEncode(
-      Object.entries(sortedParams)
-        .map(([key, value]) => `${key}=${value}`)
-        .join("&")
-    ),
+    percentEncode(paramString)
   ].join("&");
 
-  console.log('Generated signature base string:', signatureBase);
+  console.log('Generated signature components:', {
+    paramString,
+    signatureBase
+  });
   
   const signingKey = `${percentEncode(TWITTER_API_SECRET_KEY)}&${percentEncode(tokenSecret)}`;
   const signature = hmac("sha1", signingKey, signatureBase, "utf8", "base64");
   
-  console.log('Signature generated successfully');
+  console.log('Signature generated successfully:', {
+    signatureLength: signature.length,
+    signaturePrefix: signature.substring(0, 10) + '...'
+  });
+
   return signature;
 }
 
@@ -101,7 +107,7 @@ export async function createOAuthRequestToken() {
     .map(([key, value]) => `${key}="${percentEncode(value)}"`)
     .join(", ")}`;
 
-  console.log('Prepared OAuth header:', authHeader);
+  console.log('Prepared OAuth header length:', authHeader.length);
 
   try {
     console.log('Sending request to Twitter API');
@@ -126,14 +132,13 @@ export async function createOAuthRequestToken() {
       console.error('Twitter API error response:', {
         status: response.status,
         statusText: response.statusText,
-        body: errorText,
-        headers: Object.fromEntries(response.headers.entries())
+        body: errorText
       });
-      throw new Error(errorText);
+      throw new Error(`Twitter API error: ${errorText}`);
     }
 
     const data = await response.text();
-    console.log('Successfully received request token response:', data);
+    console.log('Successfully received request token response');
     
     const parsed = Object.fromEntries(
       data.split("&").map((pair) => pair.split("="))
