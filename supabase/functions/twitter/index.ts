@@ -18,6 +18,10 @@ serve(async (req) => {
   try {
     const { action, code, codeVerifier } = await req.json();
     console.log('Received request with action:', action);
+    console.log('Environment check:', {
+      hasConsumerKey: !!Deno.env.get('TWITTER_CONSUMER_KEY'),
+      hasConsumerSecret: !!Deno.env.get('TWITTER_CONSUMER_SECRET'),
+    });
 
     if (action === 'connect') {
       const state = crypto.randomUUID();
@@ -27,7 +31,11 @@ serve(async (req) => {
       // Use the callback URL from Twitter Developer Portal
       const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
       
-      console.log('Using redirect URI:', redirectUri);
+      console.log('Starting OAuth flow with:', {
+        state,
+        codeVerifier: newCodeVerifier,
+        redirectUri
+      });
 
       const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
       authUrl.searchParams.append('response_type', 'code');
@@ -56,13 +64,21 @@ serve(async (req) => {
     }
 
     if (action === 'callback') {
-      console.log('Processing callback with code:', code);
+      console.log('Processing callback with:', {
+        code: code ? 'present' : 'missing',
+        codeVerifier: codeVerifier ? 'present' : 'missing'
+      });
       
-      // Use the same callback URL as in the auth request
+      if (!code || !codeVerifier) {
+        throw new Error('Missing required parameters for callback');
+      }
+
       const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
       
-      console.log('Using redirect URI for token exchange:', redirectUri);
-      console.log('Code verifier being used:', codeVerifier);
+      console.log('Preparing token exchange with:', {
+        redirectUri,
+        codeVerifier
+      });
 
       const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
         method: 'POST',
@@ -78,16 +94,30 @@ serve(async (req) => {
         }),
       });
 
-      if (!tokenResponse.ok) {
-        const errorData = await tokenResponse.text();
-        console.error('Token exchange failed:', errorData);
-        throw new Error(`Token exchange failed: ${errorData}`);
+      const tokenResponseText = await tokenResponse.text();
+      console.log('Token response status:', tokenResponse.status);
+      console.log('Token response headers:', Object.fromEntries(tokenResponse.headers));
+      
+      let tokens;
+      try {
+        tokens = JSON.parse(tokenResponseText);
+        console.log('Parsed token response:', {
+          hasAccessToken: !!tokens.access_token,
+          hasRefreshToken: !!tokens.refresh_token,
+          tokenType: tokens.token_type,
+        });
+      } catch (error) {
+        console.error('Failed to parse token response:', tokenResponseText);
+        throw new Error(`Token exchange failed: ${tokenResponseText}`);
       }
 
-      const tokens = await tokenResponse.json();
-      console.log('Received tokens from Twitter');
+      if (!tokenResponse.ok) {
+        console.error('Token exchange failed:', tokenResponseText);
+        throw new Error(`Token exchange failed: ${tokenResponseText}`);
+      }
 
       // Get user information
+      console.log('Fetching user information with access token');
       const userResponse = await fetch('https://api.twitter.com/2/users/me', {
         headers: {
           Authorization: `Bearer ${tokens.access_token}`,
@@ -95,15 +125,16 @@ serve(async (req) => {
       });
 
       if (!userResponse.ok) {
-        const errorData = await userResponse.text();
-        console.error('User info fetch failed:', errorData);
-        throw new Error(`Failed to fetch user info: ${errorData}`);
+        const errorText = await userResponse.text();
+        console.error('User info fetch failed:', errorText);
+        throw new Error(`Failed to fetch user info: ${errorText}`);
       }
 
       const userData = await userResponse.json();
-      console.log('Received user data from Twitter:', {
+      console.log('Received user data:', {
         id: userData.data.id,
-        username: userData.data.username
+        username: userData.data.username,
+        data: userData.data
       });
 
       return new Response(
@@ -124,7 +155,10 @@ serve(async (req) => {
   } catch (error: any) {
     console.error('Error in Twitter function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack
+      }),
       { 
         status: 400,
         headers: { 
