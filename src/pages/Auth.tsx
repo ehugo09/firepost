@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -12,9 +13,10 @@ const Auth = () => {
     const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
+        console.log("Auth page - Checking session:", session ? "Session exists" : "No session");
         
         if (error) {
-          console.error("Error checking session:", error);
+          console.error("Session check error:", error);
           toast.error("Error checking authentication status");
           return;
         }
@@ -29,17 +31,23 @@ const Auth = () => {
       }
     };
 
+    // Initial session check
+    checkSession();
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session ? "Session exists" : "No session");
       
       if (event === 'SIGNED_IN' && session) {
+        console.log("Sign in successful, redirecting to dashboard");
         toast.success("Successfully signed in!");
         navigate("/dashboard");
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
       }
     });
 
-    checkSession();
-
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
@@ -70,8 +78,14 @@ const Auth = () => {
                   },
                 },
               },
+              className: {
+                container: 'auth-container',
+                button: 'auth-button',
+                input: 'auth-input',
+              },
             }}
             providers={["google"]}
+            redirectTo={`${window.location.origin}/dashboard`}
           />
         </div>
       </div>
