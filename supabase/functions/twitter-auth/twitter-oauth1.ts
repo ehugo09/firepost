@@ -1,5 +1,4 @@
 import { hmac } from "https://deno.land/x/hmac@v2.0.1/mod.ts";
-import { encode as base64Encode } from "https://deno.land/std@0.82.0/encoding/base64.ts";
 
 const TWITTER_API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY") || "";
 const TWITTER_API_SECRET_KEY = Deno.env.get("TWITTER_CONSUMER_SECRET") || "";
@@ -23,6 +22,8 @@ function percentEncode(str: string) {
 }
 
 function createSignature(method: string, url: string, parameters: Record<string, string>, tokenSecret = "") {
+  console.log('Creating signature with parameters:', parameters);
+  
   const signatureBase = [
     method.toUpperCase(),
     percentEncode(url),
@@ -34,12 +35,20 @@ function createSignature(method: string, url: string, parameters: Record<string,
     ),
   ].join("&");
 
+  console.log('Signature base string:', signatureBase);
+
   const signingKey = `${percentEncode(TWITTER_API_SECRET_KEY)}&${percentEncode(tokenSecret)}`;
   const signature = hmac("sha1", signingKey, signatureBase, "utf8", "base64");
+  
+  console.log('Generated signature:', signature);
   return signature;
 }
 
 export async function createOAuthRequestToken() {
+  console.log('Starting createOAuthRequestToken');
+  console.log('Using API Key:', TWITTER_API_KEY);
+  console.log('Callback URL:', CALLBACK_URL);
+
   const url = "https://api.twitter.com/oauth/request_token";
   const method = "POST";
   const parameters = {
@@ -58,16 +67,26 @@ export async function createOAuthRequestToken() {
     .map(([key, value]) => `${key}="${percentEncode(value)}"`)
     .join(", ")}`;
 
+  console.log('Authorization header:', authHeader);
+
   const response = await fetch(url, {
     method,
     headers: { Authorization: authHeader },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to get request token: ${await response.text()}`);
+    const errorText = await response.text();
+    console.error('Twitter API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText
+    });
+    throw new Error(`Failed to get request token: ${errorText}`);
   }
 
   const data = await response.text();
+  console.log('Request token response:', data);
+  
   const parsed = Object.fromEntries(
     data.split("&").map((pair) => pair.split("="))
   );
@@ -76,6 +95,9 @@ export async function createOAuthRequestToken() {
 }
 
 export async function createOAuthAccessToken(oauth_token: string, oauth_verifier: string) {
+  console.log('Starting createOAuthAccessToken');
+  console.log('Parameters:', { oauth_token, oauth_verifier });
+
   const url = "https://api.twitter.com/oauth/access_token";
   const method = "POST";
   const parameters = {
@@ -95,20 +117,32 @@ export async function createOAuthAccessToken(oauth_token: string, oauth_verifier
     .map(([key, value]) => `${key}="${percentEncode(value)}"`)
     .join(", ")}`;
 
+  console.log('Authorization header:', authHeader);
+
   const response = await fetch(url, {
     method,
     headers: { Authorization: authHeader },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to get access token: ${await response.text()}`);
+    const errorText = await response.text();
+    console.error('Twitter API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText
+    });
+    throw new Error(`Failed to get access token: ${errorText}`);
   }
 
   const data = await response.text();
+  console.log('Access token response:', data);
+  
   return Object.fromEntries(data.split("&").map((pair) => pair.split("=")));
 }
 
 export async function verifyCredentials(oauth_token: string, oauth_token_secret: string) {
+  console.log('Starting verifyCredentials');
+  
   const url = "https://api.twitter.com/1.1/account/verify_credentials.json";
   const method = "GET";
   const parameters = {
@@ -127,12 +161,20 @@ export async function verifyCredentials(oauth_token: string, oauth_token_secret:
     .map(([key, value]) => `${key}="${percentEncode(value)}"`)
     .join(", ")}`;
 
+  console.log('Authorization header:', authHeader);
+
   const response = await fetch(url, {
     headers: { Authorization: authHeader },
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to verify credentials: ${await response.text()}`);
+    const errorText = await response.text();
+    console.error('Twitter API error:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText
+    });
+    throw new Error(`Failed to verify credentials: ${errorText}`);
   }
 
   return response.json();
