@@ -111,32 +111,26 @@ export const openTwitterPopup = async () => {
           // Create a message event listener for the popup
           const messageHandler = async (event: MessageEvent) => {
             try {
-              // Check if the message is from our popup and an allowed origin
-              const allowedOrigins = [
-                'https://preview--pandapost.lovable.app',
-                'http://localhost:3000',
-                'https://lovable.dev',
-                'https://kyzayqvlqnunzzjtnnsm.supabase.co'
-              ];
-              
-              if (!allowedOrigins.includes(event.origin)) {
-                console.log("Ignoring message from unauthorized origin:", event.origin);
-                return;
-              }
-
+              const currentOrigin = window.location.origin;
               console.log("Received message from origin:", event.origin);
+              console.log("Current origin:", currentOrigin);
               console.log("Message data:", event.data);
               
-              if (event.data && event.data.type === 'twitter_callback') {
-                console.log("Received callback message from popup:", event.data);
-                const { code, state } = event.data;
-                
-                if (code && state) {
-                  window.removeEventListener('message', messageHandler);
-                  const result = await handleTwitterCallback(code, state);
-                  popup.close();
-                  resolve(result);
+              // Check if the message is from our popup
+              if (event.origin === currentOrigin) {
+                if (event.data && event.data.type === 'twitter_callback') {
+                  console.log("Received callback message from popup:", event.data);
+                  const { code, state } = event.data;
+                  
+                  if (code && state) {
+                    window.removeEventListener('message', messageHandler);
+                    const result = await handleTwitterCallback(code, state);
+                    popup.close();
+                    resolve(result);
+                  }
                 }
+              } else {
+                console.log("Ignoring message from unauthorized origin:", event.origin);
               }
             } catch (error) {
               console.error("Error handling popup message:", error);

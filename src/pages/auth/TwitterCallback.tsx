@@ -1,10 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { handleTwitterCallback } from '@/components/dashboard/networks/TwitterConnection';
 
 const TwitterCallback = () => {
-  const navigate = useNavigate();
-
   useEffect(() => {
     const handleCallback = async () => {
       try {
@@ -21,16 +18,16 @@ const TwitterCallback = () => {
         
         // Send message to parent window
         if (window.opener) {
+          console.log('Sending message to parent window');
           window.opener.postMessage({
             type: 'twitter_callback',
             code,
             state
-          }, '*');
+          }, window.location.origin);
           window.close();
         } else {
-          // If opened directly (not in popup), handle callback here
-          await handleTwitterCallback(code, state);
-          navigate('/dashboard');
+          console.error('No parent window found');
+          throw new Error('Authentication window not found');
         }
       } catch (error) {
         console.error('Error handling Twitter callback:', error);
@@ -38,16 +35,14 @@ const TwitterCallback = () => {
           window.opener.postMessage({
             type: 'twitter_callback_error',
             error: error.message
-          }, '*');
+          }, window.location.origin);
           window.close();
-        } else {
-          navigate('/dashboard');
         }
       }
     };
 
     handleCallback();
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center">
