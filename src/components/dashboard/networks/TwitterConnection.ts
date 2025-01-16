@@ -115,19 +115,21 @@ export const openTwitterPopup = async () => {
             }
 
             // Check if the popup URL contains the code parameter
-            if (popup.location.href.includes('code=')) {
-              console.log("Found code in popup URL:", popup.location.href);
-              const url = new URL(popup.location.href);
+            const currentUrl = popup.location.href;
+            console.log("Current popup URL:", currentUrl);
+            
+            if (currentUrl.includes('code=')) {
+              console.log("Found code in popup URL");
+              const url = new URL(currentUrl);
               const code = url.searchParams.get('code');
               const state = url.searchParams.get('state');
               
-              await handleTwitterCallback(code!, state!);
-              
-              popup.close();
-              clearInterval(checkPopup);
-              
-              // Force a page reload to update the UI
-              window.location.reload();
+              if (code && state) {
+                await handleTwitterCallback(code, state);
+                popup.close();
+                clearInterval(checkPopup);
+                window.location.reload();
+              }
             }
           } catch (error: any) {
             // Ignore errors from cross-origin frames

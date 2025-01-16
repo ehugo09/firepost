@@ -21,6 +21,7 @@ serve(async (req) => {
     console.log('Received request with action:', action);
     console.log('Request URL:', req.url);
     console.log('Request method:', req.method);
+    console.log('Request body:', { action, hasCode: !!code, hasCodeVerifier: !!codeVerifier });
     
     // Validate environment variables
     const envCheck = {
@@ -44,7 +45,8 @@ serve(async (req) => {
       console.log('Starting OAuth flow with:', {
         state,
         codeVerifier: newCodeVerifier,
-        redirectUri
+        redirectUri,
+        clientId: Deno.env.get('TWITTER_CONSUMER_KEY')
       });
 
       const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
@@ -87,7 +89,8 @@ serve(async (req) => {
       
       console.log('Preparing token exchange with:', {
         redirectUri,
-        codeVerifier
+        codeVerifier,
+        clientId: Deno.env.get('TWITTER_CONSUMER_KEY')
       });
 
       const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
@@ -146,7 +149,6 @@ serve(async (req) => {
       console.log('Received user data:', {
         id: userData.data.id,
         username: userData.data.username,
-        data: userData.data
       });
 
       return new Response(
