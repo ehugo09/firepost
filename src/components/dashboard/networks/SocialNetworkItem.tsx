@@ -1,6 +1,5 @@
 import { Plus } from "lucide-react";
 import { LucideIcon } from "lucide-react";
-import { initiateTwitterAuth } from "@/services/twitter/twitter-auth";
 import { toast } from "sonner";
 
 interface SocialNetworkItemProps {
@@ -20,12 +19,7 @@ const SocialNetworkItem = ({
 }: SocialNetworkItemProps) => {
   const handleConnect = async () => {
     try {
-      if (platform === 'twitter') {
-        await initiateTwitterAuth();
-        onConnect(name, platform);
-      } else {
-        toast.info(`${name} integration coming soon!`);
-      }
+      toast.info(`${name} integration coming soon!`);
     } catch (error) {
       console.error(`Error connecting to ${name}:`, error);
       toast.error(`Failed to connect to ${name}`);
