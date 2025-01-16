@@ -62,6 +62,7 @@ serve(async (req) => {
       const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
       
       console.log('Using redirect URI for token exchange:', redirectUri);
+      console.log('Code verifier being used:', codeVerifier);
 
       const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
         method: 'POST',
@@ -100,7 +101,10 @@ serve(async (req) => {
       }
 
       const userData = await userResponse.json();
-      console.log('Received user data from Twitter');
+      console.log('Received user data from Twitter:', {
+        id: userData.data.id,
+        username: userData.data.username
+      });
 
       return new Response(
         JSON.stringify({
