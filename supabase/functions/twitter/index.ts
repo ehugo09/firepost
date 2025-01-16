@@ -24,12 +24,10 @@ serve(async (req) => {
       const newCodeVerifier = crypto.randomUUID();
       const challenge = newCodeVerifier; // For Twitter, the challenge is the same as verifier
 
-      // Get the host from the request URL and construct redirect URI properly
-      const url = new URL(req.url);
-      const host = url.host.replace(/:\d+$/, ''); // Remove port if present
-      const redirectUri = `${url.protocol}//${host}/dashboard`;
+      // Use edge-runtime.supabase.com as the redirect domain
+      const redirectUri = 'https://edge-runtime.supabase.com/dashboard';
       
-      console.log('Generated redirect URI:', redirectUri);
+      console.log('Using redirect URI:', redirectUri);
 
       const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
       authUrl.searchParams.append('response_type', 'code');
@@ -60,10 +58,8 @@ serve(async (req) => {
     if (action === 'callback') {
       console.log('Processing callback with code:', code);
       
-      // Get the host from the request URL and construct redirect URI properly
-      const url = new URL(req.url);
-      const host = url.host.replace(/:\d+$/, ''); // Remove port if present
-      const redirectUri = `${url.protocol}//${host}/dashboard`;
+      // Use the same redirect URI as in the auth request
+      const redirectUri = 'https://edge-runtime.supabase.com/dashboard';
       
       console.log('Using redirect URI for token exchange:', redirectUri);
 
