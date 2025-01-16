@@ -3,12 +3,16 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
   }
 
   try {
@@ -22,8 +26,7 @@ serve(async (req) => {
 
       // Get the host from the request URL and construct redirect URI properly
       const url = new URL(req.url);
-      // Remove any trailing colons and ensure proper URL construction
-      const host = url.host.replace(/:$/, '');
+      const host = url.host.replace(/:\d+$/, ''); // Remove port if present
       const redirectUri = `${url.protocol}//${host}/dashboard`;
       
       console.log('Generated redirect URI:', redirectUri);
@@ -59,8 +62,7 @@ serve(async (req) => {
       
       // Get the host from the request URL and construct redirect URI properly
       const url = new URL(req.url);
-      // Remove any trailing colons and ensure proper URL construction
-      const host = url.host.replace(/:$/, '');
+      const host = url.host.replace(/:\d+$/, ''); // Remove port if present
       const redirectUri = `${url.protocol}//${host}/dashboard`;
       
       console.log('Using redirect URI for token exchange:', redirectUri);
