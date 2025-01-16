@@ -8,6 +8,24 @@ const ThemeToggle = () => {
     // Check initial theme
     const isDarkMode = document.documentElement.classList.contains("dark");
     setIsDark(isDarkMode);
+
+    // Check system preference
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      const newTheme = e.matches;
+      setIsDark(newTheme);
+      if (newTheme) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -24,13 +42,13 @@ const ThemeToggle = () => {
   return (
     <button
       onClick={toggleTheme}
-      className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      className="p-1.5 rounded-full hover:bg-muted transition-colors"
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}
     >
       {isDark ? (
-        <Sun className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+        <Sun className="h-4 w-4 text-foreground/70" />
       ) : (
-        <Moon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+        <Moon className="h-4 w-4 text-foreground/70" />
       )}
     </button>
   );
