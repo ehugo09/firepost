@@ -12,12 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const { action } = await req.json();
-    console.log('Received action:', action);
+    const { code, codeVerifier } = await req.json();
+    console.log('Processing OAuth token exchange with code:', code);
 
-    // We'll implement the OAuth flow here in the next step
+    // We'll implement the token exchange here in the next step
     return new Response(
-      JSON.stringify({ message: 'Twitter function ready for implementation' }),
+      JSON.stringify({ message: 'Token exchange endpoint ready' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }

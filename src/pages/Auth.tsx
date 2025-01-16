@@ -9,23 +9,26 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is already logged in
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error("Error checking session:", error);
-        toast.error("Error checking authentication status");
-        return;
-      }
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error checking session:", error);
+          toast.error("Error checking authentication status");
+          return;
+        }
 
-      if (session) {
-        console.log("User already authenticated, redirecting to dashboard");
-        navigate("/dashboard");
+        if (session) {
+          console.log("User already authenticated, redirecting to dashboard");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Unexpected error during session check:", error);
+        toast.error("An unexpected error occurred");
       }
     };
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session ? "Session exists" : "No session");
       
@@ -37,7 +40,6 @@ const Auth = () => {
 
     checkSession();
 
-    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
@@ -49,7 +51,7 @@ const Auth = () => {
         <div className="mb-8 text-center">
           <img 
             src="/lovable-uploads/09171096-3f2b-41d5-8b3e-092b36199d42.png" 
-            alt="Logo" 
+            alt="FirePost Logo" 
             className="h-12 w-12 mx-auto mb-4"
           />
           <h1 className="text-2xl font-semibold text-gray-900">Welcome to FirePost</h1>
