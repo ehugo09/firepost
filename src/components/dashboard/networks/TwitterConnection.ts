@@ -1,11 +1,32 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const generateState = () => crypto.randomUUID();
+
+const generateCodeVerifier = (length: number = 64): string => {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array)
+    .map(x => charset[x % charset.length])
+    .join('');
+};
+
+const generateCodeChallenge = async (verifier: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const base64Url = btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+  return base64Url;
+};
+
 export const handleTwitterCallback = async (code: string, state: string) => {
   try {
     console.log("Starting Twitter callback handling with code:", code);
     
-    // Verify state matches
     const storedState = localStorage.getItem('twitter_oauth_state');
     console.log("Comparing states:", { stored: storedState, received: state });
     
@@ -14,13 +35,17 @@ export const handleTwitterCallback = async (code: string, state: string) => {
       throw new Error('Invalid state parameter');
     }
 
-    // Exchange code for token
+    const codeVerifier = localStorage.getItem('twitter_code_verifier');
+    if (!codeVerifier) {
+      throw new Error('No code verifier found');
+    }
+
     console.log("Exchanging code for token...");
     const { data: callbackData, error: callbackError } = await supabase.functions.invoke('twitter', {
       body: { 
         action: 'callback',
         code,
-        codeVerifier: localStorage.getItem('twitter_code_verifier')
+        codeVerifier
       }
     });
 
@@ -31,7 +56,6 @@ export const handleTwitterCallback = async (code: string, state: string) => {
 
     console.log("Received callback data:", callbackData);
 
-    // Save connection to database
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user) {
       console.error("No active session found");
@@ -56,11 +80,10 @@ export const handleTwitterCallback = async (code: string, state: string) => {
       throw insertError;
     }
 
-    // Clean up
     localStorage.removeItem('twitter_oauth_state');
     localStorage.removeItem('twitter_code_verifier');
 
-    console.log("Twitter connection successful:", callbackData);
+    console.log("Twitter connection successful");
     toast.success("Successfully connected to Twitter!");
 
     return callbackData;
@@ -99,7 +122,6 @@ export const openTwitterPopup = async () => {
         `width=${width},height=${height},left=${left},top=${top}`
       );
 
-      // Store state and verifier
       localStorage.setItem('twitter_oauth_state', data.state);
       localStorage.setItem('twitter_code_verifier', data.codeVerifier);
       console.log("Stored state and verifier in localStorage");
@@ -108,32 +130,44 @@ export const openTwitterPopup = async () => {
         console.log("Popup opened successfully");
         
         return new Promise((resolve, reject) => {
-          // Create a message event listener for the popup
           const messageHandler = async (event: MessageEvent) => {
             try {
-              const currentOrigin = window.location.origin;
+              // Get all possible valid origins
+              const validOrigins = [
+                window.location.origin,
+                'https://preview--pandapost.lovable.app',
+                'https://pandapost.lovable.app'
+              ];
+              
               console.log("Received message from origin:", event.origin);
-              console.log("Current origin:", currentOrigin);
+              console.log("Valid origins:", validOrigins);
               console.log("Message data:", event.data);
               
-              // Check if the message is from our popup
-              if (event.origin === currentOrigin) {
-                if (event.data && event.data.type === 'twitter_callback') {
-                  console.log("Received callback message from popup:", event.data);
-                  const { code, state } = event.data;
-                  
-                  if (code && state) {
-                    window.removeEventListener('message', messageHandler);
-                    const result = await handleTwitterCallback(code, state);
-                    popup.close();
-                    resolve(result);
-                  }
-                }
-              } else {
+              if (!validOrigins.includes(event.origin)) {
                 console.log("Ignoring message from unauthorized origin:", event.origin);
+                return;
+              }
+              
+              if (event.data?.type === 'twitter_callback') {
+                window.removeEventListener('message', messageHandler);
+                const { code, state } = event.data;
+                
+                if (code && state) {
+                  const result = await handleTwitterCallback(code, state);
+                  popup.close();
+                  resolve(result);
+                }
+              }
+
+              if (event.data?.type === 'twitter_callback_error') {
+                window.removeEventListener('message', messageHandler);
+                popup.close();
+                reject(new Error(event.data.error));
               }
             } catch (error) {
               console.error("Error handling popup message:", error);
+              window.removeEventListener('message', messageHandler);
+              popup.close();
               reject(error);
             }
           };

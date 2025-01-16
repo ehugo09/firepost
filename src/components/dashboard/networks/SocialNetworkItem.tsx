@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { LucideIcon } from "lucide-react";
-import { TwitterService } from "@/services/TwitterService";
+import { openTwitterPopup } from "./TwitterConnection";
 import { toast } from "sonner";
 
 interface SocialNetworkItemProps {
@@ -21,7 +21,7 @@ const SocialNetworkItem = ({
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
-        await TwitterService.connect();
+        await openTwitterPopup();
         onConnect(name, platform);
       } else {
         toast.info(`${name} integration coming soon!`);
