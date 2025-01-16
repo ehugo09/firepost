@@ -24,7 +24,10 @@ const SocialNetworkItem = ({
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'twitter',
           options: {
-            redirectTo: `${window.location.origin}/dashboard`
+            redirectTo: window.location.origin + '/auth/callback/twitter',
+            queryParams: {
+              force_login: 'true'
+            }
           }
         });
         
