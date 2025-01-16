@@ -21,11 +21,15 @@ const SocialNetworkItem = ({
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
+        const redirectUrl = `${window.location.origin}/auth/callback/twitter`;
+        console.log('Current origin:', window.location.origin);
+        console.log('Full redirect URL:', redirectUrl);
+        
         console.log('Initiating Twitter OAuth flow...');
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'twitter',
           options: {
-            redirectTo: `${window.location.origin}/auth/callback/twitter`,
+            redirectTo: redirectUrl,
             queryParams: {
               force_login: 'true'
             }
