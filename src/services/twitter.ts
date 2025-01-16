@@ -48,17 +48,8 @@ export class TwitterService {
       const authUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
       console.log('Redirecting to Twitter auth URL:', authUrl);
       
-      // Instead of using window.location.href, open in a new window
-      const width = 600;
-      const height = 800;
-      const left = window.screen.width / 2 - width / 2;
-      const top = window.screen.height / 2 - height / 2;
-      
-      window.open(
-        authUrl,
-        'Twitter Auth',
-        `width=${width},height=${height},left=${left},top=${top}`
-      );
+      // Use direct redirect instead of popup
+      window.location.href = authUrl;
 
     } catch (error) {
       console.error('Error initiating Twitter auth:', error);
