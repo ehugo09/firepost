@@ -1,23 +1,26 @@
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { motion } from "framer-motion";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log("Auth page - Checking session:", session ? "Session exists" : "No session");
+        console.log("Checking authentication session...");
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error("Session check error:", error);
-          toast.error("Error checking authentication status");
+        if (sessionError) {
+          console.error("Session check error:", sessionError);
+          setError("Failed to check authentication status");
           return;
         }
 
@@ -25,47 +28,76 @@ const Auth = () => {
           console.log("User already authenticated, redirecting to dashboard");
           navigate("/dashboard");
         }
-      } catch (error) {
-        console.error("Unexpected error during session check:", error);
-        toast.error("An unexpected error occurred");
+      } catch (err) {
+        console.error("Unexpected error during session check:", err);
+        setError("An unexpected error occurred");
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    // Initial session check
     checkSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session ? "Session exists" : "No session");
       
-      if (event === 'SIGNED_IN' && session) {
+      if (event === "SIGNED_IN" && session) {
         console.log("Sign in successful, redirecting to dashboard");
         toast.success("Successfully signed in!");
         navigate("/dashboard");
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === "SIGNED_OUT") {
         console.log("User signed out");
+        setError(null);
+      } else if (event === "USER_UPDATED") {
+        console.log("User profile updated");
       }
     });
 
-    // Cleanup subscription
     return () => {
+      console.log("Cleaning up auth subscriptions");
       subscription.unsubscribe();
     };
   }, [navigate]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center p-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-[#F8F9FE] flex items-center justify-center p-4"
+    >
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
+        <motion.div 
+          initial={{ scale: 0.9 }}
+          animate={{ scale: 1 }}
+          className="mb-8 text-center"
+        >
           <img 
             src="/lovable-uploads/09171096-3f2b-41d5-8b3e-092b36199d42.png" 
             alt="FirePost Logo" 
-            className="h-12 w-12 mx-auto mb-4"
+            className="h-12 w-12 mx-auto mb-4 drop-shadow-sm"
           />
           <h1 className="text-2xl font-semibold text-gray-900">Welcome to FirePost</h1>
           <p className="text-gray-500 mt-2">Sign in to manage your social media presence</p>
-        </div>
+        </motion.div>
+
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <SupabaseAuth
             supabaseClient={supabase}
             appearance={{
@@ -82,6 +114,8 @@ const Auth = () => {
                 container: 'auth-container',
                 button: 'auth-button',
                 input: 'auth-input',
+                label: 'text-sm font-medium text-gray-700',
+                loader: 'animate-spin',
               },
             }}
             providers={["google"]}
@@ -89,7 +123,7 @@ const Auth = () => {
           />
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
