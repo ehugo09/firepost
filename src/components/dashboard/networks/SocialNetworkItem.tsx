@@ -21,6 +21,7 @@ const SocialNetworkItem = ({
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
+        // Utilisez l'URL de base de Supabase pour la redirection
         const redirectUrl = `${window.location.origin}/auth/callback/twitter`;
         console.log('Current origin:', window.location.origin);
         console.log('Full redirect URL:', redirectUrl);
