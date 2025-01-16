@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import ComposeTwitter from "./pages/ComposeTwitter";
+import TwitterCallback from "./pages/auth/TwitterCallback";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -61,6 +62,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
             <Route 
               path="/dashboard" 
               element={

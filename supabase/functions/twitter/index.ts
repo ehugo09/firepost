@@ -74,7 +74,6 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Basic ${btoa(`${TWITTER_CLIENT_ID}:`)}`,
         },
         body: tokenParams,
       });

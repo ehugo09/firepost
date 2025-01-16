@@ -46,7 +46,9 @@ export const handleTwitterCallback = async (code: string, state: string) => {
         platform: 'twitter',
         username: callbackData.user.username,
         platform_user_id: callbackData.user.id,
-        twitter_credentials: callbackData.tokens
+        twitter_credentials: callbackData.tokens,
+        refresh_token: callbackData.tokens.refresh_token,
+        token_expires_at: new Date(Date.now() + (callbackData.tokens.expires_in * 1000)).toISOString()
       });
 
     if (insertError) {
