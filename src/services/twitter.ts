@@ -6,14 +6,12 @@ export class TwitterService {
     try {
       console.log('Starting Twitter auth flow with oauth4webapi...');
       
-      // Create OAuth issuer
-      const as = await oauth.discoveryRequest(new URL('https://twitter.com'), {
-        algorithm: oauth.discoveryUrlForProvider('https://twitter.com')
-      }).catch(() => ({
+      // Create OAuth issuer and authorization server info
+      const as = {
         issuer: 'https://twitter.com',
         authorization_endpoint: 'https://twitter.com/i/oauth2/authorize',
         token_endpoint: 'https://api.twitter.com/2/oauth2/token'
-      }));
+      };
 
       // Generate PKCE values
       const code_verifier = oauth.generateRandomCodeVerifier();
