@@ -11,21 +11,27 @@ export class TwitterService {
       
       // Get current user session
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('Current session:', session);
+      
       if (!session?.user) {
+        console.error('No authenticated user found');
         throw new Error('No authenticated user found');
       }
-      
+
       // Generate random state for security
       const state = crypto.randomUUID();
+      console.log('Generated state:', state);
       sessionStorage.setItem('twitter_oauth_state', state);
 
       // Generate PKCE values
       const codeVerifier = this.generateCodeVerifier();
       const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+      console.log('Generated PKCE values:', { codeVerifier: codeVerifier.substring(0, 10) + '...', codeChallenge: codeChallenge.substring(0, 10) + '...' });
       sessionStorage.setItem('twitter_oauth_verifier', codeVerifier);
 
       // Store user ID in session for callback
       sessionStorage.setItem('user_id', session.user.id);
+      console.log('Stored user ID in session:', session.user.id);
 
       // Construct authorization URL
       const params = new URLSearchParams({
@@ -41,7 +47,18 @@ export class TwitterService {
 
       const authUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
       console.log('Redirecting to Twitter auth URL:', authUrl);
-      window.location.href = authUrl;
+      
+      // Instead of using window.location.href, open in a new window
+      const width = 600;
+      const height = 800;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      
+      window.open(
+        authUrl,
+        'Twitter Auth',
+        `width=${width},height=${height},left=${left},top=${top}`
+      );
 
     } catch (error) {
       console.error('Error initiating Twitter auth:', error);
@@ -51,27 +68,34 @@ export class TwitterService {
 
   static async handleCallback(code: string, state: string): Promise<void> {
     try {
-      console.log('Processing Twitter callback...');
+      console.log('Processing Twitter callback with code:', code.substring(0, 10) + '...');
       
       // Verify state
       const storedState = sessionStorage.getItem('twitter_oauth_state');
+      console.log('Verifying state:', { received: state, stored: storedState });
+      
       if (state !== storedState) {
+        console.error('State mismatch:', { received: state, stored: storedState });
         throw new Error('Invalid state parameter');
       }
 
       // Get code verifier and user ID
       const codeVerifier = sessionStorage.getItem('twitter_oauth_verifier');
       const userId = sessionStorage.getItem('user_id');
+      console.log('Retrieved from session:', { codeVerifier: codeVerifier?.substring(0, 10) + '...', userId });
       
       if (!codeVerifier) {
+        console.error('Missing code verifier');
         throw new Error('Missing code verifier');
       }
       
       if (!userId) {
+        console.error('Missing user ID');
         throw new Error('Missing user ID');
       }
 
       // Exchange code for tokens
+      console.log('Exchanging code for tokens...');
       const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
         method: 'POST',
         headers: {
@@ -96,6 +120,7 @@ export class TwitterService {
       console.log('Successfully obtained tokens');
 
       // Get user info
+      console.log('Fetching user info...');
       const userResponse = await fetch('https://api.twitter.com/2/users/me', {
         headers: {
           'Authorization': `Bearer ${tokens.access_token}`,
@@ -103,6 +128,7 @@ export class TwitterService {
       });
 
       if (!userResponse.ok) {
+        console.error('Failed to fetch user info:', await userResponse.text());
         throw new Error('Failed to fetch user info');
       }
 
@@ -110,11 +136,12 @@ export class TwitterService {
       console.log('Successfully fetched user info:', userData);
 
       // Store connection in Supabase
+      console.log('Storing connection in Supabase...');
       const { error: dbError } = await supabase
         .from('social_connections')
         .upsert({
           platform: 'twitter',
-          user_id: userId, // Add the user_id field
+          user_id: userId,
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           token_expires_at: new Date(Date.now() + (tokens.expires_in * 1000)).toISOString(),
@@ -133,6 +160,7 @@ export class TwitterService {
       }
 
       // Clean up
+      console.log('Cleaning up session storage...');
       sessionStorage.removeItem('twitter_oauth_state');
       sessionStorage.removeItem('twitter_oauth_verifier');
       sessionStorage.removeItem('user_id');
