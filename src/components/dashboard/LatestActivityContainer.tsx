@@ -39,11 +39,11 @@ const LatestActivityContainer = () => {
   ];
 
   return (
-    <Card className="p-4 h-full bg-white/80 dark:bg-[#1A1F2C]/80 backdrop-blur-lg border-gray-200/50 dark:border-gray-700/50">
+    <Card className="p-4 h-full bg-white/80 dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200/50 dark:border-gray-700/50">
       <h2 className="text-sm font-semibold mb-4 dark:text-white">Latest Activity</h2>
       <div className="space-y-3">
         {activities.map((activity, index) => (
-          <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-gray-50/50 dark:bg-[#2A2F3C]/50">
+          <div key={index} className="flex items-start space-x-3 p-2 rounded-lg bg-gray-50/50 dark:bg-[#1A2235]/50">
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${activity.bgColor}`}>
               <div className={activity.typeColor}>{activity.icon}</div>
             </div>

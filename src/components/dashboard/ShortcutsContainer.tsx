@@ -14,16 +14,16 @@ const ShortcutsContainer = () => {
   ];
 
   return (
-    <Card className="p-4 h-full bg-white/80 dark:bg-[#1A1F2C]/80 backdrop-blur-lg border-gray-200/50 dark:border-gray-700/50">
+    <Card className="p-4 h-full bg-white/80 dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200/50 dark:border-gray-700/50">
       <h2 className="text-sm font-semibold mb-4 dark:text-white">Quick Actions</h2>
       <div className="grid grid-cols-2 gap-3">
         {shortcuts.map((shortcut, index) => (
           <button
             key={index}
             onClick={shortcut.action}
-            className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-50/50 dark:bg-[#2A2F3C]/50 hover:bg-gray-100/50 dark:hover:bg-[#2A2F3C]/80 transition-colors"
+            className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-50/50 dark:bg-[#1A2235]/50 hover:bg-gray-100/50 dark:hover:bg-[#1E2943]/80 transition-colors"
           >
-            <div className="text-primary dark:text-primary-foreground mb-2">{shortcut.icon}</div>
+            <div className="text-primary dark:text-gray-400 mb-2">{shortcut.icon}</div>
             <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{shortcut.label}</span>
           </button>
         ))}
