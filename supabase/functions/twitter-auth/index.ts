@@ -12,6 +12,11 @@ Deno.serve(async (req) => {
   }
 
   try {
+    if (req.method !== 'POST') {
+      console.error('Invalid method:', req.method);
+      throw new Error(`Method ${req.method} not allowed`);
+    }
+
     console.log('Starting Twitter auth process...');
     const { code, codeVerifier, userId } = await req.json();
     console.log('Received parameters:', { code: code?.substring(0, 10) + '...', userId });

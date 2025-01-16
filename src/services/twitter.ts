@@ -67,7 +67,12 @@ export class TwitterService {
         codeVerifier: codeVerifier.substring(0, 10) + '...'
       });
 
+      // Modification importante ici : ajout des headers et du mode de la requête
       const { data, error } = await supabase.functions.invoke('twitter-auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: { 
           code,
           codeVerifier,
