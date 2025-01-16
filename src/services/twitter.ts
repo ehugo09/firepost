@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 export class TwitterService {
   static async initiateAuth(): Promise<void> {
     try {
-      console.log('Starting Twitter auth flow via Edge Function...');
+      console.log('Starting Twitter OAuth 1.0a flow...');
       
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
@@ -26,9 +26,8 @@ export class TwitterService {
         throw new Error('No oauth_token received');
       }
 
-      console.log('Redirecting to Twitter auth page...');
-      const authUrl = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}&force_login=true`;
-      window.location.href = authUrl;
+      console.log('Redirecting to Twitter auth page with token:', data.oauth_token);
+      window.location.href = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}&force_login=true`;
 
     } catch (error) {
       console.error('Error initiating Twitter auth:', error);
@@ -38,7 +37,7 @@ export class TwitterService {
 
   static async handleCallback(oauth_token: string, oauth_verifier: string): Promise<void> {
     try {
-      console.log('Processing Twitter callback in Edge Function...');
+      console.log('Processing Twitter callback with tokens:', { oauth_token, oauth_verifier });
       
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) {
