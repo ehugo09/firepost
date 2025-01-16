@@ -10,16 +10,16 @@ const TwitterCallback = () => {
     const handleCallback = async () => {
       try {
         const params = new URLSearchParams(window.location.search);
-        const code = params.get('code');
-        const state = params.get('state');
+        const oauth_token = params.get('oauth_token');
+        const oauth_verifier = params.get('oauth_verifier');
 
-        if (!code || !state) {
+        if (!oauth_token || !oauth_verifier) {
           toast.error('Authentication failed: Missing parameters');
           navigate('/dashboard');
           return;
         }
 
-        await TwitterService.handleCallback(code, state);
+        await TwitterService.handleCallback(oauth_token, oauth_verifier);
         toast.success('Successfully connected to Twitter!');
         navigate('/dashboard');
         

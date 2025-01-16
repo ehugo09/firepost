@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TWITTER_CONFIG } from "@/config/twitter";
 
 export class TwitterService {
   static async initiateAuth(): Promise<void> {
@@ -12,29 +11,19 @@ export class TwitterService {
         throw new Error('No authenticated user found');
       }
 
-      const state = crypto.randomUUID();
-      console.log('Generated state:', state);
-      sessionStorage.setItem('twitter_oauth_state', state);
-
-      const codeVerifier = this.generateCodeVerifier();
-      const codeChallenge = await this.generateCodeChallenge(codeVerifier);
-      console.log('Generated PKCE values');
-      sessionStorage.setItem('twitter_oauth_verifier', codeVerifier);
-      sessionStorage.setItem('user_id', session.user.id);
-
-      const params = new URLSearchParams({
-        response_type: 'code',
-        client_id: TWITTER_CONFIG.clientId,
-        redirect_uri: TWITTER_CONFIG.redirectUri,
-        scope: TWITTER_CONFIG.scope,
-        state: state,
-        code_challenge: codeChallenge,
-        code_challenge_method: 'S256',
-        force_login: 'true'
+      console.log('Requesting OAuth token...');
+      const { data, error } = await supabase.functions.invoke('twitter-auth', {
+        body: { action: 'request_token' }
       });
 
-      const authUrl = `${TWITTER_CONFIG.authUrl}?${params.toString()}`;
-      console.log('Redirecting to Twitter auth URL:', authUrl);
+      if (error) throw error;
+      if (!data.oauth_token) throw new Error('No oauth_token received');
+
+      console.log('Redirecting to Twitter auth page...');
+      const authUrl = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}`;
+      sessionStorage.setItem('twitter_oauth_token', data.oauth_token);
+      sessionStorage.setItem('user_id', session.user.id);
+      
       window.location.href = authUrl;
 
     } catch (error) {
@@ -43,77 +32,60 @@ export class TwitterService {
     }
   }
 
-  static async handleCallback(code: string, state: string): Promise<void> {
+  static async handleCallback(oauth_token: string, oauth_verifier: string): Promise<void> {
     try {
       console.log('Processing Twitter callback...');
       
-      const storedState = sessionStorage.getItem('twitter_oauth_state');
-      if (state !== storedState) {
-        console.error('State mismatch:', { received: state, stored: storedState });
-        throw new Error('Invalid state parameter');
+      const storedToken = sessionStorage.getItem('twitter_oauth_token');
+      if (oauth_token !== storedToken) {
+        console.error('Token mismatch:', { received: oauth_token, stored: storedToken });
+        throw new Error('Invalid oauth_token');
       }
 
-      const codeVerifier = sessionStorage.getItem('twitter_oauth_verifier');
       const userId = sessionStorage.getItem('user_id');
-      
-      if (!codeVerifier || !userId) {
-        console.error('Missing required session data');
-        throw new Error('Missing required session data');
+      if (!userId) {
+        console.error('Missing user_id in session storage');
+        throw new Error('Missing user_id');
       }
 
-      console.log('Calling twitter-auth function with:', { 
-        code: code.substring(0, 10) + '...',
-        userId,
-        codeVerifier: codeVerifier.substring(0, 10) + '...'
-      });
-
-      // Modification importante ici : ajout des headers et du mode de la requête
+      console.log('Getting access token...');
       const { data, error } = await supabase.functions.invoke('twitter-auth', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: { 
-          code,
-          codeVerifier,
-          userId
+          action: 'access_token',
+          oauth_token,
+          oauth_verifier
         }
       });
 
-      if (error) {
-        console.error('Error from twitter-auth function:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Response from twitter-auth function:', data);
+      console.log('Saving connection to database...');
+      const { error: dbError } = await supabase
+        .from('social_connections')
+        .upsert({
+          user_id: userId,
+          platform: 'twitter',
+          access_token: data.accessToken.oauth_token,
+          refresh_token: data.accessToken.oauth_token_secret,
+          platform_user_id: data.userInfo.id_str,
+          username: data.userInfo.screen_name,
+          profile_picture: data.userInfo.profile_image_url_https,
+          twitter_credentials: {
+            id: data.userInfo.id_str,
+            username: data.userInfo.screen_name,
+            name: data.userInfo.name,
+          },
+        });
+
+      if (dbError) throw dbError;
 
       console.log('Successfully authenticated with Twitter');
-      sessionStorage.removeItem('twitter_oauth_state');
-      sessionStorage.removeItem('twitter_oauth_verifier');
+      sessionStorage.removeItem('twitter_oauth_token');
       sessionStorage.removeItem('user_id');
 
     } catch (error) {
       console.error('Error in callback:', error);
       throw error;
     }
-  }
-
-  private static generateCodeVerifier(length = 128): string {
-    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return Array.from(array)
-      .map(x => charset[x % charset.length])
-      .join('');
-  }
-
-  private static async generateCodeChallenge(verifier: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(verifier);
-    const digest = await crypto.subtle.digest('SHA-256', data);
-    return btoa(String.fromCharCode(...new Uint8Array(digest)))
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_')
-      .replace(/=+$/, '');
   }
 }
