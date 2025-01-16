@@ -10,7 +10,6 @@ const TwitterCallback = () => {
     const handleCallback = async () => {
       try {
         console.log('TwitterCallback: Starting callback processing');
-        console.log('Current URL:', window.location.href);
         
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
@@ -28,31 +27,23 @@ const TwitterCallback = () => {
           return;
         }
 
-        // Verify state matches stored state
-        const storedState = sessionStorage.getItem('twitter_oauth_state');
-        console.log('TwitterCallback: Stored state:', storedState);
-        
-        if (state !== storedState) {
-          console.error('TwitterCallback: State mismatch', {
-            received: state,
-            stored: storedState
-          });
-          toast.error('Authentication failed: Invalid state');
-          navigate('/dashboard');
-          return;
-        }
-
-        console.log('TwitterCallback: State verification passed, proceeding with callback');
+        // Process the callback
         await TwitterService.handleCallback(code, state);
+        
+        // Close this window if it's a popup
+        if (window.opener) {
+          console.log('TwitterCallback: Closing popup window');
+          window.close();
+        } else {
+          console.log('TwitterCallback: Not in popup, redirecting to dashboard');
+          navigate('/dashboard');
+        }
+        
         toast.success('Successfully connected to Twitter');
         
       } catch (error) {
         console.error('TwitterCallback: Error in callback:', error);
         toast.error('Failed to complete Twitter authentication');
-      } finally {
-        // Clean up session storage
-        sessionStorage.removeItem('twitter_oauth_state');
-        sessionStorage.removeItem('twitter_oauth_verifier');
         navigate('/dashboard');
       }
     };

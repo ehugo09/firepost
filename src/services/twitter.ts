@@ -43,33 +43,12 @@ export class TwitterService {
             return;
           }
 
-          // Try to access popup location
-          const popupUrl = popup.location.href;
-          console.log('Current popup URL:', popupUrl);
-
-          // Check if we've reached our callback URL
-          if (popupUrl.includes('/auth/callback/twitter')) {
-            clearInterval(checkPopupInterval);
-            
-            // Parse URL parameters
-            const url = new URL(popupUrl);
-            const code = url.searchParams.get('code');
-            const state = url.searchParams.get('state');
-            
-            if (code && state) {
-              console.log('Detected callback URL with code and state');
-              // Close popup
-              popup.close();
-              
-              // Handle the callback
-              this.handleCallback(code, state);
-            }
-          }
+          // Instead of trying to access popup.location directly,
+          // we'll let the callback page handle the redirect
+          // This avoids cross-origin issues
+          
         } catch (e) {
-          // Ignore cross-origin errors when checking location
-          if (!(e instanceof DOMException)) {
-            console.error('Error checking popup location:', e);
-          }
+          console.error('Error in popup check:', e);
         }
       }, 500);
 
@@ -81,15 +60,13 @@ export class TwitterService {
 
   static async handleCallback(code: string, state: string): Promise<void> {
     console.log('Starting Twitter OAuth callback handling...');
-    console.log('Received code:', code);
-    console.log('Received state:', state);
     
     // Verify state
     const storedState = sessionStorage.getItem('twitter_oauth_state');
-    console.log('Stored state:', storedState);
+    console.log('Verifying state match:', { received: state, stored: storedState });
     
     if (state !== storedState) {
-      console.error('State mismatch. Received:', state, 'Stored:', storedState);
+      console.error('State mismatch:', { received: state, stored: storedState });
       throw new Error('Invalid OAuth state');
     }
 
@@ -102,7 +79,6 @@ export class TwitterService {
 
     try {
       console.log('Exchanging code for tokens...');
-      // Exchange code for tokens using Edge Function
       const { data, error } = await supabase.functions.invoke<TwitterTokenResponse>('twitter-auth', {
         body: { code, codeVerifier }
       });
@@ -122,7 +98,8 @@ export class TwitterService {
       sessionStorage.removeItem('twitter_oauth_state');
       sessionStorage.removeItem('twitter_oauth_verifier');
 
-      window.location.reload(); // Refresh to show the new connection
+      // Refresh the page to show the new connection
+      window.location.reload();
 
     } catch (error) {
       console.error('Error handling Twitter callback:', error);
