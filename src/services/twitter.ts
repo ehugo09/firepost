@@ -33,13 +33,45 @@ export class TwitterService {
 
       console.log('OAuth popup opened successfully');
 
-      // Monitor popup closure
-      const checkPopup = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkPopup);
-          console.log('OAuth popup closed by user');
+      // Monitor popup URL for callback
+      const checkPopupInterval = setInterval(() => {
+        try {
+          // Check if popup is closed
+          if (popup.closed) {
+            console.log('OAuth popup closed by user');
+            clearInterval(checkPopupInterval);
+            return;
+          }
+
+          // Try to access popup location
+          const popupUrl = popup.location.href;
+          console.log('Current popup URL:', popupUrl);
+
+          // Check if we've reached our callback URL
+          if (popupUrl.includes('/auth/callback/twitter')) {
+            clearInterval(checkPopupInterval);
+            
+            // Parse URL parameters
+            const url = new URL(popupUrl);
+            const code = url.searchParams.get('code');
+            const state = url.searchParams.get('state');
+            
+            if (code && state) {
+              console.log('Detected callback URL with code and state');
+              // Close popup
+              popup.close();
+              
+              // Handle the callback
+              this.handleCallback(code, state);
+            }
+          }
+        } catch (e) {
+          // Ignore cross-origin errors when checking location
+          if (!(e instanceof DOMException)) {
+            console.error('Error checking popup location:', e);
+          }
         }
-      }, 1000);
+      }, 500);
 
     } catch (error) {
       console.error('Error in initiateAuth:', error);
@@ -89,6 +121,8 @@ export class TwitterService {
       // Clean up session storage
       sessionStorage.removeItem('twitter_oauth_state');
       sessionStorage.removeItem('twitter_oauth_verifier');
+
+      window.location.reload(); // Refresh to show the new connection
 
     } catch (error) {
       console.error('Error handling Twitter callback:', error);
