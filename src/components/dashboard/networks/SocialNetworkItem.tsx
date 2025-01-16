@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
-import { TwitterService } from "@/services/twitter";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SocialNetworkItemProps {
   icon: React.ReactElement<LucideIcon>;
@@ -21,7 +21,15 @@ const SocialNetworkItem = ({
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
-        await TwitterService.initiateAuth();
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'twitter',
+          options: {
+            redirectTo: `${window.location.origin}/dashboard`
+          }
+        });
+        
+        if (error) throw error;
+        console.log("Twitter OAuth initiated:", data);
       } else {
         toast.info(`${name} integration coming soon!`);
       }
