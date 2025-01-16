@@ -20,14 +20,8 @@ const TwitterCallback = () => {
         }
 
         await TwitterService.handleCallback(code, state);
-        
-        // Close popup and refresh parent
-        if (window.opener) {
-          window.opener.location.reload();
-          window.close();
-        } else {
-          navigate('/dashboard');
-        }
+        toast.success('Successfully connected to Twitter!');
+        navigate('/dashboard');
         
       } catch (error) {
         console.error('Error in callback:', error);

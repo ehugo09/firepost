@@ -26,7 +26,7 @@ export class TwitterService {
       // Generate PKCE values
       const codeVerifier = this.generateCodeVerifier();
       const codeChallenge = await this.generateCodeChallenge(codeVerifier);
-      console.log('Generated PKCE values:', { codeVerifier: codeVerifier.substring(0, 10) + '...', codeChallenge: codeChallenge.substring(0, 10) + '...' });
+      console.log('Generated PKCE values');
       sessionStorage.setItem('twitter_oauth_verifier', codeVerifier);
 
       // Store user ID in session for callback
@@ -48,7 +48,7 @@ export class TwitterService {
       const authUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
       console.log('Redirecting to Twitter auth URL:', authUrl);
       
-      // Use direct redirect instead of popup
+      // Direct redirect - no popup
       window.location.href = authUrl;
 
     } catch (error) {
@@ -75,14 +75,9 @@ export class TwitterService {
       const userId = sessionStorage.getItem('user_id');
       console.log('Retrieved from session:', { codeVerifier: codeVerifier?.substring(0, 10) + '...', userId });
       
-      if (!codeVerifier) {
-        console.error('Missing code verifier');
-        throw new Error('Missing code verifier');
-      }
-      
-      if (!userId) {
-        console.error('Missing user ID');
-        throw new Error('Missing user ID');
+      if (!codeVerifier || !userId) {
+        console.error('Missing required session data');
+        throw new Error('Missing required session data');
       }
 
       // Exchange code for tokens
@@ -131,8 +126,8 @@ export class TwitterService {
       const { error: dbError } = await supabase
         .from('social_connections')
         .upsert({
-          platform: 'twitter',
           user_id: userId,
+          platform: 'twitter',
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           token_expires_at: new Date(Date.now() + (tokens.expires_in * 1000)).toISOString(),
@@ -157,6 +152,9 @@ export class TwitterService {
       sessionStorage.removeItem('user_id');
 
       console.log('Twitter authentication completed successfully');
+      
+      // Redirect back to dashboard
+      window.location.href = '/dashboard';
       
     } catch (error) {
       console.error('Error in callback:', error);
