@@ -23,17 +23,24 @@ Deno.serve(async (req) => {
         console.log('Successfully obtained request token:', requestToken);
         return new Response(JSON.stringify(requestToken), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
         });
       } catch (error) {
         console.error('Error getting request token:', error);
-        throw error;
+        return new Response(JSON.stringify({ error: error.message }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        });
       }
     }
 
     if (action === 'access_token') {
       if (!oauth_token || !oauth_verifier || !user_id) {
         console.error('Missing required parameters:', { oauth_token, oauth_verifier, user_id });
-        throw new Error('Missing required parameters');
+        return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        });
       }
 
       console.log('Starting OAuth access token process...');
@@ -65,23 +72,35 @@ Deno.serve(async (req) => {
               username: userInfo.screen_name,
               name: userInfo.name,
             },
+          }, {
+            onConflict: 'user_id,platform'
           });
 
         if (dbError) {
           console.error('Database error:', dbError);
-          throw dbError;
+          return new Response(JSON.stringify({ error: 'Database error' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500,
+          });
         }
 
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
         });
       } catch (error) {
         console.error('Error in access token process:', error);
-        throw error;
+        return new Response(JSON.stringify({ error: error.message }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400,
+        });
       }
     }
 
-    throw new Error('Invalid action');
+    return new Response(JSON.stringify({ error: 'Invalid action' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    });
   } catch (error) {
     console.error('Error in twitter-auth function:', error);
     return new Response(

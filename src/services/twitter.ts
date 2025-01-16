@@ -60,6 +60,11 @@ export class TwitterService {
         throw error;
       }
 
+      if (!data.success) {
+        console.error('Failed to complete authentication:', data);
+        throw new Error('Failed to complete authentication');
+      }
+
       console.log('Successfully authenticated with Twitter');
 
     } catch (error) {
