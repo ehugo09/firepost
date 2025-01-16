@@ -2,7 +2,7 @@ import { hmac } from "https://deno.land/x/hmac@v2.0.1/mod.ts";
 
 const TWITTER_API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY") || "";
 const TWITTER_API_SECRET_KEY = Deno.env.get("TWITTER_CONSUMER_SECRET") || "";
-const CALLBACK_URL = "https://preview--pandapost.lovable.app/auth/callback/twitter";
+const CALLBACK_URL = "https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/callback/twitter";
 
 // Validate API keys on startup
 console.log('Twitter OAuth Configuration:', {
