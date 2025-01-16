@@ -108,7 +108,20 @@ export const openTwitterPopup = async () => {
         // Create a message event listener for the popup
         window.addEventListener('message', async function messageHandler(event) {
           try {
-            // Check if the message is from our popup
+            // Check if the message is from our popup and an allowed origin
+            const allowedOrigins = [
+              'https://preview--pandapost.lovable.app',
+              'http://localhost:3000',
+              'https://lovable.dev'
+            ];
+            
+            if (!allowedOrigins.includes(event.origin)) {
+              console.log("Ignoring message from unauthorized origin:", event.origin);
+              return;
+            }
+
+            console.log("Received message from origin:", event.origin);
+            
             if (event.data && event.data.type === 'twitter_callback') {
               console.log("Received callback message from popup:", event.data);
               const { code, state } = event.data;

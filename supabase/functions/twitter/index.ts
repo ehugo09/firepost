@@ -23,6 +23,10 @@ serve(async (req) => {
     console.log('Request method:', req.method);
     console.log('Request body:', { action, hasCode: !!code, hasCodeVerifier: !!codeVerifier });
     
+    // Get the origin from the request headers
+    const origin = req.headers.get('origin') || '*';
+    console.log('Request origin:', origin);
+    
     // Validate environment variables
     const envCheck = {
       hasConsumerKey: !!Deno.env.get('TWITTER_CONSUMER_KEY'),
@@ -158,13 +162,25 @@ serve(async (req) => {
         <head>
           <title>Twitter Authentication</title>
           <script>
+            // Try to get the origin from the opener, fallback to a list of allowed origins
+            const allowedOrigins = [
+              'https://preview--pandapost.lovable.app',
+              'http://localhost:3000',
+              'https://lovable.dev'
+            ];
+            
+            const openerOrigin = window.opener?.location.origin;
+            const targetOrigin = allowedOrigins.includes(openerOrigin) ? openerOrigin : allowedOrigins[0];
+            
+            console.log('Sending message to origin:', targetOrigin);
+            
             window.opener.postMessage(
               { 
                 type: 'twitter_callback',
                 code: '${code}',
                 state: '${codeVerifier}'
               }, 
-              '*'
+              targetOrigin
             );
           </script>
         </head>
