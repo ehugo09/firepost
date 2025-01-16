@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { getTwitterAuthUrl } from "@/utils/twitter/oauth";
 
 interface TwitterTokenResponse {
   access_token: string;
