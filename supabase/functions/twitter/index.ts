@@ -8,6 +8,7 @@ const corsHeaders = {
 
 const TWITTER_OAUTH_URL = 'https://twitter.com/i/oauth2/authorize';
 const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CONSUMER_KEY')?.trim();
+const CALLBACK_URL = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/functions/v1/twitter/callback';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -30,12 +31,12 @@ serve(async (req) => {
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: TWITTER_CLIENT_ID!,
-        redirect_uri: 'https://kyzayqvlqnunzzjtnnsm.supabase.co/functions/v1/twitter/callback',
+        redirect_uri: CALLBACK_URL,
         scope: 'tweet.read tweet.write users.read offline.access',
         state: crypto.randomUUID(),
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
-        force_login: 'true', // Force Twitter to show the login screen
+        force_login: 'true',
       });
 
       const url = `${TWITTER_OAUTH_URL}?${params.toString()}`;
@@ -62,15 +63,21 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': `Basic ${btoa(`${TWITTER_CLIENT_ID}:`)}`,
         },
         body: new URLSearchParams({
           grant_type: 'authorization_code',
           code,
-          redirect_uri: 'https://kyzayqvlqnunzzjtnnsm.supabase.co/functions/v1/twitter/callback',
+          redirect_uri: CALLBACK_URL,
           code_verifier: codeVerifier,
-          client_id: TWITTER_CLIENT_ID!,
         }),
       });
+
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        console.error('Token exchange failed:', errorText);
+        throw new Error(`Token exchange failed: ${errorText}`);
+      }
 
       const tokens = await tokenResponse.json();
       console.log('Received tokens from Twitter');
@@ -81,6 +88,12 @@ serve(async (req) => {
           'Authorization': `Bearer ${tokens.access_token}`,
         },
       });
+
+      if (!userResponse.ok) {
+        const errorText = await userResponse.text();
+        console.error('User info fetch failed:', errorText);
+        throw new Error(`User info fetch failed: ${errorText}`);
+      }
 
       const userData = await userResponse.json();
       console.log('Retrieved user data from Twitter');
