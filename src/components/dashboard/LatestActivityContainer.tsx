@@ -39,20 +39,20 @@ const LatestActivityContainer = () => {
   ];
 
   return (
-    <Card className="p-4 h-full bg-[#151B2E]/80 backdrop-blur-lg border-gray-700/50">
-      <h2 className="text-sm font-semibold mb-4 text-white">Latest Activity</h2>
+    <Card className="p-4 h-full bg-white dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200 dark:border-gray-700/50">
+      <h2 className="text-sm font-semibold mb-4 text-gray-800 dark:text-white">Latest Activity</h2>
       <div className="space-y-3">
         {activities.map((activity, index) => (
-          <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-[#1A2235]">
+          <div key={index} className="flex items-start space-x-3 p-3 rounded-lg bg-gray-50 dark:bg-[#1A2235]">
             <div className={`flex items-center justify-center w-8 h-8 rounded-full ${activity.bgColor}`}>
               <div className={activity.typeColor}>{activity.icon}</div>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-200">{activity.content}</span>
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{activity.content}</span>
                 <div className={activity.networkColor}>{activity.networkIcon}</div>
               </div>
-              <p className="text-xs text-gray-400">{activity.time}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{activity.time}</p>
             </div>
           </div>
         ))}
