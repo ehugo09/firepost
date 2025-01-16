@@ -59,9 +59,9 @@ const NetworksCard = () => {
 
   return (
     <Card className="p-4 h-full bg-[#151B2E]/80 backdrop-blur-lg border-gray-700/50">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-sm font-semibold text-white">Social Networks</h2>
-        <span className="text-xs bg-green-900/30 text-green-400 px-2 py-0.5 rounded-full">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-sm font-medium tracking-wide text-gray-200">Social Networks</h2>
+        <span className="text-xs bg-green-900/30 text-green-400 px-2.5 py-1 rounded-full font-medium">
           {connections.length} Active
         </span>
       </div>
