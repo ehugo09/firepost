@@ -23,7 +23,7 @@ export class TwitterService {
       const popup = window.open(
         authUrl,
         'Twitter Auth',
-        `width=${width},height=${height},left=${left},top=${top},status=yes,scrollbars=yes`
+        `width=${width},height=${height},left=${left},top=${top}`
       );
 
       if (!popup) {
@@ -33,24 +33,13 @@ export class TwitterService {
 
       console.log('OAuth popup opened successfully');
 
-      // Monitor popup URL for callback
+      // Simple interval to check if popup is closed
       const checkPopupInterval = setInterval(() => {
-        try {
-          // Check if popup is closed
-          if (popup.closed) {
-            console.log('OAuth popup closed by user');
-            clearInterval(checkPopupInterval);
-            return;
-          }
-
-          // Instead of trying to access popup.location directly,
-          // we'll let the callback page handle the redirect
-          // This avoids cross-origin issues
-          
-        } catch (e) {
-          console.error('Error in popup check:', e);
+        if (popup.closed) {
+          console.log('OAuth popup closed');
+          clearInterval(checkPopupInterval);
         }
-      }, 500);
+      }, 1000);
 
     } catch (error) {
       console.error('Error in initiateAuth:', error);
@@ -59,50 +48,37 @@ export class TwitterService {
   }
 
   static async handleCallback(code: string, state: string): Promise<void> {
-    console.log('Starting Twitter OAuth callback handling...');
-    
-    // Verify state
-    const storedState = sessionStorage.getItem('twitter_oauth_state');
-    console.log('Verifying state match:', { received: state, stored: storedState });
-    
-    if (state !== storedState) {
-      console.error('State mismatch:', { received: state, stored: storedState });
-      throw new Error('Invalid OAuth state');
-    }
-
-    // Get stored code verifier
-    const codeVerifier = sessionStorage.getItem('twitter_oauth_verifier');
-    if (!codeVerifier) {
-      console.error('No code verifier found in session storage');
-      throw new Error('Missing code verifier');
-    }
-
     try {
-      console.log('Exchanging code for tokens...');
+      console.log('Starting callback handling with code:', code);
+      
+      // Verify state
+      const storedState = sessionStorage.getItem('twitter_oauth_state');
+      if (state !== storedState) {
+        throw new Error('Invalid state parameter');
+      }
+
+      // Get code verifier
+      const codeVerifier = sessionStorage.getItem('twitter_oauth_verifier');
+      if (!codeVerifier) {
+        throw new Error('Missing code verifier');
+      }
+
+      // Exchange code for tokens
       const { data, error } = await supabase.functions.invoke<TwitterTokenResponse>('twitter-auth', {
         body: { code, codeVerifier }
       });
 
-      if (error) {
-        console.error('Error from Edge Function:', error);
-        throw error;
-      }
-      if (!data) {
-        console.error('No data received from token exchange');
-        throw new Error('No data received from token exchange');
-      }
+      if (error) throw error;
+      if (!data) throw new Error('No data received from token exchange');
 
-      console.log('Successfully exchanged code for tokens');
-      
-      // Clean up session storage
+      // Clean up
       sessionStorage.removeItem('twitter_oauth_state');
       sessionStorage.removeItem('twitter_oauth_verifier');
 
-      // Refresh the page to show the new connection
-      window.location.reload();
+      console.log('Twitter authentication completed successfully');
 
     } catch (error) {
-      console.error('Error handling Twitter callback:', error);
+      console.error('Error in handleCallback:', error);
       throw error;
     }
   }

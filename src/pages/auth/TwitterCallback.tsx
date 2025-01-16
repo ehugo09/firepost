@@ -9,41 +9,29 @@ const TwitterCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        console.log('TwitterCallback: Starting callback processing');
-        
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
         const state = params.get('state');
-        
-        console.log('TwitterCallback: Received params:', {
-          code: code ? 'present' : 'missing',
-          state: state ? 'present' : 'missing'
-        });
-        
+
         if (!code || !state) {
-          console.error('TwitterCallback: Missing code or state in callback');
           toast.error('Authentication failed: Missing parameters');
           navigate('/dashboard');
           return;
         }
 
-        // Process the callback
         await TwitterService.handleCallback(code, state);
         
-        // Close this window if it's a popup
+        // Close popup and refresh parent
         if (window.opener) {
-          console.log('TwitterCallback: Closing popup window');
+          window.opener.location.reload();
           window.close();
         } else {
-          console.log('TwitterCallback: Not in popup, redirecting to dashboard');
           navigate('/dashboard');
         }
         
-        toast.success('Successfully connected to Twitter');
-        
       } catch (error) {
-        console.error('TwitterCallback: Error in callback:', error);
-        toast.error('Failed to complete Twitter authentication');
+        console.error('Error in callback:', error);
+        toast.error('Failed to complete authentication');
         navigate('/dashboard');
       }
     };
