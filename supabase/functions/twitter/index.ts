@@ -1,226 +1,127 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+import { generateCodeVerifier, generateCodeChallenge } from './pkce.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+const TWITTER_OAUTH_URL = 'https://twitter.com/i/oauth2/authorize';
+const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CONSUMER_KEY')?.trim();
 
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('Handling CORS preflight request');
-    return new Response(null, { 
-      headers: corsHeaders,
-      status: 204
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { action, code, codeVerifier } = await req.json();
-    console.log('Received request with action:', action);
-    console.log('Request URL:', req.url);
-    console.log('Request method:', req.method);
-    console.log('Request body:', { action, hasCode: !!code, hasCodeVerifier: !!codeVerifier });
-    
-    // Get the origin from the request headers
-    const origin = req.headers.get('origin') || '*';
-    console.log('Request origin:', origin);
-    
-    // Validate environment variables
-    const envCheck = {
-      hasConsumerKey: !!Deno.env.get('TWITTER_CONSUMER_KEY'),
-      hasConsumerSecret: !!Deno.env.get('TWITTER_CONSUMER_SECRET'),
-    };
-    console.log('Environment check:', envCheck);
-
-    if (!envCheck.hasConsumerKey || !envCheck.hasConsumerSecret) {
-      throw new Error('Missing required Twitter API credentials');
-    }
+    const { action } = await req.json();
+    console.log('Received action:', action);
 
     if (action === 'connect') {
-      const state = crypto.randomUUID();
-      const newCodeVerifier = crypto.randomUUID();
-      const challenge = newCodeVerifier; // For Twitter, the challenge is the same as verifier
-
-      // Use the callback URL from Twitter Developer Portal
-      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
+      console.log('Starting Twitter OAuth flow...');
       
-      console.log('Starting OAuth flow with:', {
-        state,
-        codeVerifier: newCodeVerifier,
-        redirectUri,
-        clientId: Deno.env.get('TWITTER_CONSUMER_KEY')
+      // Generate PKCE values
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+      
+      // Define OAuth parameters
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: TWITTER_CLIENT_ID!,
+        redirect_uri: 'https://kyzayqvlqnunzzjtnnsm.supabase.co/functions/v1/twitter/callback',
+        scope: 'tweet.read tweet.write users.read offline.access',
+        state: crypto.randomUUID(),
+        code_challenge: codeChallenge,
+        code_challenge_method: 'S256',
+        force_login: 'true', // Force Twitter to show the login screen
       });
 
-      const authUrl = new URL('https://twitter.com/i/oauth2/authorize');
-      authUrl.searchParams.append('response_type', 'code');
-      authUrl.searchParams.append('client_id', Deno.env.get('TWITTER_CONSUMER_KEY')!);
-      authUrl.searchParams.append('redirect_uri', redirectUri);
-      authUrl.searchParams.append('scope', 'tweet.read tweet.write users.read offline.access');
-      authUrl.searchParams.append('state', state);
-      authUrl.searchParams.append('code_challenge', challenge);
-      authUrl.searchParams.append('code_challenge_method', 'plain');
-
-      console.log('Generated auth URL:', authUrl.toString());
+      const url = `${TWITTER_OAUTH_URL}?${params.toString()}`;
+      console.log('Generated OAuth URL:', url);
 
       return new Response(
-        JSON.stringify({
-          url: authUrl.toString(),
-          state,
-          codeVerifier: newCodeVerifier,
+        JSON.stringify({ 
+          url,
+          state: params.get('state'),
+          codeVerifier
         }),
         { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
 
-    if (action === 'callback') {
-      console.log('Processing callback with:', {
-        code: code ? 'present' : 'missing',
-        codeVerifier: codeVerifier ? 'present' : 'missing'
-      });
-      
-      if (!code || !codeVerifier) {
-        throw new Error('Missing required parameters for callback');
-      }
+    // Handle callback
+    const { code, state } = await req.json();
+    console.log('Handling callback with code:', code, 'and state:', state);
 
-      const redirectUri = 'https://kyzayqvlqnunzzjtnnsm.supabase.co/auth/v1/callback';
-      
-      console.log('Preparing token exchange with:', {
-        redirectUri,
-        codeVerifier,
-        clientId: Deno.env.get('TWITTER_CONSUMER_KEY')
-      });
-
-      const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization: `Basic ${btoa(`${Deno.env.get('TWITTER_CONSUMER_KEY')}:${Deno.env.get('TWITTER_CONSUMER_SECRET')}`)}`,
-        },
-        body: new URLSearchParams({
-          code,
-          grant_type: 'authorization_code',
-          redirect_uri: redirectUri,
-          code_verifier: codeVerifier,
-        }),
-      });
-
-      const tokenResponseText = await tokenResponse.text();
-      console.log('Token response status:', tokenResponse.status);
-      console.log('Token response headers:', Object.fromEntries(tokenResponse.headers));
-      
-      let tokens;
-      try {
-        tokens = JSON.parse(tokenResponseText);
-        console.log('Parsed token response:', {
-          hasAccessToken: !!tokens.access_token,
-          hasRefreshToken: !!tokens.refresh_token,
-          tokenType: tokens.token_type,
-          error: tokens.error,
-          errorDescription: tokens.error_description
-        });
-      } catch (error) {
-        console.error('Failed to parse token response:', tokenResponseText);
-        throw new Error(`Token exchange failed: ${tokenResponseText}`);
-      }
-
-      if (!tokenResponse.ok || tokens.error) {
-        console.error('Token exchange failed:', tokens.error_description || tokenResponseText);
-        throw new Error(`Token exchange failed: ${tokens.error_description || tokenResponseText}`);
-      }
-
-      // Get user information
-      console.log('Fetching user information with access token');
-      const userResponse = await fetch('https://api.twitter.com/2/users/me', {
-        headers: {
-          Authorization: `Bearer ${tokens.access_token}`,
-        },
-      });
-
-      if (!userResponse.ok) {
-        const errorText = await userResponse.text();
-        console.error('User info fetch failed:', errorText);
-        throw new Error(`Failed to fetch user info: ${errorText}`);
-      }
-
-      const userData = await userResponse.json();
-      console.log('Received user data:', {
-        id: userData.data.id,
-        username: userData.data.username,
-      });
-
-      // Generate HTML for the callback page
-      const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>Twitter Authentication</title>
-          <script>
-            // Try to get the origin from the opener, fallback to a list of allowed origins
-            const allowedOrigins = [
-              'https://preview--pandapost.lovable.app',
-              'http://localhost:3000',
-              'https://lovable.dev'
-            ];
-            
-            const openerOrigin = window.opener?.location.origin;
-            const targetOrigin = allowedOrigins.includes(openerOrigin) ? openerOrigin : allowedOrigins[0];
-            
-            console.log('Sending message to origin:', targetOrigin);
-            
-            window.opener.postMessage(
-              { 
-                type: 'twitter_callback',
-                code: '${code}',
-                state: '${codeVerifier}'
-              }, 
-              targetOrigin
-            );
-          </script>
-        </head>
-        <body>
-          <p>Authentication successful! You can close this window.</p>
-        </body>
-        </html>
-      `;
-
-      return new Response(
-        JSON.stringify({
-          tokens,
-          user: userData.data,
-          html
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
+    // Verify state matches
+    const storedState = localStorage.getItem('twitter_oauth_state');
+    console.log("Comparing states:", { stored: storedState, received: state });
+    
+    if (state !== storedState) {
+      console.error("State mismatch:", { stored: storedState, received: state });
+      throw new Error('Invalid state parameter');
     }
 
-    throw new Error('Invalid action');
-  } catch (error: any) {
+    // Exchange code for token
+    console.log("Exchanging code for token...");
+    const { data: callbackData, error: callbackError } = await supabase.functions.invoke('twitter', {
+      body: { 
+        action: 'callback',
+        code,
+        codeVerifier: localStorage.getItem('twitter_code_verifier')
+      }
+    });
+
+    if (callbackError) {
+      console.error("Callback error:", callbackError);
+      throw callbackError;
+    }
+
+    console.log("Received callback data:", callbackData);
+
+    // Save connection to database
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      console.error("No active session found");
+      throw new Error('No active session');
+    }
+
+    console.log("Saving connection to database...");
+    const { error: insertError } = await supabase
+      .from('social_connections')
+      .upsert({
+        user_id: session.user.id,
+        platform: 'twitter',
+        username: callbackData.user.username,
+        platform_user_id: callbackData.user.id,
+        twitter_credentials: callbackData.tokens
+      });
+
+    if (insertError) {
+      console.error("Database insert error:", insertError);
+      throw insertError;
+    }
+
+    // Clean up
+    localStorage.removeItem('twitter_oauth_state');
+    localStorage.removeItem('twitter_code_verifier');
+
+    console.log("Twitter connection successful:", callbackData);
+    toast.success("Successfully connected to Twitter!");
+
+    return callbackData;
+  } catch (error) {
     console.error('Error in Twitter function:', error);
-    console.error('Error stack:', error.stack);
     return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        stack: error.stack,
-        type: error.constructor.name
-      }),
+      JSON.stringify({ error: error.message }),
       { 
-        status: 400,
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json' 
-        }
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
