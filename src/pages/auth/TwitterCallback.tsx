@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TwitterService } from '@/services/twitter';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const TwitterCallback = () => {
   const navigate = useNavigate();
@@ -9,22 +9,26 @@ const TwitterCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        const params = new URLSearchParams(window.location.search);
-        const oauth_token = params.get('oauth_token');
-        const oauth_verifier = params.get('oauth_verifier');
-
-        if (!oauth_token || !oauth_verifier) {
-          toast.error('Authentication failed: Missing parameters');
-          navigate('/dashboard');
-          return;
+        // Get the session to confirm the user is authenticated
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
         }
 
-        await TwitterService.handleCallback(oauth_token, oauth_verifier);
-        toast.success('Successfully connected to Twitter!');
+        if (session) {
+          console.log('Twitter authentication successful:', session);
+          toast.success('Successfully connected to Twitter!');
+        } else {
+          console.error('No session found after Twitter auth');
+          toast.error('Authentication failed');
+        }
+
+        // Redirect back to dashboard in either case
         navigate('/dashboard');
         
       } catch (error) {
-        console.error('Error in callback:', error);
+        console.error('Error in Twitter callback:', error);
         toast.error('Failed to complete authentication');
         navigate('/dashboard');
       }
