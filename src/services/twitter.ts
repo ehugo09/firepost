@@ -61,7 +61,12 @@ export class TwitterService {
         throw new Error('Missing required session data');
       }
 
-      console.log('Exchanging code for tokens...');
+      console.log('Calling twitter-auth function with:', { 
+        code: code.substring(0, 10) + '...',
+        userId,
+        codeVerifier: codeVerifier.substring(0, 10) + '...'
+      });
+
       const { data, error } = await supabase.functions.invoke('twitter-auth', {
         body: { 
           code,
@@ -71,9 +76,11 @@ export class TwitterService {
       });
 
       if (error) {
-        console.error('Error exchanging code:', error);
+        console.error('Error from twitter-auth function:', error);
         throw error;
       }
+
+      console.log('Response from twitter-auth function:', data);
 
       console.log('Successfully authenticated with Twitter');
       sessionStorage.removeItem('twitter_oauth_state');
