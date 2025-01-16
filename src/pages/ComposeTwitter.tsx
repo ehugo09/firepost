@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const ComposeTwitter = () => {
@@ -18,10 +18,14 @@ const ComposeTwitter = () => {
       console.log("Attempting to post tweet with content:", content);
       
       const { data, error } = await supabase.functions.invoke('twitter', {
-        body: { content }
+        body: { content },
+        method: 'POST'
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
 
       console.log("Tweet posted successfully:", data);
       
@@ -31,11 +35,11 @@ const ComposeTwitter = () => {
       });
       
       navigate('/dashboard');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error posting tweet:', error);
       toast({
         title: "Error",
-        description: "Failed to post tweet. Please try again.",
+        description: error.message || "Failed to post tweet. Please try again.",
         variant: "destructive",
       });
     }
