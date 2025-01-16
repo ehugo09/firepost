@@ -25,7 +25,7 @@ const SocialNetworkItem = ({
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'twitter',
           options: {
-            redirectTo: 'https://preview--pandapost.lovable.app/auth/callback/twitter',
+            redirectTo: `${window.location.origin}/auth/callback/twitter`,
             queryParams: {
               force_login: 'true'
             }
