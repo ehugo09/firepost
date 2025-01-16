@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const ComposeTwitter = () => {
   const [content, setContent] = useState("");
@@ -14,16 +15,16 @@ const ComposeTwitter = () => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch('/api/twitter/tweet', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content }),
+      console.log("Attempting to post tweet with content:", content);
+      
+      const { data, error } = await supabase.functions.invoke('twitter', {
+        body: { content }
       });
 
-      if (!response.ok) throw new Error('Failed to post tweet');
+      if (error) throw error;
 
+      console.log("Tweet posted successfully:", data);
+      
       toast({
         title: "Success!",
         description: "Your tweet has been posted.",
