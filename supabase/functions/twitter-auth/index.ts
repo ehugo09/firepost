@@ -6,49 +6,45 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CLIENT_ID');
-const TWITTER_CLIENT_SECRET = Deno.env.get('TWITTER_CLIENT_SECRET');
-
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Processing Twitter OAuth token exchange...');
-    const { code, codeVerifier } = await req.json();
+    const { code, codeVerifier, redirectUri } = await req.json();
+    console.log('Processing token exchange with code:', code);
 
     if (!code || !codeVerifier) {
       throw new Error('Missing required parameters');
     }
 
-    // Create Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    );
+    const TWITTER_CLIENT_ID = Deno.env.get('TWITTER_CLIENT_ID');
+    const TWITTER_CLIENT_SECRET = Deno.env.get('TWITTER_CLIENT_SECRET');
+
+    if (!TWITTER_CLIENT_ID || !TWITTER_CLIENT_SECRET) {
+      throw new Error('Missing Twitter credentials');
+    }
 
     // Exchange code for tokens
     const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${btoa(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`)}`,
+        'Authorization': `Basic ${btoa(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`)}`,
       },
       body: new URLSearchParams({
-        code,
         grant_type: 'authorization_code',
-        client_id: TWITTER_CLIENT_ID!,
-        redirect_uri: `${req.headers.get('origin')}/auth/callback/twitter`,
+        code,
+        redirect_uri: redirectUri,
         code_verifier: codeVerifier,
       }),
     });
 
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.text();
-      console.error('Twitter token exchange failed:', errorData);
-      throw new Error(`Token exchange failed: ${errorData}`);
+      const errorText = await tokenResponse.text();
+      console.error('Token exchange failed:', errorText);
+      throw new Error(`Token exchange failed: ${errorText}`);
     }
 
     const tokens = await tokenResponse.json();
@@ -57,7 +53,7 @@ serve(async (req) => {
     // Get user info
     const userResponse = await fetch('https://api.twitter.com/2/users/me', {
       headers: {
-        Authorization: `Bearer ${tokens.access_token}`,
+        'Authorization': `Bearer ${tokens.access_token}`,
       },
     });
 
@@ -66,10 +62,17 @@ serve(async (req) => {
     }
 
     const userData = await userResponse.json();
-    console.log('Successfully fetched user info');
+    console.log('Successfully fetched user info:', userData);
+
+    // Create Supabase client
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      { auth: { persistSession: false } }
+    );
 
     // Store connection in database
-    const { error: dbError } = await supabaseClient
+    const { error: dbError } = await supabaseAdmin
       .from('social_connections')
       .upsert({
         platform: 'twitter',
@@ -83,6 +86,7 @@ serve(async (req) => {
           username: userData.data.username,
           name: userData.data.name,
         },
+        user_id: (await req.json()).user.id,
       });
 
     if (dbError) {
@@ -90,15 +94,9 @@ serve(async (req) => {
       throw dbError;
     }
 
-    return new Response(
-      JSON.stringify(tokens),
-      { 
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
 
   } catch (error) {
     console.error('Error in Twitter auth function:', error);
@@ -106,10 +104,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500,
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }

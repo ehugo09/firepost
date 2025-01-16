@@ -24,7 +24,7 @@ export class TwitterService {
         state: state,
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
-        force_login: TWITTER_CONFIG.forceLogin ? 'true' : 'false'
+        force_login: 'true'
       });
 
       const authUrl = `${TWITTER_CONFIG.authUrl}?${params.toString()}`;
@@ -55,9 +55,13 @@ export class TwitterService {
         throw new Error('Missing code verifier');
       }
 
-      // Exchange code for tokens
+      console.log('Exchanging code for tokens...');
       const { data, error } = await supabase.functions.invoke('twitter-auth', {
-        body: { code, codeVerifier }
+        body: { 
+          code,
+          codeVerifier,
+          redirectUri: TWITTER_CONFIG.redirectUri
+        }
       });
 
       if (error) throw error;
