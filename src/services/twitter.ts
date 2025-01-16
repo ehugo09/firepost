@@ -6,15 +6,19 @@ export class TwitterService {
     try {
       console.log('Starting Twitter auth flow with oauth4webapi...');
       
-      // Create OAuth issuer and client
-      const issuer = new URL('https://twitter.com');
-      const authorizationServer = new oauth.AuthorizationServer(issuer);
-      
+      // Create OAuth issuer
+      const as = {
+        issuer: 'https://twitter.com',
+        authorization_endpoint: 'https://twitter.com/i/oauth2/authorize',
+        token_endpoint: 'https://api.twitter.com/2/oauth2/token'
+      };
+
       // Generate PKCE values
-      const pkceCode = await oauth.generatePKCECodes();
+      const code_verifier = oauth.generateRandomCodeVerifier();
+      const code_challenge = await oauth.calculatePKCECodeChallenge(code_verifier);
       
       // Store PKCE values securely
-      sessionStorage.setItem('twitter_oauth_verifier', pkceCode.codeVerifier);
+      sessionStorage.setItem('twitter_oauth_verifier', code_verifier);
       
       // Generate state
       const state = oauth.generateRandomState();
@@ -27,19 +31,18 @@ export class TwitterService {
       };
 
       // Authorization request parameters
-      const authorizationUrl = new URL('https://twitter.com/i/oauth2/authorize');
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: client.client_id,
         redirect_uri: 'https://preview--pandapost.lovable.app/auth/callback/twitter',
         scope: 'tweet.read tweet.write users.read offline.access',
         state: state,
-        code_challenge: pkceCode.codeChallenge,
+        code_challenge: code_challenge,
         code_challenge_method: 'S256',
         force_login: 'true'
       });
 
-      const fullUrl = `${authorizationUrl}?${params.toString()}`;
+      const fullUrl = `${as.authorization_endpoint}?${params.toString()}`;
       console.log('Redirecting to Twitter auth URL:', fullUrl);
       window.location.href = fullUrl;
       
