@@ -1,45 +1,43 @@
 import { supabase } from "@/integrations/supabase/client";
-import { TWITTER_CONFIG } from "@/config/twitter";
-import { generateCodeVerifier, generateCodeChallenge, generateState } from "@/utils/oauth";
+import { generateCodeVerifier, generateCodeChallenge, generateState } from "./oauth/utils";
+import type { OAuthState } from "./oauth/types";
 import { toast } from "sonner";
 
+const TWITTER_AUTH_URL = 'https://twitter.com/i/oauth2/authorize';
+const TWITTER_CLIENT_ID = 'akNKemhMMnZBdlJTYzliRjRtd1o6MTpjaQ';
+const REDIRECT_URI = 'https://preview--pandapost.lovable.app/auth/callback/twitter';
+
 export class TwitterService {
-  private static async createAuthUrl(): Promise<{ url: string; state: string; codeVerifier: string }> {
-    const state = generateState();
-    const codeVerifier = generateCodeVerifier();
-    const codeChallenge = await generateCodeChallenge(codeVerifier);
-
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: TWITTER_CONFIG.clientId,
-      redirect_uri: TWITTER_CONFIG.redirectUri,
-      scope: TWITTER_CONFIG.scope,
-      state: state,
-      code_challenge: codeChallenge,
-      code_challenge_method: 'S256'
-    });
-
-    return {
-      url: `${TWITTER_CONFIG.authUrl}?${params.toString()}`,
-      state,
-      codeVerifier
-    };
-  }
-
   static async connect(): Promise<void> {
     console.log("Starting Twitter connection process...");
     try {
-      const { url, state, codeVerifier } = await this.createAuthUrl();
-      
-      // Store state and verifier
-      localStorage.setItem('twitter_oauth_state', state);
-      localStorage.setItem('twitter_code_verifier', codeVerifier);
-      
+      const state = generateState();
+      const codeVerifier = generateCodeVerifier();
+      const codeChallenge = await generateCodeChallenge(codeVerifier);
+
+      // Store PKCE values in localStorage
+      const oauthState: OAuthState = { codeVerifier, state };
+      localStorage.setItem('twitter_oauth_state', JSON.stringify(oauthState));
+
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: TWITTER_CLIENT_ID,
+        redirect_uri: REDIRECT_URI,
+        scope: 'tweet.read tweet.write users.read offline.access',
+        state: state,
+        code_challenge: codeChallenge,
+        code_challenge_method: 'S256',
+        force_login: 'true'
+      });
+
+      const url = `${TWITTER_AUTH_URL}?${params.toString()}`;
+      console.log("Generated OAuth URL:", url);
+
       const width = 600;
-      const height = 600;
+      const height = 800;
       const left = window.screen.width / 2 - width / 2;
       const top = window.screen.height / 2 - height / 2;
-      
+
       const popup = window.open(
         url,
         'Twitter Auth',
@@ -47,37 +45,73 @@ export class TwitterService {
       );
 
       if (!popup) {
-        throw new Error("Failed to open authentication window");
+        throw new Error("Failed to open popup window");
       }
 
       return new Promise((resolve, reject) => {
         const messageHandler = async (event: MessageEvent) => {
+          console.log("Received message from popup:", event);
+
           try {
-            if (event.origin !== window.location.origin) {
+            // Verify origin
+            const allowedOrigins = [
+              window.location.origin,
+              'https://preview--pandapost.lovable.app'
+            ];
+            
+            if (!allowedOrigins.includes(event.origin)) {
               console.log("Ignoring message from unauthorized origin:", event.origin);
               return;
             }
 
             if (event.data?.type === 'twitter_callback') {
+              window.removeEventListener('message', messageHandler);
               const { code, state: receivedState } = event.data;
-              
+
               if (!code || !receivedState) {
                 throw new Error("Missing OAuth parameters");
               }
 
-              const storedState = localStorage.getItem('twitter_oauth_state');
-              if (receivedState !== storedState) {
+              // Retrieve stored OAuth state
+              const storedOAuthState = localStorage.getItem('twitter_oauth_state');
+              if (!storedOAuthState) {
+                throw new Error("No stored OAuth state found");
+              }
+
+              const { state: originalState, codeVerifier } = JSON.parse(storedOAuthState) as OAuthState;
+              if (receivedState !== originalState) {
                 throw new Error("Invalid state parameter");
               }
 
-              window.removeEventListener('message', messageHandler);
-              await this.handleCallback(code);
+              // Exchange code for tokens using Edge Function
+              const { data: tokens, error: tokenError } = await supabase.functions.invoke('twitter', {
+                body: { 
+                  action: 'callback',
+                  code,
+                  codeVerifier
+                }
+              });
+
+              if (tokenError) throw tokenError;
+              console.log("Successfully connected to Twitter:", tokens);
+              
               popup.close();
+              toast.success("Successfully connected to Twitter!");
               resolve();
+            }
+
+            if (event.data?.type === 'twitter_callback_error') {
+              window.removeEventListener('message', messageHandler);
+              popup.close();
+              throw new Error(event.data.error);
             }
           } catch (error) {
             console.error("Error in message handler:", error);
+            window.removeEventListener('message', messageHandler);
+            popup.close();
             reject(error);
+          } finally {
+            localStorage.removeItem('twitter_oauth_state');
           }
         };
 
@@ -89,43 +123,12 @@ export class TwitterService {
             clearInterval(checkClosed);
             window.removeEventListener('message', messageHandler);
             localStorage.removeItem('twitter_oauth_state');
-            localStorage.removeItem('twitter_code_verifier');
             reject(new Error("Authentication cancelled"));
           }
         }, 1000);
       });
     } catch (error) {
       console.error("Twitter connection error:", error);
-      throw error;
-    }
-  }
-
-  private static async handleCallback(code: string): Promise<void> {
-    console.log("Handling Twitter callback with code:", code);
-    try {
-      const codeVerifier = localStorage.getItem('twitter_code_verifier');
-      if (!codeVerifier) {
-        throw new Error("Code verifier not found");
-      }
-
-      const { data: callbackData, error: callbackError } = await supabase.functions.invoke('twitter', {
-        body: { 
-          action: 'callback',
-          code,
-          codeVerifier
-        }
-      });
-
-      if (callbackError) throw callbackError;
-
-      console.log("Successfully connected to Twitter:", callbackData);
-      toast.success("Successfully connected to Twitter!");
-
-      // Clean up
-      localStorage.removeItem('twitter_oauth_state');
-      localStorage.removeItem('twitter_code_verifier');
-    } catch (error) {
-      console.error("Twitter callback error:", error);
       toast.error("Failed to connect to Twitter");
       throw error;
     }
