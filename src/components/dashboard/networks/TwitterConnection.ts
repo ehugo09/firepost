@@ -104,41 +104,37 @@ export const openTwitterPopup = async () => {
 
       if (popup) {
         console.log("Popup opened successfully");
-        const checkPopup = setInterval(async () => {
+        
+        // Create a message event listener for the popup
+        window.addEventListener('message', async function messageHandler(event) {
           try {
-            if (popup.closed) {
-              console.log("Popup was closed");
-              clearInterval(checkPopup);
-              localStorage.removeItem('twitter_oauth_state');
-              localStorage.removeItem('twitter_code_verifier');
-              return;
-            }
-
-            // Check if the popup URL contains the code parameter
-            const currentUrl = popup.location.href;
-            console.log("Current popup URL:", currentUrl);
-            
-            if (currentUrl.includes('code=')) {
-              console.log("Found code in popup URL");
-              const url = new URL(currentUrl);
-              const code = url.searchParams.get('code');
-              const state = url.searchParams.get('state');
+            // Check if the message is from our popup
+            if (event.data && event.data.type === 'twitter_callback') {
+              console.log("Received callback message from popup:", event.data);
+              const { code, state } = event.data;
               
               if (code && state) {
+                window.removeEventListener('message', messageHandler);
                 await handleTwitterCallback(code, state);
                 popup.close();
-                clearInterval(checkPopup);
                 window.location.reload();
               }
             }
-          } catch (error: any) {
-            // Ignore errors from cross-origin frames
-            if (!error.message.includes('cross-origin')) {
-              console.error("Error in popup check:", error);
-              clearInterval(checkPopup);
-            }
+          } catch (error) {
+            console.error("Error handling popup message:", error);
+          }
+        });
+
+        // Check if popup is closed
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            console.log("Popup was closed");
+            clearInterval(checkClosed);
+            localStorage.removeItem('twitter_oauth_state');
+            localStorage.removeItem('twitter_code_verifier');
           }
         }, 1000);
+
       } else {
         console.error("Failed to open popup window");
         toast.error("Failed to open authentication window");

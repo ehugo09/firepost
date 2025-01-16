@@ -151,10 +151,34 @@ serve(async (req) => {
         username: userData.data.username,
       });
 
+      // Generate HTML for the callback page
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Twitter Authentication</title>
+          <script>
+            window.opener.postMessage(
+              { 
+                type: 'twitter_callback',
+                code: '${code}',
+                state: '${codeVerifier}'
+              }, 
+              '*'
+            );
+          </script>
+        </head>
+        <body>
+          <p>Authentication successful! You can close this window.</p>
+        </body>
+        </html>
+      `;
+
       return new Response(
         JSON.stringify({
           tokens,
           user: userData.data,
+          html
         }),
         { 
           headers: { 
