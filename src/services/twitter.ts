@@ -12,7 +12,31 @@ export class TwitterService {
     try {
       console.log('Initiating Twitter OAuth flow...');
       const authUrl = await getTwitterAuthUrl();
-      window.location.href = authUrl;
+      
+      // Open popup window
+      const width = 600;
+      const height = 600;
+      const left = window.screen.width / 2 - width / 2;
+      const top = window.screen.height / 2 - height / 2;
+      
+      const popup = window.open(
+        authUrl,
+        'Twitter Auth',
+        `width=${width},height=${height},left=${left},top=${top},status=yes,scrollbars=yes`
+      );
+
+      if (!popup) {
+        throw new Error('Popup blocked. Please allow popups for this site.');
+      }
+
+      // Monitor popup closure
+      const checkPopup = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkPopup);
+          console.log('OAuth popup closed');
+        }
+      }, 1000);
+
     } catch (error) {
       console.error('Error initiating Twitter auth:', error);
       throw error;

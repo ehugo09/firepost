@@ -37,6 +37,7 @@ export const getTwitterAuthUrl = async (): Promise<string> => {
     state: state,
     code_challenge: codeChallenge,
     code_challenge_method: 'S256',
+    force_login: 'true' // Force Twitter to show auth screen
   });
 
   return `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
