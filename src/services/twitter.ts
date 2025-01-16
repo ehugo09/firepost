@@ -5,6 +5,11 @@ export class TwitterService {
   static async initiateAuth(): Promise<void> {
     try {
       console.log('Starting Twitter auth flow...');
+      console.log('Twitter Config:', {
+        clientId: TWITTER_CONFIG.clientId,
+        redirectUri: TWITTER_CONFIG.redirectUri,
+        scope: TWITTER_CONFIG.scope
+      });
       
       const { data: { session } } = await supabase.auth.getSession();
       console.log('Current session:', session);
