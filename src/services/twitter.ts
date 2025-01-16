@@ -30,7 +30,7 @@ export class TwitterService {
         token_endpoint_auth_method: 'none'
       };
 
-      // Authorization request parameters
+      // Authorization request parameters with updated scopes
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: client.client_id,
