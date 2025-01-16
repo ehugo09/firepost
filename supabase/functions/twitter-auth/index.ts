@@ -4,18 +4,24 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
+  console.log('Twitter auth function called with method:', req.method);
+
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log('Starting Twitter auth process...');
     const { code, codeVerifier, userId } = await req.json();
-    console.log('Received auth request:', { code, userId });
+    console.log('Received parameters:', { code: code?.substring(0, 10) + '...', userId });
 
     if (!code || !codeVerifier || !userId) {
+      console.error('Missing required parameters:', { code: !!code, codeVerifier: !!codeVerifier, userId: !!userId });
       throw new Error('Missing required parameters');
     }
 
+    console.log('Preparing token exchange request...');
     const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
       method: 'POST',
       headers: {
@@ -30,34 +36,44 @@ Deno.serve(async (req) => {
       }),
     });
 
+    console.log('Token exchange response status:', tokenResponse.status);
+    
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
-      console.error('Token exchange failed:', errorText);
+      console.error('Token exchange failed. Response:', errorText);
+      console.error('Response headers:', Object.fromEntries(tokenResponse.headers.entries()));
       throw new Error(`Failed to exchange code for tokens: ${errorText}`);
     }
 
     const tokens = await tokenResponse.json();
     console.log('Successfully obtained tokens');
 
+    console.log('Fetching user info...');
     const userResponse = await fetch('https://api.twitter.com/2/users/me', {
       headers: {
         'Authorization': `Bearer ${tokens.access_token}`,
       },
     });
 
+    console.log('User info response status:', userResponse.status);
+
     if (!userResponse.ok) {
+      const errorText = await userResponse.text();
+      console.error('Failed to fetch user info. Response:', errorText);
       throw new Error('Failed to fetch user info');
     }
 
     const userData = await userResponse.json();
-    console.log('Successfully fetched user info');
+    console.log('Successfully fetched user info:', userData);
 
+    console.log('Initializing Supabase client...');
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') || '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
     );
 
+    console.log('Upserting social connection...');
     const { error: dbError } = await supabase
       .from('social_connections')
       .upsert({
@@ -80,12 +96,14 @@ Deno.serve(async (req) => {
       throw dbError;
     }
 
+    console.log('Successfully completed Twitter authentication process');
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
     console.error('Error in twitter-auth function:', error);
+    console.error('Error stack:', error.stack);
     return new Response(
       JSON.stringify({ error: error.message }), 
       { 
