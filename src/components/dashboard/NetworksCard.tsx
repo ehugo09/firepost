@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import SocialNetworkItem from "./networks/SocialNetworkItem";
 import NetworkStats from "./networks/NetworkStats";
-import { openTwitterPopup } from "./networks/TwitterConnection";
+import { initiateTwitterAuth } from "@/services/twitter/twitter-auth";
 
 interface SocialConnection {
   id: string;
@@ -55,8 +55,7 @@ const NetworksCard = () => {
     try {
       if (platform === "twitter") {
         console.log("Initiating Twitter connection...");
-        const result = await openTwitterPopup();
-        console.log("Twitter connection result:", result);
+        await initiateTwitterAuth();
         // Refresh connections after successful connection
         await fetchConnections();
       } else {
