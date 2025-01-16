@@ -9,6 +9,7 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request');
     return new Response(null, { 
       headers: corsHeaders,
       status: 204
@@ -18,10 +19,19 @@ serve(async (req) => {
   try {
     const { action, code, codeVerifier } = await req.json();
     console.log('Received request with action:', action);
-    console.log('Environment check:', {
+    console.log('Request URL:', req.url);
+    console.log('Request method:', req.method);
+    
+    // Validate environment variables
+    const envCheck = {
       hasConsumerKey: !!Deno.env.get('TWITTER_CONSUMER_KEY'),
       hasConsumerSecret: !!Deno.env.get('TWITTER_CONSUMER_SECRET'),
-    });
+    };
+    console.log('Environment check:', envCheck);
+
+    if (!envCheck.hasConsumerKey || !envCheck.hasConsumerSecret) {
+      throw new Error('Missing required Twitter API credentials');
+    }
 
     if (action === 'connect') {
       const state = crypto.randomUUID();
@@ -105,15 +115,17 @@ serve(async (req) => {
           hasAccessToken: !!tokens.access_token,
           hasRefreshToken: !!tokens.refresh_token,
           tokenType: tokens.token_type,
+          error: tokens.error,
+          errorDescription: tokens.error_description
         });
       } catch (error) {
         console.error('Failed to parse token response:', tokenResponseText);
         throw new Error(`Token exchange failed: ${tokenResponseText}`);
       }
 
-      if (!tokenResponse.ok) {
-        console.error('Token exchange failed:', tokenResponseText);
-        throw new Error(`Token exchange failed: ${tokenResponseText}`);
+      if (!tokenResponse.ok || tokens.error) {
+        console.error('Token exchange failed:', tokens.error_description || tokenResponseText);
+        throw new Error(`Token exchange failed: ${tokens.error_description || tokenResponseText}`);
       }
 
       // Get user information
@@ -154,10 +166,12 @@ serve(async (req) => {
     throw new Error('Invalid action');
   } catch (error: any) {
     console.error('Error in Twitter function:', error);
+    console.error('Error stack:', error.stack);
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
+        type: error.constructor.name
       }),
       { 
         status: 400,
