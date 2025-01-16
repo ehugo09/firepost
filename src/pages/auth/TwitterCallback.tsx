@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { TwitterService } from '@/services/twitter';
 import { toast } from 'sonner';
 
 const TwitterCallback = () => {
@@ -8,6 +9,7 @@ const TwitterCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        console.log('Processing Twitter OAuth callback...');
         const params = new URLSearchParams(window.location.search);
         const code = params.get('code');
         const state = params.get('state');
@@ -19,13 +21,25 @@ const TwitterCallback = () => {
           return;
         }
 
-        // We'll implement the token exchange here in the next step
-        console.log('Received authorization code:', code);
+        // Verify state matches stored state
+        const storedState = sessionStorage.getItem('twitter_oauth_state');
+        if (state !== storedState) {
+          console.error('State mismatch in OAuth callback');
+          toast.error('Authentication failed: Invalid state');
+          navigate('/dashboard');
+          return;
+        }
+
+        await TwitterService.handleCallback(code, state);
+        toast.success('Successfully connected to Twitter');
         
-        navigate('/dashboard');
       } catch (error) {
         console.error('Error handling Twitter callback:', error);
-        toast.error('Failed to complete authentication');
+        toast.error('Failed to complete Twitter authentication');
+      } finally {
+        // Clean up session storage
+        sessionStorage.removeItem('twitter_oauth_state');
+        sessionStorage.removeItem('twitter_oauth_verifier');
         navigate('/dashboard');
       }
     };
@@ -34,10 +48,10 @@ const TwitterCallback = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-        <p className="text-gray-600">Completing authentication...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+        <p className="text-gray-600 dark:text-gray-300">Completing authentication...</p>
       </div>
     </div>
   );
