@@ -105,56 +105,67 @@ export const openTwitterPopup = async () => {
       if (popup) {
         console.log("Popup opened successfully");
         
-        // Create a message event listener for the popup
-        window.addEventListener('message', async function messageHandler(event) {
-          try {
-            // Check if the message is from our popup and an allowed origin
-            const allowedOrigins = [
-              'https://preview--pandapost.lovable.app',
-              'http://localhost:3000',
-              'https://lovable.dev'
-            ];
-            
-            if (!allowedOrigins.includes(event.origin)) {
-              console.log("Ignoring message from unauthorized origin:", event.origin);
-              return;
-            }
-
-            console.log("Received message from origin:", event.origin);
-            
-            if (event.data && event.data.type === 'twitter_callback') {
-              console.log("Received callback message from popup:", event.data);
-              const { code, state } = event.data;
+        return new Promise((resolve, reject) => {
+          // Create a message event listener for the popup
+          const messageHandler = async (event: MessageEvent) => {
+            try {
+              // Check if the message is from our popup and an allowed origin
+              const allowedOrigins = [
+                'https://preview--pandapost.lovable.app',
+                'http://localhost:3000',
+                'https://lovable.dev',
+                'https://kyzayqvlqnunzzjtnnsm.supabase.co'
+              ];
               
-              if (code && state) {
-                window.removeEventListener('message', messageHandler);
-                await handleTwitterCallback(code, state);
-                popup.close();
-                window.location.reload();
+              if (!allowedOrigins.includes(event.origin)) {
+                console.log("Ignoring message from unauthorized origin:", event.origin);
+                return;
               }
+
+              console.log("Received message from origin:", event.origin);
+              console.log("Message data:", event.data);
+              
+              if (event.data && event.data.type === 'twitter_callback') {
+                console.log("Received callback message from popup:", event.data);
+                const { code, state } = event.data;
+                
+                if (code && state) {
+                  window.removeEventListener('message', messageHandler);
+                  const result = await handleTwitterCallback(code, state);
+                  popup.close();
+                  resolve(result);
+                }
+              }
+            } catch (error) {
+              console.error("Error handling popup message:", error);
+              reject(error);
             }
-          } catch (error) {
-            console.error("Error handling popup message:", error);
-          }
+          };
+
+          window.addEventListener('message', messageHandler);
+
+          // Check if popup is closed
+          const checkClosed = setInterval(() => {
+            if (popup.closed) {
+              console.log("Popup was closed");
+              clearInterval(checkClosed);
+              window.removeEventListener('message', messageHandler);
+              localStorage.removeItem('twitter_oauth_state');
+              localStorage.removeItem('twitter_code_verifier');
+              reject(new Error("Authentication cancelled"));
+            }
+          }, 1000);
         });
-
-        // Check if popup is closed
-        const checkClosed = setInterval(() => {
-          if (popup.closed) {
-            console.log("Popup was closed");
-            clearInterval(checkClosed);
-            localStorage.removeItem('twitter_oauth_state');
-            localStorage.removeItem('twitter_code_verifier');
-          }
-        }, 1000);
-
       } else {
         console.error("Failed to open popup window");
-        toast.error("Failed to open authentication window");
+        throw new Error("Failed to open authentication window");
       }
+    } else {
+      console.error("No URL received from Twitter function");
+      throw new Error("Failed to get authentication URL");
     }
   } catch (error) {
     console.error("Connection error:", error);
-    toast.error("Failed to connect to Twitter");
+    throw error;
   }
 };

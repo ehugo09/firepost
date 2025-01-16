@@ -24,9 +24,10 @@ const NetworksCard = () => {
 
   const fetchConnections = async () => {
     try {
+      console.log("Fetching social connections...");
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        console.log("No active session");
+        console.log("No active session found when fetching connections");
         setLoading(false);
         return;
       }
@@ -37,7 +38,7 @@ const NetworksCard = () => {
 
       if (error) throw error;
 
-      console.log("Fetched connections:", data);
+      console.log("Successfully fetched connections:", data);
       setConnections(data || []);
     } catch (error) {
       console.error("Error fetching connections:", error);
@@ -48,19 +49,22 @@ const NetworksCard = () => {
   };
 
   const handleConnect = async (networkName: string, platform: string) => {
-    console.log(`Connecting to ${networkName}...`);
+    console.log(`Starting connection process for ${networkName}...`);
     toast.info(`Connecting to ${networkName}...`);
     
     try {
       if (platform === "twitter") {
-        await openTwitterPopup();
+        console.log("Initiating Twitter connection...");
+        const result = await openTwitterPopup();
+        console.log("Twitter connection result:", result);
         // Refresh connections after successful connection
         await fetchConnections();
       } else {
+        console.log(`${networkName} integration not implemented yet`);
         toast.info(`${networkName} integration coming soon!`);
       }
     } catch (error) {
-      console.error("Connection error:", error);
+      console.error(`Connection error for ${networkName}:`, error);
       toast.error(`Failed to connect to ${networkName}`);
     }
   };
