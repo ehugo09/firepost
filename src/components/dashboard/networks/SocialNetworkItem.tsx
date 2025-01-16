@@ -8,7 +8,7 @@ interface SocialNetworkItemProps {
   name: string;
   platform: string;
   isConnected: boolean;
-  onConnect: (name: string, platform: string) => void;
+  onConnect: () => void;
 }
 
 const SocialNetworkItem = ({
