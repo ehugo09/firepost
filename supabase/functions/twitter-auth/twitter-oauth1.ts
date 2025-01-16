@@ -4,6 +4,15 @@ const TWITTER_API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY") || "";
 const TWITTER_API_SECRET_KEY = Deno.env.get("TWITTER_CONSUMER_SECRET") || "";
 const CALLBACK_URL = "https://preview--pandapost.lovable.app/auth/callback/twitter";
 
+// Validation des clés d'API
+if (!TWITTER_API_KEY || !TWITTER_API_SECRET_KEY) {
+  console.error('Twitter API keys are missing!', {
+    hasConsumerKey: !!TWITTER_API_KEY,
+    hasConsumerSecret: !!TWITTER_API_SECRET_KEY
+  });
+  throw new Error('Twitter API configuration is incomplete');
+}
+
 function generateNonce() {
   return Math.random().toString(36).substring(2);
 }
@@ -22,7 +31,12 @@ function percentEncode(str: string) {
 }
 
 function createSignature(method: string, url: string, parameters: Record<string, string>, tokenSecret = "") {
-  console.log('Creating signature with parameters:', parameters);
+  console.log('Creating signature with parameters:', {
+    method,
+    url,
+    parameters,
+    hasTokenSecret: !!tokenSecret
+  });
   
   const signatureBase = [
     method.toUpperCase(),
@@ -46,13 +60,13 @@ function createSignature(method: string, url: string, parameters: Record<string,
 
 export async function createOAuthRequestToken() {
   console.log('Starting createOAuthRequestToken');
-  console.log('Using API Key:', TWITTER_API_KEY);
+  console.log('Using API Key:', TWITTER_API_KEY.substring(0, 5) + '...');
   console.log('Callback URL:', CALLBACK_URL);
 
   const url = "https://api.twitter.com/oauth/request_token";
   const method = "POST";
   const parameters = {
-    oauth_callback: percentEncode(CALLBACK_URL),
+    oauth_callback: CALLBACK_URL,
     oauth_consumer_key: TWITTER_API_KEY,
     oauth_nonce: generateNonce(),
     oauth_signature_method: "HMAC-SHA1",
@@ -69,29 +83,38 @@ export async function createOAuthRequestToken() {
 
   console.log('Authorization header:', authHeader);
 
-  const response = await fetch(url, {
-    method,
-    headers: { Authorization: authHeader },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Twitter API error:', {
-      status: response.status,
-      statusText: response.statusText,
-      body: errorText
+  try {
+    const response = await fetch(url, {
+      method,
+      headers: { 
+        Authorization: authHeader,
+        'Content-Length': '0'
+      },
     });
-    throw new Error(`Failed to get request token: ${errorText}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Twitter API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+      throw new Error(errorText);
+    }
+
+    const data = await response.text();
+    console.log('Request token response:', data);
+    
+    const parsed = Object.fromEntries(
+      data.split("&").map((pair) => pair.split("="))
+    );
+
+    return parsed;
+  } catch (error) {
+    console.error('Error in createOAuthRequestToken:', error);
+    throw error;
   }
-
-  const data = await response.text();
-  console.log('Request token response:', data);
-  
-  const parsed = Object.fromEntries(
-    data.split("&").map((pair) => pair.split("="))
-  );
-
-  return parsed;
 }
 
 export async function createOAuthAccessToken(oauth_token: string, oauth_verifier: string) {

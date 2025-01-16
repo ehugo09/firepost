@@ -27,7 +27,10 @@ Deno.serve(async (req) => {
         });
       } catch (error) {
         console.error('Error getting request token:', error);
-        return new Response(JSON.stringify({ error: error.message }), {
+        return new Response(JSON.stringify({ 
+          error: `Failed to get request token: ${error.message}`,
+          details: error.toString()
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400,
         });
