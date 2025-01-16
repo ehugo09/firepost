@@ -48,13 +48,18 @@ function createSignature(method: string, url: string, parameters: Record<string,
     hasTokenSecret: !!tokenSecret
   });
 
+  // Sort parameters alphabetically as required by OAuth 1.0a
+  const sortedParams = Object.keys(parameters).sort().reduce((acc: Record<string, string>, key) => {
+    acc[key] = parameters[key];
+    return acc;
+  }, {});
+
   const signatureBase = [
     method.toUpperCase(),
     percentEncode(url),
     percentEncode(
-      Object.keys(parameters)
-        .sort()
-        .map((key) => `${key}=${parameters[key]}`)
+      Object.entries(sortedParams)
+        .map(([key, value]) => `${key}=${value}`)
         .join("&")
     ),
   ].join("&");
