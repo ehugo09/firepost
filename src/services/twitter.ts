@@ -12,6 +12,7 @@ export class TwitterService {
     try {
       console.log('Initiating Twitter OAuth flow...');
       const authUrl = await getTwitterAuthUrl();
+      console.log('Generated Twitter auth URL:', authUrl);
       
       // Open popup window
       const width = 600;
@@ -26,48 +27,62 @@ export class TwitterService {
       );
 
       if (!popup) {
+        console.error('Popup was blocked by the browser');
         throw new Error('Popup blocked. Please allow popups for this site.');
       }
+
+      console.log('OAuth popup opened successfully');
 
       // Monitor popup closure
       const checkPopup = setInterval(() => {
         if (popup.closed) {
           clearInterval(checkPopup);
-          console.log('OAuth popup closed');
+          console.log('OAuth popup closed by user');
         }
       }, 1000);
 
     } catch (error) {
-      console.error('Error initiating Twitter auth:', error);
+      console.error('Error in initiateAuth:', error);
       throw error;
     }
   }
 
   static async handleCallback(code: string, state: string): Promise<void> {
-    console.log('Handling Twitter OAuth callback...');
+    console.log('Starting Twitter OAuth callback handling...');
+    console.log('Received code:', code);
+    console.log('Received state:', state);
     
     // Verify state
     const storedState = sessionStorage.getItem('twitter_oauth_state');
+    console.log('Stored state:', storedState);
+    
     if (state !== storedState) {
-      console.error('State mismatch in OAuth callback');
+      console.error('State mismatch. Received:', state, 'Stored:', storedState);
       throw new Error('Invalid OAuth state');
     }
 
     // Get stored code verifier
     const codeVerifier = sessionStorage.getItem('twitter_oauth_verifier');
     if (!codeVerifier) {
-      console.error('No code verifier found');
+      console.error('No code verifier found in session storage');
       throw new Error('Missing code verifier');
     }
 
     try {
+      console.log('Exchanging code for tokens...');
       // Exchange code for tokens using Edge Function
       const { data, error } = await supabase.functions.invoke<TwitterTokenResponse>('twitter-auth', {
         body: { code, codeVerifier }
       });
 
-      if (error) throw error;
-      if (!data) throw new Error('No data received from token exchange');
+      if (error) {
+        console.error('Error from Edge Function:', error);
+        throw error;
+      }
+      if (!data) {
+        console.error('No data received from token exchange');
+        throw new Error('No data received from token exchange');
+      }
 
       console.log('Successfully exchanged code for tokens');
       
