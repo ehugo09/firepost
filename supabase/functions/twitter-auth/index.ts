@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import * as oauth from "https://esm.sh/oauth4webapi@2.3.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -26,29 +27,33 @@ serve(async (req) => {
       throw new Error('Missing Twitter credentials');
     }
 
+    // Create OAuth client
+    const issuer = new URL('https://twitter.com');
+    const authorizationServer = new oauth.AuthorizationServer(issuer);
+    
+    const client: oauth.Client = {
+      client_id: TWITTER_CLIENT_ID,
+      client_secret: TWITTER_CLIENT_SECRET,
+      token_endpoint_auth_method: 'client_secret_basic'
+    };
+
     // Exchange code for tokens
-    const tokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${btoa(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`)}`,
-      },
-      body: new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: redirectUri,
-        code_verifier: codeVerifier,
-      }),
-    });
+    const response = await oauth.authorizationCodeGrantRequest(
+      authorizationServer,
+      client,
+      { code, code_verifier: codeVerifier, redirect_uri: redirectUri },
+      'https://api.twitter.com/2/oauth2/token'
+    );
 
-    if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error('Token exchange failed:', errorText);
-      throw new Error(`Token exchange failed: ${errorText}`);
+    const tokens = await oauth.processAuthorizationCodeOAuth2Response(
+      authorizationServer,
+      client,
+      response
+    );
+
+    if (!tokens.access_token) {
+      throw new Error('Failed to get access token');
     }
-
-    const tokens = await tokenResponse.json();
-    console.log('Successfully exchanged code for tokens');
 
     // Get user info
     const userResponse = await fetch('https://api.twitter.com/2/users/me', {
@@ -77,8 +82,8 @@ serve(async (req) => {
       .upsert({
         platform: 'twitter',
         access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
-        token_expires_at: new Date(Date.now() + tokens.expires_in * 1000).toISOString(),
+        refresh_token: tokens.refresh_token ?? null,
+        token_expires_at: tokens.expires_at ? new Date(tokens.expires_at * 1000).toISOString() : null,
         platform_user_id: userData.data.id,
         username: userData.data.username,
         twitter_credentials: {
