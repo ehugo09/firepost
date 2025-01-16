@@ -9,6 +9,12 @@ export class TwitterService {
     try {
       console.log('Starting Twitter auth flow...');
       
+      // Get current user session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        throw new Error('No authenticated user found');
+      }
+      
       // Generate random state for security
       const state = crypto.randomUUID();
       sessionStorage.setItem('twitter_oauth_state', state);
@@ -17,6 +23,9 @@ export class TwitterService {
       const codeVerifier = this.generateCodeVerifier();
       const codeChallenge = await this.generateCodeChallenge(codeVerifier);
       sessionStorage.setItem('twitter_oauth_verifier', codeVerifier);
+
+      // Store user ID in session for callback
+      sessionStorage.setItem('user_id', session.user.id);
 
       // Construct authorization URL
       const params = new URLSearchParams({
@@ -50,10 +59,16 @@ export class TwitterService {
         throw new Error('Invalid state parameter');
       }
 
-      // Get code verifier
+      // Get code verifier and user ID
       const codeVerifier = sessionStorage.getItem('twitter_oauth_verifier');
+      const userId = sessionStorage.getItem('user_id');
+      
       if (!codeVerifier) {
         throw new Error('Missing code verifier');
+      }
+      
+      if (!userId) {
+        throw new Error('Missing user ID');
       }
 
       // Exchange code for tokens
@@ -99,6 +114,7 @@ export class TwitterService {
         .from('social_connections')
         .upsert({
           platform: 'twitter',
+          user_id: userId, // Add the user_id field
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
           token_expires_at: new Date(Date.now() + (tokens.expires_in * 1000)).toISOString(),
@@ -119,6 +135,7 @@ export class TwitterService {
       // Clean up
       sessionStorage.removeItem('twitter_oauth_state');
       sessionStorage.removeItem('twitter_oauth_verifier');
+      sessionStorage.removeItem('user_id');
 
       console.log('Twitter authentication completed successfully');
       
