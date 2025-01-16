@@ -37,7 +37,6 @@ serve(async (req) => {
         state: crypto.randomUUID(),
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
-        force_login: 'true',
       });
 
       const url = `${TWITTER_OAUTH_URL}?${params.toString()}`;
@@ -60,18 +59,24 @@ serve(async (req) => {
       console.log('Processing callback with code:', code);
       
       // Exchange code for tokens
+      const tokenParams = new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: CALLBACK_URL,
+        code_verifier: codeVerifier,
+        client_id: TWITTER_CLIENT_ID!,
+      });
+
+      console.log('Token request URL:', TWITTER_TOKEN_URL);
+      console.log('Token request params:', tokenParams.toString());
+
       const tokenResponse = await fetch(TWITTER_TOKEN_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Basic ${btoa(`${TWITTER_CLIENT_ID}:`)}`,
         },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          code,
-          redirect_uri: CALLBACK_URL,
-          code_verifier: codeVerifier,
-        }),
+        body: tokenParams,
       });
 
       if (!tokenResponse.ok) {
