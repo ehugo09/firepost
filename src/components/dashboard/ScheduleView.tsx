@@ -41,15 +41,15 @@ const ScheduleView = () => {
   };
 
   return (
-    <Card className="p-4 bg-white">
+    <Card className="p-4 bg-white dark:bg-[#151B2E]/80 dark:backdrop-blur-lg dark:border-gray-700/50">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Scheduled Posts</h2>
+        <h2 className="text-xl font-semibold dark:text-white">Scheduled Posts</h2>
         <div className="flex gap-2">
-          <button className="p-1.5 rounded-full hover:bg-gray-100">
+          <button className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#1A2235]/80 dark:text-gray-400">
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="py-1.5 px-3">Today</span>
-          <button className="p-1.5 rounded-full hover:bg-gray-100">
+          <span className="py-1.5 px-3 dark:text-gray-300">Today</span>
+          <button className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#1A2235]/80 dark:text-gray-400">
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -60,11 +60,15 @@ const ScheduleView = () => {
           <div 
             key={index}
             className={`p-4 rounded-xl ${
-              post.current ? 'bg-primary text-white' : 'bg-gray-50'
+              post.current 
+                ? 'bg-primary text-white dark:bg-primary dark:text-white' 
+                : 'bg-gray-50 dark:bg-[#1A2235]/80'
             }`}
           >
-            <div className="text-sm mb-2">{post.time}</div>
-            <p className="text-sm font-medium mb-3 line-clamp-2">{post.content}</p>
+            <div className={`text-sm mb-2 ${post.current ? '' : 'dark:text-gray-400'}`}>{post.time}</div>
+            <p className={`text-sm font-medium mb-3 line-clamp-2 ${post.current ? '' : 'dark:text-gray-300'}`}>
+              {post.content}
+            </p>
             
             <div className="flex justify-between items-center mb-2">
               <div className="flex gap-1.5">
@@ -78,8 +82,8 @@ const ScheduleView = () => {
                 post.current 
                   ? 'bg-white/20' 
                   : post.status === 'draft' 
-                    ? 'bg-yellow-100 text-yellow-700' 
-                    : 'bg-green-100 text-green-700'
+                    ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' 
+                    : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
               }`}>
                 {post.status}
               </span>
