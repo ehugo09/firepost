@@ -15,7 +15,7 @@ export class TwitterService {
       sessionStorage.setItem('twitter_oauth_state', state);
       sessionStorage.setItem('twitter_oauth_verifier', codeVerifier);
       
-      // Build auth URL
+      // Build auth URL with all required parameters
       const params = new URLSearchParams({
         response_type: 'code',
         client_id: TWITTER_CONFIG.clientId,
@@ -24,10 +24,14 @@ export class TwitterService {
         state: state,
         code_challenge: codeChallenge,
         code_challenge_method: 'S256',
+        force_login: TWITTER_CONFIG.forceLogin ? 'true' : 'false'
       });
 
+      const authUrl = `${TWITTER_CONFIG.authUrl}?${params.toString()}`;
+      console.log('Generated auth URL:', authUrl);
+
       // Redirect to Twitter auth page
-      window.location.href = `${TWITTER_CONFIG.authUrl}?${params.toString()}`;
+      window.location.href = authUrl;
       
     } catch (error) {
       console.error('Error initiating Twitter auth:', error);
