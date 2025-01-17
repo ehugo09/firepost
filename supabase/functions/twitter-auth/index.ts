@@ -4,17 +4,32 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json',
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    console.log('Handling CORS preflight request');
+    return new Response(null, {
+      headers: corsHeaders,
+      status: 204,
+    });
   }
 
   try {
+    if (req.method !== 'POST') {
+      console.error('Invalid method:', req.method);
+      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+        headers: corsHeaders,
+        status: 405,
+      });
+    }
+
+    console.log('Parsing request body...');
     const { action, oauth_token, oauth_verifier, user_id } = await req.json();
-    console.log('Twitter auth function called:', { action });
+    console.log('Request parameters:', { action, oauth_token, oauth_verifier, user_id });
 
     if (action === 'request_token') {
       console.log('Initiating OAuth request token flow');
@@ -22,7 +37,7 @@ Deno.serve(async (req) => {
         const requestToken = await createOAuthRequestToken();
         console.log('Successfully obtained request token:', requestToken);
         return new Response(JSON.stringify(requestToken), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 200,
         });
       } catch (error) {
@@ -31,7 +46,7 @@ Deno.serve(async (req) => {
           error: `Authentication failed: ${error.message}`,
           details: error.toString()
         }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 400,
         });
       }
@@ -41,7 +56,7 @@ Deno.serve(async (req) => {
       if (!oauth_token || !oauth_verifier || !user_id) {
         console.error('Missing required parameters:', { oauth_token, oauth_verifier, user_id });
         return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 400,
         });
       }
@@ -82,26 +97,26 @@ Deno.serve(async (req) => {
         if (dbError) {
           console.error('Database error:', dbError);
           return new Response(JSON.stringify({ error: 'Database error' }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            headers: corsHeaders,
             status: 500,
           });
         }
 
         return new Response(JSON.stringify({ success: true }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 200,
         });
       } catch (error) {
         console.error('Error in access token process:', error);
         return new Response(JSON.stringify({ error: error.message }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 400,
         });
       }
     }
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
       status: 400,
     });
   } catch (error) {
@@ -111,7 +126,7 @@ Deno.serve(async (req) => {
       details: error.toString()
     }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: corsHeaders,
     });
   }
 });
