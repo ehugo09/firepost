@@ -16,13 +16,18 @@ const EmailConfirmationHandler = () => {
   useEffect(() => {
     const handleEmailConfirmation = async () => {
       const hash = window.location.hash;
+      
       if (hash && hash.includes('access_token')) {
-        console.log("Email confirmation detected, checking session...");
+        console.log("Email confirmation detected, processing hash:", hash);
         try {
-          // Attendre un court instant pour laisser Supabase traiter le token
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // D'abord, nettoyer l'URL en supprimant le hash
+          window.history.replaceState({}, document.title, window.location.pathname);
+          
+          // Attendre que la session soit établie
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           const { data: { session }, error } = await supabase.auth.getSession();
+          
           if (error) {
             console.error("Session error:", error);
             navigate('/auth', { replace: true });
@@ -30,12 +35,10 @@ const EmailConfirmationHandler = () => {
           }
           
           if (session) {
-            console.log("Valid session found, redirecting to dashboard");
-            // Nettoyer l'URL avant la redirection
-            window.history.replaceState({}, document.title, '/dashboard');
+            console.log("Valid session found after confirmation, user:", session.user.email);
             navigate('/dashboard', { replace: true });
           } else {
-            console.log("No session found, redirecting to auth");
+            console.log("No session found after confirmation, redirecting to auth");
             navigate('/auth', { replace: true });
           }
         } catch (err) {
@@ -45,6 +48,7 @@ const EmailConfirmationHandler = () => {
           setIsChecking(false);
         }
       } else {
+        console.log("No confirmation hash found in URL");
         setIsChecking(false);
       }
     };
