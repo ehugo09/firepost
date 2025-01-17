@@ -20,40 +20,28 @@ const SocialNetworkItem = ({
 }: SocialNetworkItemProps) => {
   const handleConnect = async () => {
     try {
-      console.log('Starting connection process for:', platform);
-      
       if (platform === 'twitter') {
-        console.log('Starting Twitter auth flow...');
-        
-        // Get the current session to get the user ID
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
-          console.error('No session found');
           toast.error('Please login first');
           return;
         }
 
-        console.log('Calling twitter-auth edge function...');
-        // Call our edge function to start the OAuth flow
         const { data, error } = await supabase.functions.invoke('twitter-auth', {
+          method: 'POST',
           body: { 
             action: 'request_token',
             user_id: session.user.id
+          },
+          headers: {
+            'Content-Type': 'application/json'
           }
         });
 
-        console.log('Edge function response:', { data, error });
-
-        if (error) {
-          console.error('Error starting Twitter auth:', error);
-          throw error;
-        }
+        if (error) throw error;
 
         if (data?.oauth_token) {
-          // Redirect to Twitter for authorization
-          const twitterAuthUrl = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}`;
-          console.log('Redirecting to Twitter:', twitterAuthUrl);
-          window.location.href = twitterAuthUrl;
+          window.location.href = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}`;
         } else {
           throw new Error('No oauth_token received');
         }
