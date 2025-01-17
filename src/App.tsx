@@ -7,6 +7,7 @@ import TwitterCallback from './pages/auth/TwitterCallback';
 import { Toaster } from '@/components/ui/toaster';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Composant pour gérer la redirection après confirmation d'email
 const EmailConfirmationHandler = () => {
@@ -17,38 +18,57 @@ const EmailConfirmationHandler = () => {
     const handleEmailConfirmation = async () => {
       const hash = window.location.hash;
       
-      if (hash && hash.includes('access_token')) {
-        console.log("Email confirmation detected, processing hash:", hash);
+      if (hash) {
+        console.log("Hash detected in URL:", hash);
         setIsProcessing(true);
         
-        try {
-          // Attendre que la session soit établie avant de nettoyer l'URL
-          await new Promise(resolve => setTimeout(resolve, 1500));
-          
-          const { data: { session }, error } = await supabase.auth.getSession();
-          
-          if (error) {
-            console.error("Session error:", error);
-            setIsProcessing(false);
-            navigate('/auth', { replace: true });
-            return;
-          }
-          
-          if (session) {
-            console.log("Valid session found after confirmation, user:", session.user.email);
-            // Nettoyer l'URL seulement après avoir vérifié la session
-            window.history.replaceState({}, document.title, window.location.pathname);
-            navigate('/dashboard', { replace: true });
-          } else {
-            console.log("No session found after confirmation, redirecting to auth");
-            navigate('/auth', { replace: true });
-          }
-        } catch (err) {
-          console.error("Error during email confirmation:", err);
-          navigate('/auth', { replace: true });
-        } finally {
+        // Vérifier si c'est une erreur d'expiration
+        if (hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')) {
+          console.log("Detected expired email confirmation link");
+          // Nettoyer l'URL
+          window.history.replaceState({}, document.title, window.location.pathname);
           setIsProcessing(false);
+          // Afficher un message d'erreur explicatif
+          toast.error("Le lien de confirmation a expiré. Veuillez vous reconnecter pour recevoir un nouveau lien.");
+          navigate('/auth', { replace: true });
+          return;
         }
+
+        // Gérer la confirmation d'email normale
+        if (hash.includes('access_token')) {
+          console.log("Processing email confirmation with access token");
+          
+          try {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error) {
+              console.error("Session error:", error);
+              toast.error("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
+              setIsProcessing(false);
+              navigate('/auth', { replace: true });
+              return;
+            }
+            
+            if (session) {
+              console.log("Valid session found after confirmation");
+              window.history.replaceState({}, document.title, window.location.pathname);
+              toast.success("Email confirmé avec succès !");
+              navigate('/dashboard', { replace: true });
+            } else {
+              console.log("No session found after confirmation");
+              toast.error("La session n'a pas pu être établie. Veuillez vous reconnecter.");
+              navigate('/auth', { replace: true });
+            }
+          } catch (err) {
+            console.error("Error during email confirmation:", err);
+            toast.error("Une erreur inattendue s'est produite. Veuillez réessayer.");
+            navigate('/auth', { replace: true });
+          }
+        }
+        
+        setIsProcessing(false);
       }
     };
 
