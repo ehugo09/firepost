@@ -10,65 +10,36 @@ import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/integrations/supabase/client';
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    // Vérifier la session initiale
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        setIsAuthenticated(!!session);
-      } catch (error) {
-        console.error("Erreur lors de la vérification de la session:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkSession();
-
-    // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed:", _event, "Session:", !!session);
       setIsAuthenticated(!!session);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
   return (
     <Router>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route 
-          path="/auth" 
-          element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Auth />} 
-        />
+        <Route path="/auth" element={<Auth />} />
         <Route 
           path="/dashboard" 
-          element={isAuthenticated ? <Dashboard /> : <Navigate to="/auth" replace />} 
+          element={isAuthenticated ? <Dashboard /> : <Navigate to="/auth" />} 
         />
         <Route 
           path="/compose" 
-          element={isAuthenticated ? <ComposeTwitter /> : <Navigate to="/auth" replace />} 
+          element={isAuthenticated ? <ComposeTwitter /> : <Navigate to="/auth" />} 
         />
         <Route 
           path="/settings" 
-          element={isAuthenticated ? <Settings /> : <Navigate to="/auth" replace />} 
+          element={isAuthenticated ? <Settings /> : <Navigate to="/auth" />} 
         />
         <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
-        <Route 
-          path="*" 
-          element={<Navigate to={isAuthenticated ? "/dashboard" : "/auth"} replace />} 
-        />
+        <Route path="*" element={<Navigate to="/auth" />} />
       </Routes>
       <Toaster />
     </Router>

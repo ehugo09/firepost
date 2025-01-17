@@ -9,31 +9,17 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Vérifier la session au chargement
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log("Session existante trouvée, redirection vers dashboard");
-        navigate('/dashboard');
-      }
-    };
-    
-    checkSession();
-
-    // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Événement d'authentification:", event);
+      console.log("Auth event:", event, "Session exists:", !!session);
       
-      if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-        console.log("Utilisateur connecté, redirection vers dashboard");
+      if (session) {
+        console.log("Redirecting to dashboard - user is authenticated");
         toast.success("Connexion réussie !");
         navigate('/dashboard');
       }
     });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   return (
