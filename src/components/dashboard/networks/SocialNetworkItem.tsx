@@ -27,6 +27,8 @@ const SocialNetworkItem = ({
           return;
         }
 
+        console.log('Initiating Twitter auth process...');
+        
         const { data, error } = await supabase.functions.invoke('twitter-auth', {
           method: 'POST',
           body: { 
@@ -35,8 +37,12 @@ const SocialNetworkItem = ({
           }
         });
 
+        console.log('Twitter auth response:', { data, error });
+
         if (error) throw error;
-        if (!data?.oauth_token) throw new Error('No oauth_token received');
+        if (!data?.oauth_token) {
+          throw new Error('No oauth_token received');
+        }
         
         window.location.href = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}`;
       } else {

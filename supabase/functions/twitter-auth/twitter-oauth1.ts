@@ -2,22 +2,19 @@ import { hmac } from "https://deno.land/x/hmac@v2.0.1/mod.ts";
 
 const TWITTER_API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY") || "";
 const TWITTER_API_SECRET_KEY = Deno.env.get("TWITTER_CONSUMER_SECRET") || "";
-const CALLBACK_URL = "https://app.firepost.co/auth/callback/twitter";
+const CALLBACK_URL = "https://app.firepost.co/auth/twitter/callback";
 
 // Validate API keys on startup
 console.log('Twitter OAuth Configuration:', {
   apiKeyLength: TWITTER_API_KEY.length,
   secretKeyLength: TWITTER_API_SECRET_KEY.length,
-  callbackUrl: CALLBACK_URL
+  callbackUrl: CALLBACK_URL,
+  hasConsumerKey: !!TWITTER_API_KEY,
+  hasConsumerSecret: !!TWITTER_API_SECRET_KEY
 });
 
 if (!TWITTER_API_KEY || !TWITTER_API_SECRET_KEY) {
-  const error = 'Twitter API configuration is incomplete';
-  console.error(error, {
-    hasConsumerKey: !!TWITTER_API_KEY,
-    hasConsumerSecret: !!TWITTER_API_SECRET_KEY
-  });
-  throw new Error(error);
+  throw new Error('Twitter API configuration is incomplete');
 }
 
 function generateNonce() {
@@ -34,20 +31,16 @@ function percentEncode(str: string) {
     .replace(/\*/g, '%2A')
     .replace(/'/g, '%27')
     .replace(/\(/g, '%28')
-    .replace(/\)/g, '%29')
-    .replace(/\+/g, '%2B');
+    .replace(/\)/g, '%29');
 }
 
 function createSignature(method: string, url: string, parameters: Record<string, string>, tokenSecret = "") {
   console.log('Creating OAuth signature with parameters:', {
     method,
     url,
-    parameterCount: Object.keys(parameters).length,
-    parameters: JSON.stringify(parameters),
-    hasTokenSecret: !!tokenSecret
+    parameters: JSON.stringify(parameters)
   });
 
-  // Sort parameters alphabetically and encode values
   const sortedParams = Object.keys(parameters).sort().reduce((acc: Record<string, string>, key) => {
     acc[key] = percentEncode(parameters[key]);
     return acc;
@@ -71,9 +64,9 @@ function createSignature(method: string, url: string, parameters: Record<string,
   const signingKey = `${percentEncode(TWITTER_API_SECRET_KEY)}&${percentEncode(tokenSecret)}`;
   const signature = hmac("sha1", signingKey, signatureBase, "utf8", "base64");
   
-  console.log('Signature generated successfully:', {
+  console.log('Signature generated:', {
     signatureLength: signature.length,
-    signaturePrefix: signature.substring(0, 10) + '...'
+    signaturePrefix: signature.substring(0, 10)
   });
 
   return signature;
@@ -85,20 +78,15 @@ export async function createOAuthRequestToken() {
   const url = "https://api.twitter.com/oauth/request_token";
   const method = "POST";
   const parameters = {
-    oauth_callback: percentEncode(CALLBACK_URL),
+    oauth_callback: CALLBACK_URL,
     oauth_consumer_key: TWITTER_API_KEY,
     oauth_nonce: generateNonce(),
     oauth_signature_method: "HMAC-SHA1",
     oauth_timestamp: generateTimestamp(),
-    oauth_version: "1.0",
+    oauth_version: "1.0"
   };
 
-  console.log('Generated OAuth parameters:', {
-    callback: parameters.oauth_callback,
-    consumerKey: parameters.oauth_consumer_key,
-    nonce: parameters.oauth_nonce,
-    timestamp: parameters.oauth_timestamp
-  });
+  console.log('Generated OAuth parameters:', parameters);
 
   const signature = createSignature(method, url, parameters);
   parameters["oauth_signature"] = signature;
@@ -107,18 +95,15 @@ export async function createOAuthRequestToken() {
     .map(([key, value]) => `${key}="${percentEncode(value)}"`)
     .join(", ")}`;
 
-  console.log('Prepared OAuth header length:', authHeader.length);
-
+  console.log('Sending request to Twitter API');
+  
   try {
-    console.log('Sending request to Twitter API');
-    
     const response = await fetch(url, {
       method,
       headers: { 
         Authorization: authHeader,
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': '0'
-      },
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
     });
 
     console.log('Twitter API Response:', {
@@ -149,90 +134,4 @@ export async function createOAuthRequestToken() {
     console.error('Error in OAuth request token process:', error);
     throw error;
   }
-}
-
-export async function createOAuthAccessToken(oauth_token: string, oauth_verifier: string) {
-  console.log('Starting createOAuthAccessToken');
-  console.log('Parameters:', { oauth_token, oauth_verifier });
-
-  const url = "https://api.twitter.com/oauth/access_token";
-  const method = "POST";
-  const parameters = {
-    oauth_consumer_key: TWITTER_API_KEY,
-    oauth_nonce: generateNonce(),
-    oauth_signature_method: "HMAC-SHA1",
-    oauth_timestamp: generateTimestamp(),
-    oauth_token,
-    oauth_verifier,
-    oauth_version: "1.0",
-  };
-
-  const signature = createSignature(method, url, parameters);
-  parameters["oauth_signature"] = signature;
-
-  const authHeader = `OAuth ${Object.entries(parameters)
-    .map(([key, value]) => `${key}="${percentEncode(value)}"`)
-    .join(", ")}`;
-
-  console.log('Authorization header:', authHeader);
-
-  const response = await fetch(url, {
-    method,
-    headers: { Authorization: authHeader },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Twitter API error:', {
-      status: response.status,
-      statusText: response.statusText,
-      body: errorText
-    });
-    throw new Error(`Failed to get access token: ${errorText}`);
-  }
-
-  const data = await response.text();
-  console.log('Access token response:', data);
-  
-  return Object.fromEntries(data.split("&").map((pair) => pair.split("=")));
-}
-
-export async function verifyCredentials(oauth_token: string, oauth_token_secret: string) {
-  console.log('Starting verifyCredentials');
-  
-  const url = "https://api.twitter.com/1.1/account/verify_credentials.json";
-  const method = "GET";
-  const parameters = {
-    oauth_consumer_key: TWITTER_API_KEY,
-    oauth_nonce: generateNonce(),
-    oauth_signature_method: "HMAC-SHA1",
-    oauth_timestamp: generateTimestamp(),
-    oauth_token,
-    oauth_version: "1.0",
-  };
-
-  const signature = createSignature(method, url, parameters, oauth_token_secret);
-  parameters["oauth_signature"] = signature;
-
-  const authHeader = `OAuth ${Object.entries(parameters)
-    .map(([key, value]) => `${key}="${percentEncode(value)}"`)
-    .join(", ")}`;
-
-  console.log('Authorization header:', authHeader);
-
-  const response = await fetch(url, {
-    headers: { Authorization: authHeader },
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Twitter API error:', {
-      status: response.status,
-      statusText: response.statusText,
-      body: errorText
-    });
-    throw new Error(`Failed to verify credentials: ${errorText}`);
-  }
-
-  return response.json();
 }
