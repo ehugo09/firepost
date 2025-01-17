@@ -18,25 +18,33 @@ const Dashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        console.log("Dashboard - Checking authentication");
+        console.log("Dashboard - Starting authentication check");
+        
+        // Si nous avons un hash d'authentification, attendons un peu pour laisser le temps à la session de s'établir
+        if (window.location.hash.includes('access_token')) {
+          console.log("Dashboard - Access token detected in URL, waiting for session establishment");
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+
+        console.log("Dashboard - Checking session");
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error("Error checking session:", error);
+          console.error("Dashboard - Error checking session:", error);
           navigate('/auth', { replace: true });
           return;
         }
 
         if (!session) {
-          console.log("No active session, redirecting to auth");
+          console.log("Dashboard - No active session, redirecting to auth");
           navigate('/auth', { replace: true });
           return;
         }
 
-        console.log("User is authenticated, showing dashboard");
+        console.log("Dashboard - User is authenticated, showing dashboard");
         setIsLoading(false);
       } catch (err) {
-        console.error("Unexpected error:", err);
+        console.error("Dashboard - Unexpected error:", err);
         navigate('/auth', { replace: true });
       }
     };
