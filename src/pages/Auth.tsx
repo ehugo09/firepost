@@ -9,11 +9,23 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Vérification initiale de la session
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log("Auth page - checking session:", !!session);
+      if (session) {
+        console.log("Auth page - existing session found, redirecting to dashboard");
+        navigate('/dashboard');
+      }
+    };
+
+    checkSession();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth event:", event, "Session exists:", !!session);
+      console.log("Auth page - auth event:", event, "Session exists:", !!session);
       
       if (session) {
-        console.log("Redirecting to dashboard - user is authenticated");
+        console.log("Auth page - user authenticated, redirecting to dashboard");
         toast.success("Connexion réussie !");
         navigate('/dashboard');
       }
