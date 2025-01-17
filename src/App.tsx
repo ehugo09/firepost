@@ -20,11 +20,8 @@ const EmailConfirmationHandler = () => {
       if (hash && hash.includes('access_token')) {
         console.log("Email confirmation detected, processing hash:", hash);
         try {
-          // D'abord, nettoyer l'URL en supprimant le hash
-          window.history.replaceState({}, document.title, window.location.pathname);
-          
-          // Attendre que la session soit établie
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Attendre que la session soit établie avant de nettoyer l'URL
+          await new Promise(resolve => setTimeout(resolve, 1500));
           
           const { data: { session }, error } = await supabase.auth.getSession();
           
@@ -36,6 +33,8 @@ const EmailConfirmationHandler = () => {
           
           if (session) {
             console.log("Valid session found after confirmation, user:", session.user.email);
+            // Nettoyer l'URL seulement après avoir vérifié la session
+            window.history.replaceState({}, document.title, window.location.pathname);
             navigate('/dashboard', { replace: true });
           } else {
             console.log("No session found after confirmation, redirecting to auth");
@@ -67,7 +66,6 @@ function App() {
   const [isConfirming, setIsConfirming] = useState(false);
 
   useEffect(() => {
-    // Vérifier si nous sommes dans un processus de confirmation d'email
     if (window.location.hash.includes('access_token')) {
       console.log("Confirmation process detected, blocking route rendering");
       setIsConfirming(true);

@@ -18,14 +18,6 @@ const Dashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Si nous avons un hash dans l'URL, attendons un peu pour laisser Supabase établir la session
-        if (window.location.hash) {
-          console.log("Hash detected in URL, waiting for session to establish");
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          // Nettoyons l'URL du hash
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-
         console.log("Dashboard - Checking authentication");
         const { data: { session }, error } = await supabase.auth.getSession();
         
