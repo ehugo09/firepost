@@ -6,14 +6,13 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      headers: corsHeaders,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 405,
     });
   }
@@ -23,27 +22,23 @@ Deno.serve(async (req) => {
     console.log('Received action:', action);
 
     if (action === 'request_token') {
-      // Try OAuth 2.0 first
       try {
         console.log('Attempting OAuth 2.0 authentication...');
         const oauth2Token = await createOAuth2RequestToken();
         return new Response(JSON.stringify(oauth2Token), {
-          headers: corsHeaders,
-          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       } catch (oauth2Error) {
         console.log('OAuth 2.0 failed, falling back to OAuth 1.0a:', oauth2Error);
-        // Fall back to OAuth 1.0a
         const oauth1Token = await createOAuthRequestToken();
         return new Response(JSON.stringify(oauth1Token), {
-          headers: corsHeaders,
-          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), {
-      headers: corsHeaders,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
     });
   } catch (error) {
@@ -52,8 +47,8 @@ Deno.serve(async (req) => {
       error: 'Internal server error',
       details: error.toString()
     }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
-      headers: corsHeaders,
     });
   }
 });
