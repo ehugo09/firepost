@@ -19,6 +19,9 @@ const EmailConfirmationHandler = () => {
       if (hash && hash.includes('access_token')) {
         console.log("Email confirmation detected, checking session...");
         try {
+          // Attendre un court instant pour laisser Supabase traiter le token
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
           const { data: { session }, error } = await supabase.auth.getSession();
           if (error) {
             console.error("Session error:", error);
@@ -28,6 +31,8 @@ const EmailConfirmationHandler = () => {
           
           if (session) {
             console.log("Valid session found, redirecting to dashboard");
+            // Nettoyer l'URL avant la redirection
+            window.history.replaceState({}, document.title, '/dashboard');
             navigate('/dashboard', { replace: true });
           } else {
             console.log("No session found, redirecting to auth");
@@ -36,9 +41,12 @@ const EmailConfirmationHandler = () => {
         } catch (err) {
           console.error("Error during email confirmation:", err);
           navigate('/auth', { replace: true });
+        } finally {
+          setIsChecking(false);
         }
+      } else {
+        setIsChecking(false);
       }
-      setIsChecking(false);
     };
 
     handleEmailConfirmation();
