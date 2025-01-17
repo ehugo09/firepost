@@ -58,7 +58,7 @@ function App() {
           element={isAuthenticated ? <Settings /> : <Navigate to="/auth" />} 
         />
         <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/auth"} />} 
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/dashboard" : "/auth"} />} />
       </Routes>
       <Toaster />
     </Router>
