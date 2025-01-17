@@ -4,6 +4,7 @@ import Auth from './pages/Auth';
 import Index from './pages/Index';
 import ComposeTwitter from './pages/ComposeTwitter';
 import TwitterCallback from './pages/auth/TwitterCallback';
+import Settings from './pages/Settings';
 import { Toaster } from '@/components/ui/toaster';
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/auth" element={<Auth />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/compose" element={<ComposeTwitter />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
         <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
