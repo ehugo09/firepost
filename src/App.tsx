@@ -21,53 +21,48 @@ const EmailConfirmationHandler = () => {
       if (hash) {
         console.log("Hash detected in URL:", hash);
         setIsProcessing(true);
-        
-        // Vérifier si c'est une erreur d'expiration
-        if (hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')) {
-          console.log("Detected expired email confirmation link");
-          // Nettoyer l'URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-          setIsProcessing(false);
-          // Afficher un message d'erreur explicatif
-          toast.error("Le lien de confirmation a expiré. Veuillez vous reconnecter pour recevoir un nouveau lien.");
-          navigate('/auth', { replace: true });
-          return;
-        }
 
-        // Gérer la confirmation d'email normale
+        // Si c'est un access_token (confirmation d'email réussie)
         if (hash.includes('access_token')) {
-          console.log("Processing email confirmation with access token");
+          console.log("Processing email confirmation with access_token");
           
           try {
-            // Augmenter le délai d'attente pour la session
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            
-            // Vérifier la session plusieurs fois
-            for (let i = 0; i < 3; i++) {
+            // Première attente pour laisser le temps à Supabase de traiter le token
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Essayer de récupérer la session plusieurs fois
+            for (let attempt = 1; attempt <= 5; attempt++) {
+              console.log(`Tentative ${attempt} de récupération de session...`);
+              
               const { data: { session }, error } = await supabase.auth.getSession();
               
+              if (error) {
+                console.error("Erreur lors de la récupération de la session:", error);
+                continue;
+              }
+
               if (session) {
-                console.log("Valid session found after confirmation");
-                window.history.replaceState({}, document.title, window.location.pathname);
+                console.log("Session trouvée avec succès:", session.user.id);
+                window.history.replaceState({}, document.title, '/dashboard');
                 toast.success("Email confirmé avec succès !");
                 navigate('/dashboard', { replace: true });
                 return;
               }
-              
-              if (i < 2) {
-                // Attendre entre les tentatives
-                await new Promise(resolve => setTimeout(resolve, 1000));
+
+              // Si ce n'est pas la dernière tentative, attendre avant de réessayer
+              if (attempt < 5) {
+                console.log("Attente avant nouvelle tentative...");
+                await new Promise(resolve => setTimeout(resolve, 1500));
               }
             }
-            
-            // Si après toutes les tentatives, toujours pas de session
-            console.log("No session found after multiple attempts");
-            toast.error("La session n'a pas pu être établie. Veuillez réessayer.");
+
+            // Si toutes les tentatives ont échoué
+            console.error("Impossible d'établir une session après 5 tentatives");
+            toast.error("La connexion n'a pas pu être établie. Veuillez vous reconnecter.");
             navigate('/auth', { replace: true });
-            
           } catch (err) {
-            console.error("Error during email confirmation:", err);
-            toast.error("Une erreur inattendue s'est produite. Veuillez réessayer.");
+            console.error("Erreur inattendue lors de la confirmation:", err);
+            toast.error("Une erreur est survenue. Veuillez réessayer.");
             navigate('/auth', { replace: true });
           }
         }
@@ -76,7 +71,21 @@ const EmailConfirmationHandler = () => {
       }
     };
 
+    // Écouter les changements d'état d'authentification
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Changement d'état d'authentification:", event, session ? "Session présente" : "Pas de session");
+      
+      if (event === 'SIGNED_IN' && session) {
+        console.log("Utilisateur connecté:", session.user.id);
+        navigate('/dashboard', { replace: true });
+      }
+    });
+
     handleEmailConfirmation();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   if (isProcessing) {
