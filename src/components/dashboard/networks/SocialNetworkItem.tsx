@@ -32,19 +32,13 @@ const SocialNetworkItem = ({
           body: { 
             action: 'request_token',
             user_id: session.user.id
-          },
-          headers: {
-            'Content-Type': 'application/json'
           }
         });
 
         if (error) throw error;
-
-        if (data?.oauth_token) {
-          window.location.href = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}`;
-        } else {
-          throw new Error('No oauth_token received');
-        }
+        if (!data?.oauth_token) throw new Error('No oauth_token received');
+        
+        window.location.href = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}`;
       } else {
         toast.info(`${name} integration coming soon!`);
       }
