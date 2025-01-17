@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { useEffect, useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
+import Settings from './pages/Settings';
 import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -46,6 +47,10 @@ function App() {
       <Routes>
         <Route path="/auth" element={session ? <Navigate to="/dashboard" replace /> : <Auth />} />
         <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
+        <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
+        <Route path="/analytics" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/schedule" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
+        <Route path="/messages" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
         <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
       </Routes>
       <Toaster />

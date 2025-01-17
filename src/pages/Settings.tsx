@@ -1,63 +1,45 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import TopNavigation from "@/components/TopNavigation";
-import { toast } from "sonner";
-import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        console.log("Settings - No session found, redirecting to auth");
-        navigate('/auth');
-      }
-    };
-    
-    checkSession();
-  }, [navigate]);
+  const { toast } = useToast();
 
   const handleSignOut = async () => {
     try {
-      console.log("Settings - Starting sign out process");
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        console.error("Settings - Error during sign out:", error);
-        toast.error("Une erreur est survenue lors de la déconnexion");
-        return;
-      }
-
-      console.log("Settings - Successfully signed out");
-      toast.success("Déconnexion réussie");
-      navigate("/auth");
-    } catch (err) {
-      console.error("Settings - Unexpected error during sign out:", err);
-      toast.error("Une erreur inattendue est survenue");
+      await supabase.auth.signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Error signing out",
+        description: "There was a problem signing out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121]">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300">
       <TopNavigation />
-      <main className="pt-20 px-4">
+      <main className="pt-24 pb-8 px-4">
         <div className="max-w-[800px] mx-auto">
-          <h1 className="text-2xl font-semibold mb-8 text-gray-900 dark:text-white">Paramètres</h1>
+          <h1 className="text-2xl font-bold mb-8">Settings</h1>
           
-          <div className="bg-white dark:bg-[#151B2E]/80 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700/50">
-            <h2 className="text-lg font-medium mb-6 text-gray-800 dark:text-gray-200">Compte</h2>
-            
+          <div className="bg-white dark:bg-[#151B2E] rounded-lg p-6 shadow-sm">
+            <h2 className="text-lg font-semibold mb-4">Account</h2>
             <Button 
-              variant="destructive" 
+              variant="destructive"
               onClick={handleSignOut}
-              className="w-full sm:w-auto"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              Se déconnecter
+              Sign Out
             </Button>
           </div>
         </div>
