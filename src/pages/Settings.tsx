@@ -4,9 +4,22 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import TopNavigation from "@/components/TopNavigation";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 const Settings = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        console.log("Settings - No session found, redirecting to auth");
+        navigate('/auth');
+      }
+    };
+    
+    checkSession();
+  }, [navigate]);
 
   const handleSignOut = async () => {
     try {

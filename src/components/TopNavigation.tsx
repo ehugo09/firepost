@@ -2,8 +2,11 @@ import { MessageSquare, BarChart2, Calendar, Bell, Search, Settings } from "luci
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
+import { useNavigate } from "react-router-dom";
 
 const TopNavigation = () => {
+  const navigate = useNavigate();
+
   return (
     <nav className="fixed w-full z-30 top-4 flex justify-center">
       <div className="max-w-[800px] w-full mx-4">
@@ -47,7 +50,10 @@ const TopNavigation = () => {
                 <Bell className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
               <ThemeToggle />
-              <button className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#1A2235]/80">
+              <button 
+                onClick={() => navigate('/settings')}
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#1A2235]/80"
+              >
                 <Settings className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
             </div>
