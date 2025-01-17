@@ -9,33 +9,29 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("Auth page - Starting session check");
+    // Vérifier la session au chargement
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log("Session existante trouvée, redirection vers dashboard");
+        navigate('/dashboard');
+      }
+    };
     
+    checkSession();
+
+    // Écouter les changements d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
+      console.log("Événement d'authentification:", event);
       
-      if (event === 'SIGNED_IN' && session) {
-        console.log("User signed in, redirecting to dashboard");
+      if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+        console.log("Utilisateur connecté, redirection vers dashboard");
         toast.success("Connexion réussie !");
         navigate('/dashboard');
       }
     });
 
-    // Check for existing session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log("Initial session check:", session?.user?.id);
-      
-      if (session) {
-        console.log("Active session found, redirecting to dashboard");
-        navigate('/dashboard');
-      }
-    };
-
-    checkSession();
-
     return () => {
-      console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
     };
   }, [navigate]);
@@ -68,7 +64,6 @@ const Auth = () => {
               },
             }}
             providers={["google"]}
-            redirectTo={`${window.location.origin}/dashboard`}
           />
         </div>
       </div>
