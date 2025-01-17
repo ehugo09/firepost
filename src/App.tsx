@@ -33,7 +33,6 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Afficher un loader pendant la vérification de la session
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center">
@@ -48,7 +47,6 @@ function App() {
         <Route path="/auth" element={session ? <Navigate to="/dashboard" replace /> : <Auth />} />
         <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
         <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
-        <Route path="*" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
       </Routes>
       <Toaster />
     </Router>
