@@ -21,22 +21,35 @@ const SocialNetworkItem = ({
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
-        console.log('Initiating Twitter OAuth flow...');
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'twitter',
-          options: {
-            redirectTo: 'https://app.firepost.co/auth/callback/twitter',
-            queryParams: {
-              force_login: 'true'
-            }
+        console.log('Starting Twitter auth flow...');
+        
+        // Get the current session to get the user ID
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          toast.error('Please login first');
+          return;
+        }
+
+        // Call our edge function to start the OAuth flow
+        const { data, error } = await supabase.functions.invoke('twitter-auth', {
+          body: { 
+            action: 'request_token',
+            user_id: session.user.id
           }
         });
-        
+
         if (error) {
-          console.error('Twitter OAuth error:', error);
+          console.error('Error starting Twitter auth:', error);
           throw error;
         }
-        console.log("Twitter OAuth initiated:", data);
+
+        if (data?.oauth_token) {
+          // Redirect to Twitter for authorization
+          const twitterAuthUrl = `https://api.twitter.com/oauth/authorize?oauth_token=${data.oauth_token}`;
+          window.location.href = twitterAuthUrl;
+        } else {
+          throw new Error('No oauth_token received');
+        }
       } else {
         toast.info(`${name} integration coming soon!`);
       }
