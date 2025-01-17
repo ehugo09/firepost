@@ -24,7 +24,8 @@ const Auth = () => {
           return;
         }
 
-        if (session) {
+        // Ne pas rediriger si nous sommes en train de confirmer l'email
+        if (session && !window.location.hash.includes('access_token')) {
           console.log("User already authenticated, redirecting to dashboard");
           navigate("/dashboard", { replace: true });
         }
@@ -41,11 +42,12 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session ? "Session exists" : "No session");
       
-      if (event === "SIGNED_IN" && session) {
+      // Ne pas rediriger si nous sommes en train de confirmer l'email
+      if (event === 'SIGNED_IN' && session && !window.location.hash.includes('access_token')) {
         console.log("Sign in successful, redirecting to dashboard");
         toast.success("Successfully signed in!");
         navigate("/dashboard", { replace: true });
-      } else if (event === "SIGNED_OUT") {
+      } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         setError(null);
       }

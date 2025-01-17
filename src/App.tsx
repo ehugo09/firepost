@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Composant pour gérer la redirection après confirmation d'email
 const EmailConfirmationHandler = () => {
   const navigate = useNavigate();
-  const [isChecking, setIsChecking] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     const handleEmailConfirmation = async () => {
@@ -19,6 +19,8 @@ const EmailConfirmationHandler = () => {
       
       if (hash && hash.includes('access_token')) {
         console.log("Email confirmation detected, processing hash:", hash);
+        setIsProcessing(true);
+        
         try {
           // Attendre que la session soit établie avant de nettoyer l'URL
           await new Promise(resolve => setTimeout(resolve, 1500));
@@ -27,6 +29,7 @@ const EmailConfirmationHandler = () => {
           
           if (error) {
             console.error("Session error:", error);
+            setIsProcessing(false);
             navigate('/auth', { replace: true });
             return;
           }
@@ -43,15 +46,16 @@ const EmailConfirmationHandler = () => {
         } catch (err) {
           console.error("Error during email confirmation:", err);
           navigate('/auth', { replace: true });
+        } finally {
+          setIsProcessing(false);
         }
       }
-      setIsChecking(false);
     };
 
     handleEmailConfirmation();
   }, [navigate]);
 
-  if (isChecking && window.location.hash.includes('access_token')) {
+  if (isProcessing) {
     return (
       <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -63,28 +67,17 @@ const EmailConfirmationHandler = () => {
 };
 
 function App() {
-  const [isConfirming, setIsConfirming] = useState(false);
-
-  useEffect(() => {
-    if (window.location.hash.includes('access_token')) {
-      console.log("Confirmation process detected, blocking route rendering");
-      setIsConfirming(true);
-    }
-  }, []);
-
   return (
     <Router>
       <EmailConfirmationHandler />
-      {!isConfirming && (
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/compose" element={<ComposeTwitter />} />
-          <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
-          <Route path="*" element={<Navigate to="/auth" replace />} />
-        </Routes>
-      )}
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/compose" element={<ComposeTwitter />} />
+        <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
+        <Route path="*" element={<Navigate to="/auth" replace />} />
+      </Routes>
       <Toaster />
     </Router>
   );
