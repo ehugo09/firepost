@@ -39,28 +39,32 @@ const EmailConfirmationHandler = () => {
           console.log("Processing email confirmation with access token");
           
           try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            // Augmenter le délai d'attente pour la session
+            await new Promise(resolve => setTimeout(resolve, 3000));
             
-            const { data: { session }, error } = await supabase.auth.getSession();
-            
-            if (error) {
-              console.error("Session error:", error);
-              toast.error("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
-              setIsProcessing(false);
-              navigate('/auth', { replace: true });
-              return;
+            // Vérifier la session plusieurs fois
+            for (let i = 0; i < 3; i++) {
+              const { data: { session }, error } = await supabase.auth.getSession();
+              
+              if (session) {
+                console.log("Valid session found after confirmation");
+                window.history.replaceState({}, document.title, window.location.pathname);
+                toast.success("Email confirmé avec succès !");
+                navigate('/dashboard', { replace: true });
+                return;
+              }
+              
+              if (i < 2) {
+                // Attendre entre les tentatives
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
             }
             
-            if (session) {
-              console.log("Valid session found after confirmation");
-              window.history.replaceState({}, document.title, window.location.pathname);
-              toast.success("Email confirmé avec succès !");
-              navigate('/dashboard', { replace: true });
-            } else {
-              console.log("No session found after confirmation");
-              toast.error("La session n'a pas pu être établie. Veuillez vous reconnecter.");
-              navigate('/auth', { replace: true });
-            }
+            // Si après toutes les tentatives, toujours pas de session
+            console.log("No session found after multiple attempts");
+            toast.error("La session n'a pas pu être établie. Veuillez réessayer.");
+            navigate('/auth', { replace: true });
+            
           } catch (err) {
             console.error("Error during email confirmation:", err);
             toast.error("Une erreur inattendue s'est produite. Veuillez réessayer.");
