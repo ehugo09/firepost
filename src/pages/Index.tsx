@@ -8,18 +8,25 @@ const Index = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      console.log("Index page - Checking auth state:", session ? "User is authenticated" : "No active session");
-      
-      if (error) {
-        console.error("Error checking session:", error);
-        navigate('/auth');
-        return;
-      }
-      
-      if (session) {
-        navigate('/dashboard');
-      } else {
+      try {
+        console.log("Index page - Starting auth check");
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error checking session:", error);
+          navigate('/auth');
+          return;
+        }
+        
+        if (session) {
+          console.log("User is authenticated, redirecting to dashboard");
+          navigate('/dashboard');
+        } else {
+          console.log("No active session, redirecting to auth");
+          navigate('/auth');
+        }
+      } catch (err) {
+        console.error("Unexpected error during auth check:", err);
         navigate('/auth');
       }
     };

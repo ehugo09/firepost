@@ -15,7 +15,7 @@ const Auth = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        console.log("Checking authentication session...");
+        console.log("Auth page - Checking session");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -26,7 +26,7 @@ const Auth = () => {
 
         if (session) {
           console.log("User already authenticated, redirecting to dashboard");
-          navigate("/dashboard");
+          navigate("/dashboard", { replace: true });
         }
       } catch (err) {
         console.error("Unexpected error during session check:", err);
@@ -38,19 +38,16 @@ const Auth = () => {
 
     checkSession();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session ? "Session exists" : "No session");
       
       if (event === "SIGNED_IN" && session) {
         console.log("Sign in successful, redirecting to dashboard");
         toast.success("Successfully signed in!");
-        navigate("/dashboard");
+        navigate("/dashboard", { replace: true });
       } else if (event === "SIGNED_OUT") {
         console.log("User signed out");
         setError(null);
-      } else if (event === "USER_UPDATED") {
-        console.log("User profile updated");
       }
     });
 
