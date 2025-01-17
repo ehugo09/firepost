@@ -44,19 +44,15 @@ const EmailConfirmationHandler = () => {
         } catch (err) {
           console.error("Error during email confirmation:", err);
           navigate('/auth', { replace: true });
-        } finally {
-          setIsChecking(false);
         }
-      } else {
-        console.log("No confirmation hash found in URL");
-        setIsChecking(false);
       }
+      setIsChecking(false);
     };
 
     handleEmailConfirmation();
   }, [navigate]);
 
-  if (isChecking) {
+  if (isChecking && window.location.hash.includes('access_token')) {
     return (
       <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -68,17 +64,29 @@ const EmailConfirmationHandler = () => {
 };
 
 function App() {
+  const [isConfirming, setIsConfirming] = useState(false);
+
+  useEffect(() => {
+    // Vérifier si nous sommes dans un processus de confirmation d'email
+    if (window.location.hash.includes('access_token')) {
+      console.log("Confirmation process detected, blocking route rendering");
+      setIsConfirming(true);
+    }
+  }, []);
+
   return (
     <Router>
       <EmailConfirmationHandler />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/compose" element={<ComposeTwitter />} />
-        <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
-        <Route path="*" element={<Navigate to="/auth" replace />} />
-      </Routes>
+      {!isConfirming && (
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/compose" element={<ComposeTwitter />} />
+          <Route path="/auth/callback/twitter" element={<TwitterCallback />} />
+          <Route path="*" element={<Navigate to="/auth" replace />} />
+        </Routes>
+      )}
       <Toaster />
     </Router>
   );
