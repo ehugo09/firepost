@@ -5,96 +5,57 @@ import Index from './pages/Index';
 import ComposeTwitter from './pages/ComposeTwitter';
 import TwitterCallback from './pages/auth/TwitterCallback';
 import { Toaster } from '@/components/ui/toaster';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Composant pour gérer la redirection après confirmation d'email
 const EmailConfirmationHandler = () => {
   const navigate = useNavigate();
-  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    const handleEmailConfirmation = async () => {
-      const hash = window.location.hash;
-      
-      if (hash) {
-        console.log("Hash detected in URL:", hash);
-        setIsProcessing(true);
-
-        // Si c'est un access_token (confirmation d'email réussie)
-        if (hash.includes('access_token')) {
-          console.log("Processing email confirmation with access_token");
-          
-          try {
-            // Première attente pour laisser le temps à Supabase de traiter le token
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Essayer de récupérer la session plusieurs fois
-            for (let attempt = 1; attempt <= 5; attempt++) {
-              console.log(`Tentative ${attempt} de récupération de session...`);
-              
-              const { data: { session }, error } = await supabase.auth.getSession();
-              
-              if (error) {
-                console.error("Erreur lors de la récupération de la session:", error);
-                continue;
-              }
-
-              if (session) {
-                console.log("Session trouvée avec succès:", session.user.id);
-                window.history.replaceState({}, document.title, '/dashboard');
-                toast.success("Email confirmé avec succès !");
-                navigate('/dashboard', { replace: true });
-                return;
-              }
-
-              // Si ce n'est pas la dernière tentative, attendre avant de réessayer
-              if (attempt < 5) {
-                console.log("Attente avant nouvelle tentative...");
-                await new Promise(resolve => setTimeout(resolve, 1500));
-              }
-            }
-
-            // Si toutes les tentatives ont échoué
-            console.error("Impossible d'établir une session après 5 tentatives");
-            toast.error("La connexion n'a pas pu être établie. Veuillez vous reconnecter.");
-            navigate('/auth', { replace: true });
-          } catch (err) {
-            console.error("Erreur inattendue lors de la confirmation:", err);
-            toast.error("Une erreur est survenue. Veuillez réessayer.");
-            navigate('/auth', { replace: true });
-          }
-        }
-        
-        setIsProcessing(false);
-      }
-    };
-
+    console.log("Starting email confirmation handler");
+    
     // Écouter les changements d'état d'authentification
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Changement d'état d'authentification:", event, session ? "Session présente" : "Pas de session");
-      
+      console.log("Auth state change:", event, session?.user?.id);
+
       if (event === 'SIGNED_IN' && session) {
-        console.log("Utilisateur connecté:", session.user.id);
+        console.log("User signed in successfully:", session.user.id);
+        // Nettoyer l'URL et rediriger
+        window.history.replaceState({}, document.title, '/dashboard');
+        toast.success("Connexion réussie !");
         navigate('/dashboard', { replace: true });
+      }
+      
+      if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
+        navigate('/auth', { replace: true });
       }
     });
 
-    handleEmailConfirmation();
+    // Vérifier s'il y a une session active au chargement
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      console.log("Initial session check:", session?.user?.id || "No session");
+      
+      if (error) {
+        console.error("Session check error:", error);
+        return;
+      }
+
+      if (session) {
+        console.log("Active session found:", session.user.id);
+        navigate('/dashboard', { replace: true });
+      }
+    };
+
+    checkSession();
 
     return () => {
+      console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
     };
   }, [navigate]);
-
-  if (isProcessing) {
-    return (
-      <div className="min-h-screen bg-[#F8F9FE] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return null;
 };
