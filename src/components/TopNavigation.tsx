@@ -7,6 +7,12 @@ import { useTheme } from "next-themes";
 const TopNavigation = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
+  
+  console.log("Current theme:", theme);
+  console.log("Logo path:", theme === 'dark' 
+    ? "/lovable-uploads/01a16627-8fbe-4ab7-9f84-43053c79f747.png"
+    : "/lovable-uploads/739f8d1a-6631-4702-8935-050272107949.png"
+  );
 
   return (
     <nav className="fixed w-full z-30 top-4 flex justify-center">
