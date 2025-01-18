@@ -10,21 +10,36 @@ const TwitterCallback = () => {
     const handleCallback = async () => {
       try {
         // Get the session to confirm the user is authenticated
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (error) {
-          throw error;
+        if (!session) {
+          throw new Error('No session found');
         }
 
-        if (session) {
-          console.log('Twitter authentication successful:', session);
-          toast.success('Successfully connected to Twitter!');
-        } else {
-          console.error('No session found after Twitter auth');
-          toast.error('Authentication failed');
+        // Get oauth_token and oauth_verifier from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const oauthToken = urlParams.get('oauth_token');
+        const oauthVerifier = urlParams.get('oauth_verifier');
+
+        if (!oauthToken || !oauthVerifier) {
+          throw new Error('Missing OAuth parameters');
         }
 
-        // Redirect back to dashboard in either case
+        // Call our edge function to exchange the tokens
+        const { data, error } = await supabase.functions.invoke('twitter-auth', {
+          method: 'POST',
+          body: { 
+            action: 'access_token',
+            oauth_token: oauthToken,
+            oauth_verifier: oauthVerifier,
+            user_id: session.user.id
+          }
+        });
+
+        if (error) throw error;
+        
+        console.log('Twitter authentication successful:', data);
+        toast.success('Successfully connected to Twitter!');
         navigate('/dashboard');
         
       } catch (error) {
