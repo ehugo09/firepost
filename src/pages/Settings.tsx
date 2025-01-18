@@ -29,23 +29,16 @@ const Settings = () => {
 
   const handleTwitterDisconnect = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to disconnect Twitter.",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      console.log("Attempting to disconnect Twitter...");
       const { error } = await supabase
         .from('social_connections')
         .delete()
-        .eq('platform', 'twitter')
-        .eq('user_id', session.user.id);
+        .eq('platform', 'twitter');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error disconnecting Twitter:', error);
+        throw error;
+      }
 
       toast({
         title: "Twitter disconnected",
