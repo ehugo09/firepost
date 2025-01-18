@@ -1,5 +1,5 @@
 import { corsHeaders, TwitterAuthResponse } from './types.ts';
-import { getRequestToken } from './oauth.ts';
+import { getRequestToken, getAccessToken } from './oauth.ts';
 
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,22 +15,37 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action } = await req.json();
-    console.log('Received action:', action);
+    const { action, oauth_token, oauth_verifier, user_id } = await req.json();
+    console.log('Received request:', { action, oauth_token, oauth_verifier, user_id });
 
-    if (action !== 'request_token') {
+    if (action === 'request_token') {
+      const response: TwitterAuthResponse = await getRequestToken();
+      console.log('Request token response:', response);
       return new Response(
-        JSON.stringify({ error: 'Invalid action' }), 
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify(response),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const response: TwitterAuthResponse = await getRequestToken();
-    console.log('Sending response:', response);
+    if (action === 'access_token') {
+      if (!oauth_token || !oauth_verifier || !user_id) {
+        console.error('Missing required parameters for access_token action');
+        return new Response(
+          JSON.stringify({ error: 'Missing required parameters' }), 
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+
+      console.log('Processing access_token request with parameters:', { oauth_token, oauth_verifier, user_id });
+      return new Response(
+        JSON.stringify({ status: 'received_parameters' }), 
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Invalid action' }), 
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
 
   } catch (error) {
