@@ -35,7 +35,10 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
     oauth_callback: percentEncode(config.callbackUrl),
   };
 
+  // Explicitly using api.twitter.com
   const baseUrl = 'https://api.twitter.com/oauth/request_token';
+  console.log('Using base URL:', baseUrl);
+  
   const signingKey = `${percentEncode(config.consumerSecret)}&`;
 
   const parameters = Object.entries(oauth)
@@ -48,6 +51,8 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
     percentEncode(baseUrl),
     percentEncode(parameters),
   ].join('&');
+
+  console.log('Generated signature base string:', signatureBaseString);
 
   const signature = createHmac('sha1', signingKey)
     .update(signatureBaseString)
@@ -68,14 +73,23 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
       method: 'POST',
       headers: {
         Authorization: authHeader,
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Twitter API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
     }
 
     const text = await response.text();
+    console.log('Twitter API response:', text);
+    
     const params = new URLSearchParams(text);
     const oauth_token = params.get('oauth_token');
     const oauth_token_secret = params.get('oauth_token_secret');

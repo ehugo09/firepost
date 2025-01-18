@@ -22,7 +22,8 @@ export async function handleOAuth2Request(): Promise<TwitterAuthResponse> {
     code_challenge_method: 'plain'
   });
 
-  const authUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
+  // Explicitly using api.twitter.com
+  const authUrl = `https://api.twitter.com/2/oauth2/authorize?${params.toString()}`;
   console.log('Generated OAuth 2.0 auth URL:', authUrl);
   
   return {
