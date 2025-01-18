@@ -34,7 +34,7 @@ const TopNavigation = () => {
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <img 
                 src={theme === 'dark' 
-                  ? "/lovable-uploads/e8888b7c-50c6-4b9e-bda9-af70a0123df2.png"
+                  ? "/lovable-uploads/01a16627-8fbe-4ab7-9f84-43053c79f747.png"
                   : "/lovable-uploads/739f8d1a-6631-4702-8935-050272107949.png"
                 } 
                 alt="FirePost Logo" 
