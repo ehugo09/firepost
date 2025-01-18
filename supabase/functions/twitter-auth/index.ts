@@ -1,5 +1,5 @@
 import { corsHeaders } from './types.ts';
-import { getRequestToken, getAccessToken } from './oauth.ts';
+import { getRequestToken } from './oauth.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -7,35 +7,25 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { action, oauth_token, oauth_verifier, user_id } = await req.json();
-    console.log('Received request:', { action, oauth_token, oauth_verifier, user_id });
-
-    let response;
+    const { action } = await req.json();
+    console.log('Received request with action:', action);
 
     if (action === 'request_token') {
-      response = await getRequestToken();
-    } else if (action === 'access_token') {
-      if (!oauth_token || !oauth_verifier || !user_id) {
-        return new Response(
-          JSON.stringify({ error: 'Missing required parameters' }), 
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        );
-      }
-      response = await getAccessToken(oauth_token, oauth_verifier, user_id);
-    } else {
+      const response = await getRequestToken();
+      console.log('Request token response:', response);
       return new Response(
-        JSON.stringify({ error: 'Invalid action' }), 
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        JSON.stringify(response),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Invalid action' }), 
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     );
 
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in edge function:', error);
     return new Response(
       JSON.stringify({ error: error.message }), 
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
