@@ -11,7 +11,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300 grid grid-rows-[auto,1fr]">
-      <div className="w-full py-4">
+      <div className="w-full pt-6 pb-2">
         <TopNavigation />
       </div>
       <motion.main 
