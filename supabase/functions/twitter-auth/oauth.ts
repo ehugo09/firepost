@@ -1,10 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { config, corsHeaders } from './types.ts';
+import { createHmac } from 'https://deno.land/std@0.210.0/crypto/mod.ts';
 
 const TWITTER_API_URL = 'https://api.twitter.com/oauth';
 
 export async function getRequestToken(): Promise<any> {
   console.log('Starting OAuth request token process');
+  console.log('Using callback URL:', config.callbackUrl);
   
   const oauthParams = {
     oauth_callback: config.callbackUrl,
@@ -15,6 +17,8 @@ export async function getRequestToken(): Promise<any> {
     oauth_version: '1.0'
   };
 
+  console.log('OAuth parameters:', oauthParams);
+
   const signature = createSignature(
     'POST',
     `${TWITTER_API_URL}/request_token`,
@@ -24,6 +28,7 @@ export async function getRequestToken(): Promise<any> {
   );
 
   const authHeader = createAuthorizationHeader(oauthParams, signature);
+  console.log('Authorization header:', authHeader);
 
   try {
     const response = await fetch(`${TWITTER_API_URL}/request_token`, {
@@ -48,12 +53,13 @@ export async function getRequestToken(): Promise<any> {
 
     const params = new URLSearchParams(text);
     const oauth_token = params.get('oauth_token');
+    const oauth_token_secret = params.get('oauth_token_secret');
 
     if (!oauth_token) {
       throw new Error('No oauth_token in response');
     }
 
-    return { oauth_token };
+    return { oauth_token, oauth_token_secret };
   } catch (error) {
     console.error('Error in getRequestToken:', error);
     throw error;
@@ -62,6 +68,7 @@ export async function getRequestToken(): Promise<any> {
 
 export async function getAccessToken(oauth_token: string, oauth_verifier: string, user_id: string): Promise<any> {
   console.log('Starting OAuth access token process');
+  console.log('Parameters:', { oauth_token, oauth_verifier, user_id });
 
   const oauthParams = {
     oauth_consumer_key: config.consumerKey,
@@ -73,6 +80,8 @@ export async function getAccessToken(oauth_token: string, oauth_verifier: string
     oauth_version: '1.0'
   };
 
+  console.log('OAuth parameters:', oauthParams);
+
   const signature = createSignature(
     'POST',
     `${TWITTER_API_URL}/access_token`,
@@ -82,6 +91,7 @@ export async function getAccessToken(oauth_token: string, oauth_verifier: string
   );
 
   const authHeader = createAuthorizationHeader(oauthParams, signature);
+  console.log('Authorization header:', authHeader);
 
   try {
     const response = await fetch(`${TWITTER_API_URL}/access_token`, {
@@ -117,6 +127,8 @@ export async function getAccessToken(oauth_token: string, oauth_verifier: string
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
+    
+    console.log('Creating Supabase client with URL:', supabaseUrl);
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Save connection to database
@@ -174,9 +186,18 @@ function createSignature(
 
   const signingKey = `${encodeURIComponent(consumerSecret)}&${tokenSecret}`;
   
+  console.log('Signature components:', {
+    method: method.toUpperCase(),
+    url: encodeURIComponent(url),
+    paramString: encodeURIComponent(paramString),
+    signingKey
+  });
+
   const signature = createHmac('sha1', signingKey)
     .update(signatureBaseString)
     .digest('base64');
+
+  console.log('Generated signature:', signature);
 
   return signature;
 }
@@ -187,7 +208,11 @@ function createAuthorizationHeader(params: Record<string, string>, signature: st
     oauth_signature: signature
   };
 
-  return 'OAuth ' + Object.entries(oauthParams)
-    .map(([key, value]) => `${encodeURIComponent(key)}="${encodeURIComponent(value)}"`)
+  const entries = Object.entries(oauthParams).sort((a, b) =>
+    a[0].localeCompare(b[0])
+  );
+
+  return 'OAuth ' + entries
+    .map(([k, v]) => `${encodeURIComponent(k)}="${encodeURIComponent(v)}"`)
     .join(', ');
 }
