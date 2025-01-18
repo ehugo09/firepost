@@ -9,7 +9,7 @@ const TopNavigation = () => {
   const { theme } = useTheme();
 
   return (
-    <div className="max-w-[1024px] mx-auto px-4 mt-4">
+    <div className="max-w-[1024px] mx-auto px-4">
       <div className="bg-white/80 dark:bg-[#151B2E]/80 border border-gray-200/50 dark:border-gray-700/50 rounded-full relative backdrop-blur-lg">
         <div className="flex items-center justify-between h-12 px-6">
           <div className="flex items-center space-x-6">
