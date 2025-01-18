@@ -14,13 +14,13 @@ function generateTimestamp() {
   return Math.floor(Date.now() / 1000).toString();
 }
 
-function percentEncode(str: string) {
+// Implémentation RFC3986 complète
+function percentEncode(str: string): string {
   return encodeURIComponent(str)
-    .replace(/!/g, '%21')
-    .replace(/\*/g, '%2A')
-    .replace(/'/g, '%27')
-    .replace(/\(/g, '%28')
-    .replace(/\)/g, '%29');
+    .replace(/[!'()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`)
+    .replace(/[^A-Za-z0-9\-._~]/g, (c) => 
+      `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+    );
 }
 
 export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
@@ -32,47 +32,51 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
     oauth_signature_method: 'HMAC-SHA1',
     oauth_timestamp: generateTimestamp(),
     oauth_version: '1.0',
-    oauth_callback: percentEncode(config.callbackUrl),
+    oauth_callback: config.callbackUrl,
   };
 
-  // Explicitly using api.twitter.com
   const baseUrl = 'https://api.twitter.com/oauth/request_token';
   console.log('Using base URL:', baseUrl);
   
+  // Encode chaque composant séparément avant de construire la clé de signature
   const signingKey = `${percentEncode(config.consumerSecret)}&`;
 
+  // Trier et encoder les paramètres selon RFC3986
   const parameters = Object.entries(oauth)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${percentEncode(key)}=${value}`)
+    .map(([key, value]) => `${percentEncode(key)}=${percentEncode(value)}`)
     .join('&');
 
+  console.log('Parameters before encoding:', parameters);
+
+  // Construction de la base string selon RFC3986
   const signatureBaseString = [
     'POST',
     percentEncode(baseUrl),
-    percentEncode(parameters),
+    percentEncode(parameters)
   ].join('&');
 
-  console.log('Generated signature base string:', signatureBaseString);
+  console.log('Signature base string:', signatureBaseString);
 
   const signature = createHmac('sha1', signingKey)
     .update(signatureBaseString)
     .digest('base64');
 
-  const authHeader = `OAuth ${Object.entries(oauth)
-    .map(([key, value]) => `${percentEncode(key)}="${value}"`)
-    .join(', ')}, oauth_signature="${percentEncode(signature)}"`;
+  console.log('Generated signature:', signature);
 
-  console.log('Sending OAuth 1.0a request with params:', {
-    url: baseUrl,
-    method: 'POST',
-    headers: { Authorization: authHeader }
-  });
+  // Construction de l'en-tête d'autorisation avec encodage RFC3986
+  const authHeader = 'OAuth ' + Object.entries(oauth)
+    .map(([key, value]) => `${percentEncode(key)}="${percentEncode(value)}"`)
+    .concat([`oauth_signature="${percentEncode(signature)}"`])
+    .join(', ');
+
+  console.log('Authorization header:', authHeader);
 
   try {
     const response = await fetch(baseUrl, {
       method: 'POST',
       headers: {
-        Authorization: authHeader,
+        'Authorization': authHeader,
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
@@ -82,7 +86,8 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
       console.error('Twitter API error:', {
         status: response.status,
         statusText: response.statusText,
-        body: errorText
+        body: errorText,
+        headers: Object.fromEntries(response.headers.entries())
       });
       throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
     }
