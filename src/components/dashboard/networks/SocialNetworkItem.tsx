@@ -20,6 +20,8 @@ const SocialNetworkItem = ({
   username,
   onConnect,
 }: SocialNetworkItemProps) => {
+  console.log(`Rendering ${name} connection:`, { isConnected, username });
+
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
