@@ -18,6 +18,24 @@ const NetworksCard = () => {
 
   useEffect(() => {
     fetchConnections();
+
+    const channel = supabase
+      .channel('social_connections_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'social_connections' 
+        }, 
+        () => {
+          fetchConnections();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, []);
 
   const fetchConnections = async () => {
@@ -35,7 +53,6 @@ const NetworksCard = () => {
       if (error) throw error;
       setConnections(data || []);
     } catch (error) {
-      console.error("Error fetching connections:", error);
       toast.error("Failed to load social connections");
     } finally {
       setLoading(false);
