@@ -1,11 +1,12 @@
-import { MessageSquare, BarChart2, Calendar, Bell, Search, Settings } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { MessageSquare, BarChart2, Calendar, Bell, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 
 const TopNavigation = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   return (
     <nav className="fixed w-full z-30 top-4 flex justify-center">
@@ -32,20 +33,16 @@ const TopNavigation = () => {
             {/* Centered Logo */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <img 
-                src="/lovable-uploads/0fbfd7c5-60f0-46ee-9449-8836a437e7ff.png" 
-                alt="Logo" 
-                className="h-8 w-8 -mt-1"
+                src={theme === 'dark' 
+                  ? "/lovable-uploads/38c568bd-3196-49e5-b8a9-80d48147656c.png"
+                  : "/lovable-uploads/739f8d1a-6631-4702-8935-050272107949.png"
+                } 
+                alt="FirePost Logo" 
+                className="h-6"
               />
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-2 top-2 h-3.5 w-3.5 text-gray-400 dark:text-gray-500" />
-                <Input 
-                  placeholder="Search..." 
-                  className="pl-7 w-40 h-8 bg-gray-50/50 dark:bg-[#1A2235]/50 text-sm rounded-full border-gray-200 dark:border-gray-700/50 dark:text-gray-300 dark:placeholder:text-gray-500"
-                />
-              </div>
               <button className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-[#1A2235]/80">
                 <Bell className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
