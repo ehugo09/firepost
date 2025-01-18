@@ -10,17 +10,17 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300 flex flex-col">
-      <div className="flex-grow flex flex-col pt-4">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300 grid grid-rows-[auto,1fr]">
+      <div className="w-full">
         <TopNavigation />
-        <motion.main 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex-grow flex items-start mt-4"
-        >
-          <DashboardGrid progressData={progressData} />
-        </motion.main>
       </div>
+      <motion.main 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full flex items-center"
+      >
+        <DashboardGrid progressData={progressData} />
+      </motion.main>
     </div>
   );
 };
