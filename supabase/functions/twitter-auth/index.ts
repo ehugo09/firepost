@@ -1,8 +1,8 @@
 import { corsHeaders, TwitterAuthResponse } from './types.ts';
-import { handleOAuth2Request } from './oauth2.ts';
-import { handleOAuth1Request } from './oauth1.ts';
+import { getRequestToken } from './oauth.ts';
 
 Deno.serve(async (req) => {
+  // Gérer les requêtes CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -25,16 +25,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    let response: TwitterAuthResponse;
-
-    try {
-      // Essayer OAuth 2.0 d'abord
-      response = await handleOAuth2Request();
-    } catch (oauth2Error) {
-      console.log('OAuth 2.0 failed, falling back to OAuth 1.0a:', oauth2Error);
-      // Si OAuth 2.0 échoue, essayer OAuth 1.0a
-      response = await handleOAuth1Request();
-    }
+    const response: TwitterAuthResponse = await getRequestToken();
 
     return new Response(
       JSON.stringify(response),
