@@ -1,12 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { config, corsHeaders } from './types.ts';
-import { createHmac } from 'https://deno.land/std@0.210.0/crypto/mod.ts';
 
 const TWITTER_API_URL = 'https://api.twitter.com/oauth';
 
 export async function getRequestToken(): Promise<any> {
   console.log('Starting OAuth request token process');
-  console.log('Using callback URL:', config.callbackUrl);
   
   const oauthParams = {
     oauth_callback: config.callbackUrl,
@@ -17,18 +15,7 @@ export async function getRequestToken(): Promise<any> {
     oauth_version: '1.0'
   };
 
-  console.log('OAuth parameters:', oauthParams);
-
-  const signature = createSignature(
-    'POST',
-    `${TWITTER_API_URL}/request_token`,
-    oauthParams,
-    config.consumerSecret,
-    ''
-  );
-
-  const authHeader = createAuthorizationHeader(oauthParams, signature);
-  console.log('Authorization header:', authHeader);
+  const authHeader = `OAuth oauth_callback="${encodeURIComponent(config.callbackUrl)}", oauth_consumer_key="${config.consumerKey}", oauth_nonce="${oauthParams.oauth_nonce}", oauth_signature_method="HMAC-SHA1", oauth_timestamp="${oauthParams.oauth_timestamp}", oauth_version="1.0"`;
 
   try {
     const response = await fetch(`${TWITTER_API_URL}/request_token`, {
@@ -53,13 +40,12 @@ export async function getRequestToken(): Promise<any> {
 
     const params = new URLSearchParams(text);
     const oauth_token = params.get('oauth_token');
-    const oauth_token_secret = params.get('oauth_token_secret');
 
     if (!oauth_token) {
       throw new Error('No oauth_token in response');
     }
 
-    return { oauth_token, oauth_token_secret };
+    return { oauth_token };
   } catch (error) {
     console.error('Error in getRequestToken:', error);
     throw error;
@@ -67,33 +53,11 @@ export async function getRequestToken(): Promise<any> {
 }
 
 export async function getAccessToken(oauth_token: string, oauth_verifier: string, user_id: string): Promise<any> {
-  console.log('Starting OAuth access token process');
-  console.log('Parameters:', { oauth_token, oauth_verifier, user_id });
-
-  const oauthParams = {
-    oauth_consumer_key: config.consumerKey,
-    oauth_token: oauth_token,
-    oauth_verifier: oauth_verifier,
-    oauth_nonce: Math.random().toString(36).substring(2),
-    oauth_signature_method: 'HMAC-SHA1',
-    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-    oauth_version: '1.0'
-  };
-
-  console.log('OAuth parameters:', oauthParams);
-
-  const signature = createSignature(
-    'POST',
-    `${TWITTER_API_URL}/access_token`,
-    oauthParams,
-    config.consumerSecret,
-    ''
-  );
-
-  const authHeader = createAuthorizationHeader(oauthParams, signature);
-  console.log('Authorization header:', authHeader);
-
+  console.log('Starting access token process');
+  
   try {
+    const authHeader = `OAuth oauth_consumer_key="${config.consumerKey}", oauth_token="${oauth_token}", oauth_verifier="${oauth_verifier}"`;
+
     const response = await fetch(`${TWITTER_API_URL}/access_token`, {
       method: 'POST',
       headers: {
@@ -102,19 +66,12 @@ export async function getAccessToken(oauth_token: string, oauth_verifier: string
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Twitter API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      throw new Error(`Twitter API error: ${response.status} - ${errorText}`);
+      throw new Error(`Twitter API error: ${response.status}`);
     }
 
     const text = await response.text();
-    console.log('Twitter API Response:', text);
-
     const params = new URLSearchParams(text);
+    
     const access_token = params.get('oauth_token');
     const access_token_secret = params.get('oauth_token_secret');
     const screen_name = params.get('screen_name');
@@ -124,14 +81,10 @@ export async function getAccessToken(oauth_token: string, oauth_verifier: string
       throw new Error('Missing tokens in response');
     }
 
-    // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') as string;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') as string;
-    
-    console.log('Creating Supabase client with URL:', supabaseUrl);
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Save connection to database
     const { error: dbError } = await supabase
       .from('social_connections')
       .upsert({
@@ -157,62 +110,4 @@ export async function getAccessToken(oauth_token: string, oauth_verifier: string
     console.error('Error in getAccessToken:', error);
     throw error;
   }
-}
-
-function createSignature(
-  method: string,
-  url: string,
-  params: Record<string, string>,
-  consumerSecret: string,
-  tokenSecret = ""
-): string {
-  const sortedParams = Object.keys(params).sort().reduce(
-    (acc: Record<string, string>, key: string) => {
-      acc[key] = params[key];
-      return acc;
-    },
-    {}
-  );
-
-  const paramString = Object.entries(sortedParams)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-    .join('&');
-
-  const signatureBaseString = [
-    method.toUpperCase(),
-    encodeURIComponent(url),
-    encodeURIComponent(paramString)
-  ].join('&');
-
-  const signingKey = `${encodeURIComponent(consumerSecret)}&${tokenSecret}`;
-  
-  console.log('Signature components:', {
-    method: method.toUpperCase(),
-    url: encodeURIComponent(url),
-    paramString: encodeURIComponent(paramString),
-    signingKey
-  });
-
-  const signature = createHmac('sha1', signingKey)
-    .update(signatureBaseString)
-    .digest('base64');
-
-  console.log('Generated signature:', signature);
-
-  return signature;
-}
-
-function createAuthorizationHeader(params: Record<string, string>, signature: string): string {
-  const oauthParams = {
-    ...params,
-    oauth_signature: signature
-  };
-
-  const entries = Object.entries(oauthParams).sort((a, b) =>
-    a[0].localeCompare(b[0])
-  );
-
-  return 'OAuth ' + entries
-    .map(([k, v]) => `${encodeURIComponent(k)}="${encodeURIComponent(v)}"`)
-    .join(', ');
 }
