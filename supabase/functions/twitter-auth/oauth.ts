@@ -29,20 +29,14 @@ export async function getRequestToken(): Promise<any> {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Twitter API error:', response.status, errorText);
-      throw new Error(`Twitter API error: ${response.status}`);
+      throw new Error(`Twitter API error: ${response.status} - ${errorText}`);
     }
 
     const text = await response.text();
-    console.log('Twitter response:', text);
+    console.log('Raw Twitter response:', text);
     
     const params = new URLSearchParams(text);
-    const oauth_token = params.get('oauth_token');
-
-    if (!oauth_token) {
-      throw new Error('No oauth_token in response');
-    }
-
-    return { oauth_token };
+    return Object.fromEntries(params.entries());
   } catch (error) {
     console.error('Error in getRequestToken:', error);
     throw error;

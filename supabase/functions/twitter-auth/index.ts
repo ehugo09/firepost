@@ -12,7 +12,7 @@ Deno.serve(async (req) => {
 
     if (action === 'request_token') {
       const response = await getRequestToken();
-      console.log('Request token response:', response);
+      console.log('Complete Twitter response:', response);
       return new Response(
         JSON.stringify(response),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
