@@ -66,7 +66,7 @@ const SocialNetworkItem = ({
           )}
         </div>
         {isConnected ? (
-          <Circle className="w-4 h-4 fill-green-500 text-green-500" />
+          <Circle className="w-3 h-3 fill-green-500 text-green-500" />
         ) : (
           <button 
             onClick={handleConnect}
