@@ -10,7 +10,7 @@ const TopNavigation = () => {
 
   return (
     <nav className="fixed w-full z-30 top-4 flex justify-center">
-      <div className="container mx-auto px-8 lg:px-12 xl:px-16 max-w-screen-xl">
+      <div className="w-[1024px] mx-auto px-6">
         <div className="bg-white/80 dark:bg-[#151B2E]/80 border border-gray-200/50 dark:border-gray-700/50 rounded-full relative backdrop-blur-lg">
           <div className="flex items-center justify-between h-12 px-6">
             <div className="flex items-center space-x-6">
