@@ -8,7 +8,7 @@ interface SocialNetworkItemProps {
   name: string;
   platform: string;
   isConnected: boolean;
-  username?: string;
+  username?: string | null;
   onConnect: () => void;
 }
 
@@ -63,12 +63,12 @@ const SocialNetworkItem = ({
           {icon}
           <span className="text-sm font-medium">{name}</span>
           {isConnected && username && (
-            <span className="text-xs text-gray-500">(@{username})</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">(@{username})</span>
           )}
         </div>
         {isConnected ? (
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-gray-500">Connected</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-green-600 dark:text-green-400 font-medium">Connected</span>
             <Check className="w-4 h-4 text-green-500" />
           </div>
         ) : (
