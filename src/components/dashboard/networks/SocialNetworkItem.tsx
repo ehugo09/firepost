@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ interface SocialNetworkItemProps {
   name: string;
   platform: string;
   isConnected: boolean;
+  username?: string;
   onConnect: () => void;
 }
 
@@ -16,6 +17,7 @@ const SocialNetworkItem = ({
   name,
   platform,
   isConnected,
+  username,
   onConnect,
 }: SocialNetworkItemProps) => {
   const handleConnect = async () => {
@@ -60,9 +62,15 @@ const SocialNetworkItem = ({
         <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
           {icon}
           <span className="text-sm font-medium">{name}</span>
+          {isConnected && username && (
+            <span className="text-xs text-gray-500">(@{username})</span>
+          )}
         </div>
         {isConnected ? (
-          <span className="text-green-500">●</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-gray-500">Connected</span>
+            <Check className="w-4 h-4 text-green-500" />
+          </div>
         ) : (
           <button 
             onClick={handleConnect}

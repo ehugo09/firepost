@@ -15,20 +15,24 @@ const SocialNetworksList = ({ connections, onConnectionUpdate }: SocialNetworksL
     { icon: <Linkedin className="w-4 h-4" />, name: "LinkedIn", platform: "linkedin" }
   ];
 
-  const isConnected = (platform: string) => {
-    return connections.some(conn => conn.platform === platform);
+  const getConnection = (platform: string) => {
+    return connections.find(conn => conn.platform === platform);
   };
 
   return (
     <div className="space-y-2 mb-4">
-      {socialNetworks.map((network, index) => (
-        <SocialNetworkItem
-          key={index}
-          {...network}
-          isConnected={isConnected(network.platform)}
-          onConnect={onConnectionUpdate}
-        />
-      ))}
+      {socialNetworks.map((network, index) => {
+        const connection = getConnection(network.platform);
+        return (
+          <SocialNetworkItem
+            key={index}
+            {...network}
+            isConnected={!!connection}
+            username={connection?.username}
+            onConnect={onConnectionUpdate}
+          />
+        );
+      })}
     </div>
   );
 };
