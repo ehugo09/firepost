@@ -10,14 +10,14 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300">
-      <div className="sticky top-0 py-4 bg-[#f8fafc] dark:bg-[#0B1121] z-10">
+    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300 flex flex-col">
+      <div className="flex-none py-6">
         <TopNavigation />
       </div>
       <motion.main 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="py-6"
+        className="flex-1 py-6"
       >
         <DashboardGrid progressData={progressData} />
       </motion.main>
