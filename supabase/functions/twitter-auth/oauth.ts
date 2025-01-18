@@ -2,6 +2,7 @@ import { TwitterAuthResponse } from './types.ts';
 import { createHmac } from "https://deno.land/std@0.177.0/node/crypto.ts";
 
 const TWITTER_API_URL = 'https://api.twitter.com/oauth/request_token';
+const TWITTER_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token';
 const CALLBACK_URL = "https://app.firepost.co/auth/twitter/callback";
 
 function generateNonce(): string {
@@ -56,7 +57,6 @@ function createSignature(
 }
 
 export async function getRequestToken(): Promise<TwitterAuthResponse> {
-  console.log('Starting OAuth request token process');
   
   const consumerKey = Deno.env.get("TWITTER_CONSUMER_KEY");
   const consumerSecret = Deno.env.get("TWITTER_CONSUMER_SECRET");
@@ -130,6 +130,97 @@ export async function getRequestToken(): Promise<TwitterAuthResponse> {
 
   } catch (error) {
     console.error('Error in getRequestToken:', error);
+    throw error;
+  }
+}
+
+export async function getAccessToken(
+  oauthToken: string,
+  oauthVerifier: string
+): Promise<TwitterAuthResponse> {
+  console.log('Starting OAuth access token exchange');
+  
+  const consumerKey = Deno.env.get("TWITTER_CONSUMER_KEY");
+  const consumerSecret = Deno.env.get("TWITTER_CONSUMER_SECRET");
+
+  if (!consumerKey || !consumerSecret) {
+    console.error('Missing Twitter API credentials');
+    throw new Error('Twitter API credentials not configured');
+  }
+
+  const oauthParams: Record<string, string> = {
+    oauth_consumer_key: consumerKey,
+    oauth_nonce: generateNonce(),
+    oauth_signature_method: 'HMAC-SHA1',
+    oauth_timestamp: generateTimestamp(),
+    oauth_token: oauthToken,
+    oauth_verifier: oauthVerifier,
+    oauth_version: '1.0'
+  };
+
+  // Generate signature
+  const signature = createSignature(
+    'POST',
+    TWITTER_ACCESS_TOKEN_URL,
+    oauthParams,
+    consumerSecret
+  );
+
+  // Add signature to params
+  oauthParams.oauth_signature = signature;
+
+  // Create Authorization header
+  const authHeader = 'OAuth ' + Object.entries(oauthParams)
+    .map(([key, value]) => `${encodeURIComponent(key)}="${encodeURIComponent(value)}"`)
+    .join(', ');
+
+  console.log('Authorization Header for access token:', authHeader);
+
+  try {
+    const response = await fetch(TWITTER_ACCESS_TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': authHeader,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      }
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Twitter API Error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`Twitter API error: ${response.status} - ${errorText}`);
+    }
+
+    const text = await response.text();
+    console.log('Twitter Access Token Response:', text);
+
+    const params = new URLSearchParams(text);
+    const accessToken = params.get('oauth_token');
+    const accessTokenSecret = params.get('oauth_token_secret');
+    const userId = params.get('user_id');
+    const screenName = params.get('screen_name');
+
+    if (!accessToken || !accessTokenSecret) {
+      throw new Error('Missing access token in response');
+    }
+
+    console.log('Successfully obtained access token');
+    return { 
+      oauth_token: accessToken,
+      user_info: {
+        id: userId,
+        username: screenName,
+        access_token: accessToken,
+        access_token_secret: accessTokenSecret
+      }
+    };
+
+  } catch (error) {
+    console.error('Error in getAccessToken:', error);
     throw error;
   }
 }
