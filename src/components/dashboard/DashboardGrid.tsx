@@ -11,7 +11,7 @@ interface DashboardGridProps {
 
 const DashboardGrid = ({ progressData }: DashboardGridProps) => {
   return (
-    <div className="max-w-[1024px] mx-auto px-4">
+    <div className="max-w-[1024px] mx-auto px-4 py-4">
       <div className="grid grid-cols-12 gap-4">
         {/* Tall vertical container on the left */}
         <div className="col-span-12 md:col-span-3 row-span-2">
