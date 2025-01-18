@@ -8,7 +8,7 @@ interface SocialNetworkItemProps {
   name: string;
   platform: string;
   isConnected: boolean;
-  username?: string | null;
+  username?: string;
   onConnect: () => void;
 }
 
@@ -20,8 +20,6 @@ const SocialNetworkItem = ({
   username,
   onConnect,
 }: SocialNetworkItemProps) => {
-  console.log(`Rendering ${name} connection:`, { isConnected, username });
-
   const handleConnect = async () => {
     try {
       if (platform === 'twitter') {
@@ -65,12 +63,12 @@ const SocialNetworkItem = ({
           {icon}
           <span className="text-sm font-medium">{name}</span>
           {isConnected && username && (
-            <span className="text-xs text-gray-500 dark:text-gray-400">(@{username})</span>
+            <span className="text-xs text-gray-500">(@{username})</span>
           )}
         </div>
         {isConnected ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-green-600 dark:text-green-400 font-medium">Connected</span>
+          <div className="flex items-center gap-1">
+            <span className="text-xs text-gray-500">Connected</span>
             <Check className="w-4 h-4 text-green-500" />
           </div>
         ) : (

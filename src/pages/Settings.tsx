@@ -2,7 +2,7 @@ import TopNavigation from "@/components/TopNavigation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { ArrowLeft, LogOut } from "lucide-react";
 
 const Settings = () => {
@@ -29,28 +29,13 @@ const Settings = () => {
 
   const handleTwitterDisconnect = async () => {
     try {
-      console.log('Attempting to disconnect Twitter...');
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Authentication required",
-          description: "Please login to disconnect Twitter.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       const { error } = await supabase
         .from('social_connections')
         .delete()
-        .eq('platform', 'twitter')
-        .eq('user_id', session.user.id);
+        .eq('platform', 'twitter');
 
       if (error) throw error;
 
-      console.log('Twitter disconnected successfully');
-      
       toast({
         title: "Twitter disconnected",
         description: "Your Twitter account has been disconnected successfully.",
