@@ -1,16 +1,10 @@
-import { corsHeaders, TwitterAuthResponse } from './types.ts';
+import { corsHeaders } from './types.ts';
 import { getRequestToken, getAccessToken } from './oauth.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
-  }
-
-  if (req.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }), 
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 405 }
-    );
   }
 
   try {
@@ -38,6 +32,32 @@ Deno.serve(async (req) => {
       console.log('Processing access_token request...');
       const response = await getAccessToken(oauth_token, oauth_verifier);
       console.log('Access token response:', response);
+
+      // Create Supabase client
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      // Insert into social_connections table
+      console.log('Attempting to insert into social_connections...');
+      const { data: insertData, error: insertError } = await supabaseClient
+        .from('social_connections')
+        .insert({
+          user_id: user_id,
+          platform: 'twitter',
+          access_token: response.oauth_token,
+          twitter_credentials: response
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error inserting social connection:', insertError);
+        throw insertError;
+      }
+
+      console.log('Successfully inserted social connection:', insertData);
       
       return new Response(
         JSON.stringify(response),
