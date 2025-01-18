@@ -2,7 +2,7 @@ import { corsHeaders, TwitterAuthResponse } from './types.ts';
 import { getRequestToken } from './oauth.ts';
 
 Deno.serve(async (req) => {
-  // Gérer les requêtes CORS preflight
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
     }
 
     const response: TwitterAuthResponse = await getRequestToken();
+    console.log('Sending response:', response);
 
     return new Response(
       JSON.stringify(response),
