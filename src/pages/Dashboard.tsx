@@ -11,14 +11,18 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300">
-      <TopNavigation />
-      <motion.main 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="pt-16 pb-2"
-      >
-        <DashboardGrid progressData={progressData} />
-      </motion.main>
+      <div className="h-screen flex flex-col">
+        <div className="flex-none pt-4">
+          <TopNavigation />
+        </div>
+        <motion.main 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex-1 overflow-y-auto py-8"
+        >
+          <DashboardGrid progressData={progressData} />
+        </motion.main>
+      </div>
     </div>
   );
 };
