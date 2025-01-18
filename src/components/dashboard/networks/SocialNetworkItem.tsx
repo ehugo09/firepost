@@ -1,4 +1,4 @@
-import { Check, Plus, LucideIcon } from "lucide-react";
+import { Plus, Circle, LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -61,17 +61,13 @@ const SocialNetworkItem = ({
         <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
           {icon}
           <span className="text-sm font-medium">{name}</span>
-          {isConnected && (
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500"></div>
-              <span className="text-xs text-green-600 dark:text-green-400">Connected</span>
-              {username && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">• @{username}</span>
-              )}
-            </div>
+          {username && (
+            <span className="text-xs text-gray-500 dark:text-gray-400">• @{username}</span>
           )}
         </div>
-        {!isConnected && (
+        {isConnected ? (
+          <Circle className="w-4 h-4 fill-green-500 text-green-500" />
+        ) : (
           <button 
             onClick={handleConnect}
             className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400 transition-colors"
