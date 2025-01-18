@@ -2,7 +2,7 @@ import TopNavigation from "@/components/TopNavigation";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LogOut } from "lucide-react";
 
 const Settings = () => {
@@ -27,31 +27,28 @@ const Settings = () => {
     }
   };
 
-  const handleTwitterDisconnect = async () => {
-    try {
-      console.log("Attempting to disconnect Twitter...");
-      const { error } = await supabase
-        .from('social_connections')
-        .delete()
-        .eq('platform', 'twitter');
-
-      if (error) {
-        console.error('Error disconnecting Twitter:', error);
-        throw error;
-      }
-
-      toast({
-        title: "Twitter disconnected",
-        description: "Your Twitter account has been disconnected successfully.",
+  const handleTwitterDisconnect = () => {
+    console.log("Twitter disconnect button clicked");
+    supabase
+      .from('social_connections')
+      .delete()
+      .eq('platform', 'twitter')
+      .then(({ error }) => {
+        if (error) {
+          console.error('Error:', error);
+          toast({
+            title: "Error disconnecting Twitter",
+            description: "There was a problem disconnecting your Twitter account.",
+            variant: "destructive",
+          });
+        } else {
+          console.log('Twitter disconnected successfully');
+          toast({
+            title: "Twitter disconnected",
+            description: "Your Twitter account has been disconnected successfully.",
+          });
+        }
       });
-    } catch (error) {
-      console.error('Error disconnecting Twitter:', error);
-      toast({
-        title: "Error disconnecting Twitter",
-        description: "There was a problem disconnecting your Twitter account. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   return (
