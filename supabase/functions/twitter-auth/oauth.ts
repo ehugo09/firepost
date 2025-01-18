@@ -26,18 +26,10 @@ export async function getRequestToken(): Promise<any> {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Twitter API Error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
-      });
-      throw new Error(`Twitter API error: ${response.status} - ${errorText}`);
+      throw new Error(`Twitter API error: ${response.status}`);
     }
 
     const text = await response.text();
-    console.log('Twitter API Response:', text);
-
     const params = new URLSearchParams(text);
     const oauth_token = params.get('oauth_token');
 
