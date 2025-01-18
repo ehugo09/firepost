@@ -24,7 +24,6 @@ const NetworksCard = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        console.log("No session found when fetching connections");
         setLoading(false);
         return;
       }
@@ -34,8 +33,6 @@ const NetworksCard = () => {
         .select('*');
 
       if (error) throw error;
-      
-      console.log("Fetched social connections:", data);
       setConnections(data || []);
     } catch (error) {
       console.error("Error fetching connections:", error);
