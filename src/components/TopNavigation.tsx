@@ -3,25 +3,10 @@ import { motion } from "framer-motion";
 import ThemeToggle from "./ThemeToggle";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 const TopNavigation = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  
-  // Attendre que le composant soit monté pour éviter les problèmes d'hydratation
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  console.log("Current theme:", theme);
-  console.log("Is mounted:", mounted);
-  
-  // Ne rien afficher jusqu'à ce que le composant soit monté
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <nav className="fixed w-full z-30 top-4 flex justify-center">

@@ -1,19 +1,8 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
 const ThemeToggle = () => {
-  const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-
-  // Attendre que le composant soit monté pour éviter les problèmes d'hydratation
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return null;
-  }
 
   return (
     <button
