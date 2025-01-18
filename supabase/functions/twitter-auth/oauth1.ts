@@ -1,4 +1,4 @@
-import { TwitterAuthResponse, CALLBACK_URL } from './types.ts';
+import { TwitterAuthResponse, config } from './types.ts';
 import { hmac } from "https://deno.land/x/hmac@v2.0.1/mod.ts";
 
 function generateNonce(): string {
@@ -36,7 +36,7 @@ function createSignature(method: string, url: string, params: Record<string, str
     percentEncode(paramString)
   ].join("&");
 
-  const signingKey = `${percentEncode(Deno.env.get("TWITTER_CONSUMER_SECRET") || "")}&`;
+  const signingKey = `${percentEncode(config.consumerSecret)}&`;
   return hmac("sha1", signingKey, signatureBaseString, "utf8", "base64");
 }
 
@@ -46,8 +46,8 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
   const url = "https://api.twitter.com/oauth/request_token";
   const method = "POST";
   const params = {
-    oauth_callback: CALLBACK_URL,
-    oauth_consumer_key: Deno.env.get("TWITTER_CONSUMER_KEY") || '',
+    oauth_callback: config.callbackUrl,
+    oauth_consumer_key: config.consumerKey,
     oauth_nonce: generateNonce(),
     oauth_signature_method: "HMAC-SHA1",
     oauth_timestamp: generateTimestamp(),
@@ -62,6 +62,12 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
     .join(", ")}`;
 
   try {
+    console.log('Sending OAuth 1.0a request with params:', {
+      url,
+      method,
+      headers: { Authorization: authHeader }
+    });
+
     const response = await fetch(url, {
       method,
       headers: { 
@@ -84,6 +90,7 @@ export async function handleOAuth1Request(): Promise<TwitterAuthResponse> {
       data.split("&").map((pair) => pair.split("="))
     );
 
+    console.log('OAuth 1.0a request successful:', parsed);
     return parsed;
   } catch (error) {
     console.error('OAuth 1.0a request failed:', error);
