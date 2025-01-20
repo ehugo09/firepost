@@ -21,24 +21,15 @@ const ScheduleTimeline = () => {
       status: "scheduled",
       icon: <Linkedin className="w-4 h-4" />,
       color: "text-[#0A66C2]"
-    },
-    {
-      time: "4:30 PM",
-      title: "Behind the Scenes",
-      content: "Take a look at our team working on the next big update...",
-      platform: "Instagram",
-      status: "draft",
-      icon: <Instagram className="w-4 h-4" />,
-      color: "text-[#E4405F]"
     }
   ];
 
   return (
-    <Card className="p-4 h-[500px] bg-white dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200 dark:border-gray-700/50">
+    <Card className="p-4 h-[320px] bg-white dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200 dark:border-gray-700/50">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Today's Schedule</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">3 posts scheduled for today</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 posts scheduled for today</p>
         </div>
         <div className="flex items-center gap-2">
           <button className="p-1.5 rounded-lg border hover:bg-gray-50 dark:hover:bg-[#1A2235] transition-colors">
@@ -50,7 +41,7 @@ const ScheduleTimeline = () => {
         </div>
       </div>
 
-      <ScrollArea className="h-[400px] pr-4">
+      <ScrollArea className="h-[220px] pr-4">
         <div className="space-y-4">
           {posts.map((post, index) => (
             <div
