@@ -4,15 +4,26 @@ import { PlatformSelector } from "@/components/post/PlatformSelector"
 import { PostScheduler } from "@/components/post/PostScheduler"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { Form } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
+import { PostForm } from "@/types/post"
+import { useForm } from "react-hook-form"
 import { useState } from "react"
 
 export default function Post() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [content, setContent] = useState("")
-  const [scheduledDate, setScheduledDate] = useState<Date | null>(null)
+  const [date, setDate] = useState<Date>()
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const { toast } = useToast()
+  const form = useForm<PostForm>({
+    defaultValues: {
+      content: "",
+      postType: "now",
+      platforms: [],
+    },
+  })
 
   const handlePost = async () => {
     if (selectedPlatforms.length === 0) {
@@ -36,10 +47,33 @@ export default function Post() {
     // Handle post creation logic here
     toast({
       title: "Success",
-      description: scheduledDate 
-        ? `Post scheduled for ${scheduledDate.toLocaleDateString()}` 
+      description: date 
+        ? `Post scheduled for ${date.toLocaleDateString()}` 
         : "Post published successfully",
     })
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setMediaPreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveMedia = () => {
+    setMediaPreview(null)
+  }
+
+  const handlePlatformToggle = (platform: string) => {
+    setSelectedPlatforms(prev =>
+      prev.includes(platform)
+        ? prev.filter(p => p !== platform)
+        : [...prev, platform]
+    )
   }
 
   return (
@@ -52,10 +86,14 @@ export default function Post() {
           <div className="space-y-6">
             <PlatformSelector 
               selectedPlatforms={selectedPlatforms}
-              onPlatformsChange={setSelectedPlatforms}
+              onPlatformToggle={handlePlatformToggle}
             />
 
-            <MediaUpload />
+            <MediaUpload 
+              mediaPreview={mediaPreview}
+              onFileChange={handleFileChange}
+              onRemoveMedia={handleRemoveMedia}
+            />
 
             <div className="space-y-2">
               <label htmlFor="content" className="text-sm font-medium">
@@ -71,8 +109,9 @@ export default function Post() {
             </div>
 
             <PostScheduler 
-              scheduledDate={scheduledDate}
-              onScheduleChange={setScheduledDate}
+              form={form}
+              date={date}
+              onDateSelect={setDate}
             />
 
             <div className="flex justify-end space-x-4">
@@ -80,7 +119,7 @@ export default function Post() {
                 Clear
               </Button>
               <Button onClick={handlePost}>
-                {scheduledDate ? "Schedule Post" : "Post Now"}
+                {date ? "Schedule Post" : "Post Now"}
               </Button>
             </div>
           </div>
