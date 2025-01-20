@@ -1,22 +1,20 @@
-import AudienceCard from "./AudienceCard";
-import ScheduledCard from "./ScheduledCard";
 import LatestActivityContainer from "./LatestActivityContainer";
 import ShortcutsContainer from "./ShortcutsContainer";
-import MessagesCard from "./MessagesCard";
+import ScheduleTimeline from "./ScheduleTimeline";
+import QuickAnalytics from "./QuickAnalytics";
 
 const DashboardGrid = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-      <div className="lg:col-span-2 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ShortcutsContainer />
-          <AudienceCard />
-        </div>
+    <div className="grid grid-cols-1 gap-4 p-4">
+      {/* Top row with Quick Analytics and Latest Activity */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <QuickAnalytics />
         <LatestActivityContainer />
       </div>
-      <div className="space-y-4">
-        <ScheduledCard />
-        <MessagesCard />
+      
+      {/* Bottom row with Schedule Timeline */}
+      <div className="w-full">
+        <ScheduleTimeline />
       </div>
     </div>
   );
