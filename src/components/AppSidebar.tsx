@@ -9,6 +9,7 @@ import {
   SidebarMenuItem,
   SidebarMenuBadge,
   SidebarFooter,
+  SidebarHeader,
 } from "@/components/ui/sidebar"
 import { useLocation, useNavigate } from "react-router-dom"
 import ThemeToggle from "./ThemeToggle"
@@ -34,6 +35,18 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-none">
+      <SidebarHeader className="flex items-center justify-center p-4">
+        <img 
+          src="/lovable-uploads/3f40cdf6-2843-4be4-ae02-bc2be3d3f229.png" 
+          alt="FirePost Logo" 
+          className="h-8 w-auto dark:hidden"
+        />
+        <img 
+          src="/lovable-uploads/0fbfd7c5-60f0-46ee-9449-8836a437e7ff.png" 
+          alt="FirePost Logo" 
+          className="h-8 w-auto hidden dark:block"
+        />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="h-full flex items-center justify-center">
           <SidebarGroupContent>
