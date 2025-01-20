@@ -3,25 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { Twitter, Instagram, Linkedin, Upload, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-
-interface PostForm {
-  title: string;
-  content: string;
-  postType: "now" | "schedule";
-  platforms: string[];
-  scheduledDate?: Date;
-}
+import { PlatformSelector } from "@/components/post/PlatformSelector";
+import { MediaUpload } from "@/components/post/MediaUpload";
+import { PostScheduler } from "@/components/post/PostScheduler";
+import type { PostForm } from "@/types/post";
 
 const Post = () => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
@@ -50,10 +39,8 @@ const Post = () => {
         });
         return;
       }
-
       setMediaFile(file);
-      const previewUrl = URL.createObjectURL(file);
-      setMediaPreview(previewUrl);
+      setMediaPreview(URL.createObjectURL(file));
     }
   };
 
@@ -97,7 +84,7 @@ const Post = () => {
       title: "Success!",
       description: data.postType === "now" 
         ? "Your post has been published" 
-        : `Your post has been scheduled for ${format(date!, 'PPP')}`,
+        : `Your post has been scheduled for ${date!.toLocaleDateString()}`,
     });
   };
 
@@ -112,35 +99,10 @@ const Post = () => {
             </p>
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-sm font-medium mb-3">Select Platforms</h2>
-            <div className="flex gap-3">
-              <Button
-                variant={selectedPlatforms.includes("twitter") ? "default" : "outline"}
-                onClick={() => togglePlatform("twitter")}
-                className="flex items-center gap-2"
-              >
-                <Twitter className="w-4 h-4" />
-                Twitter
-              </Button>
-              <Button
-                variant={selectedPlatforms.includes("instagram") ? "default" : "outline"}
-                onClick={() => togglePlatform("instagram")}
-                className="flex items-center gap-2"
-              >
-                <Instagram className="w-4 h-4" />
-                Instagram
-              </Button>
-              <Button
-                variant={selectedPlatforms.includes("linkedin") ? "default" : "outline"}
-                onClick={() => togglePlatform("linkedin")}
-                className="flex items-center gap-2"
-              >
-                <Linkedin className="w-4 h-4" />
-                LinkedIn
-              </Button>
-            </div>
-          </div>
+          <PlatformSelector 
+            selectedPlatforms={selectedPlatforms}
+            onPlatformToggle={togglePlatform}
+          />
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -174,102 +136,20 @@ const Post = () => {
                 )}
               />
 
-              <div className="space-y-3">
-                <Label>Media</Label>
-                <div className="flex items-center gap-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById("file-upload")?.click()}
-                    className="flex items-center gap-2"
-                  >
-                    <Upload className="w-4 h-4" />
-                    Upload Media
-                  </Button>
-                  <input
-                    id="file-upload"
-                    type="file"
-                    accept="image/*,video/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  {mediaPreview && (
-                    <div className="relative">
-                      <img
-                        src={mediaPreview}
-                        alt="Preview"
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute -top-2 -right-2"
-                        onClick={() => {
-                          setMediaFile(null);
-                          setMediaPreview(null);
-                        }}
-                      >
-                        ×
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <FormField
-                control={form.control}
-                name="postType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>When to post</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex gap-4"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="now" id="now" />
-                          <Label htmlFor="now">Post now</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="schedule" id="schedule" />
-                          <Label htmlFor="schedule">Schedule</Label>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                  </FormItem>
-                )}
+              <MediaUpload
+                mediaPreview={mediaPreview}
+                onFileChange={handleFileChange}
+                onRemoveMedia={() => {
+                  setMediaFile(null);
+                  setMediaPreview(null);
+                }}
               />
 
-              {form.watch("postType") === "schedule" && (
-                <div className="flex flex-col gap-2">
-                  <Label>Select Date and Time</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-[280px] justify-start text-left font-normal",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              )}
+              <PostScheduler 
+                form={form}
+                date={date}
+                onDateSelect={setDate}
+              />
 
               <div className="flex justify-end gap-3">
                 <Button type="submit" className="flex items-center gap-2">
