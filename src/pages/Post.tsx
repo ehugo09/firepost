@@ -5,12 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-import { Calendar as CalendarIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { PlatformSelector } from "@/components/post/PlatformSelector";
 import { MediaUpload } from "@/components/post/MediaUpload";
 import { PostScheduler } from "@/components/post/PostScheduler";
 import type { PostForm } from "@/types/post";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const postSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  content: z.string().min(1, "Content is required"),
+  postType: z.enum(["now", "schedule"]),
+  platforms: z.array(z.string())
+});
 
 const Post = () => {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
@@ -20,6 +28,7 @@ const Post = () => {
   const { toast } = useToast();
 
   const form = useForm<PostForm>({
+    resolver: zodResolver(postSchema),
     defaultValues: {
       title: "",
       content: "",
@@ -152,15 +161,8 @@ const Post = () => {
               />
 
               <div className="flex justify-end gap-3">
-                <Button type="submit" className="flex items-center gap-2">
-                  {form.watch("postType") === "schedule" ? (
-                    <>
-                      <CalendarIcon className="w-4 h-4" />
-                      Schedule Post
-                    </>
-                  ) : (
-                    "Post Now"
-                  )}
+                <Button type="submit">
+                  {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
                 </Button>
               </div>
             </form>

@@ -49,15 +49,18 @@ function App() {
     <ThemeProvider attribute="class" defaultTheme="light">
       <Router>
         <Routes>
+          {/* Public routes */}
           <Route path="/auth" element={session ? <Navigate to="/dashboard" replace /> : <Auth />} />
           <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
+          
+          {/* Protected routes */}
           <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
           <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
           <Route path="/post" element={session ? <Post /> : <Navigate to="/auth" replace />} />
-          <Route path="/analytics" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
-          <Route path="/schedule" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
-          <Route path="/messages" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
+          
+          {/* Redirects */}
           <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
+          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
         </Routes>
         <Toaster />
       </Router>
