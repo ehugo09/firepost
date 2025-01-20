@@ -83,46 +83,48 @@ export default function Post() {
         <Card className="max-w-3xl mx-auto p-6">
           <h1 className="text-2xl font-bold mb-6">Create Post</h1>
           
-          <div className="space-y-6">
-            <PlatformSelector 
-              selectedPlatforms={selectedPlatforms}
-              onPlatformToggle={handlePlatformToggle}
-            />
-
-            <MediaUpload 
-              mediaPreview={mediaPreview}
-              onFileChange={handleFileChange}
-              onRemoveMedia={handleRemoveMedia}
-            />
-
-            <div className="space-y-2">
-              <label htmlFor="content" className="text-sm font-medium">
-                Content
-              </label>
-              <Textarea
-                id="content"
-                placeholder="What's on your mind?"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                className="min-h-[120px]"
+          <Form {...form}>
+            <div className="space-y-6">
+              <PlatformSelector 
+                selectedPlatforms={selectedPlatforms}
+                onPlatformToggle={handlePlatformToggle}
               />
-            </div>
 
-            <PostScheduler 
-              form={form}
-              date={date}
-              onDateSelect={setDate}
-            />
+              <MediaUpload 
+                mediaPreview={mediaPreview}
+                onFileChange={handleFileChange}
+                onRemoveMedia={handleRemoveMedia}
+              />
 
-            <div className="flex justify-end space-x-4">
-              <Button variant="outline" onClick={() => setContent("")}>
-                Clear
-              </Button>
-              <Button onClick={handlePost}>
-                {date ? "Schedule Post" : "Post Now"}
-              </Button>
+              <div className="space-y-2">
+                <label htmlFor="content" className="text-sm font-medium">
+                  Content
+                </label>
+                <Textarea
+                  id="content"
+                  placeholder="What's on your mind?"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+
+              <PostScheduler 
+                form={form}
+                date={date}
+                onDateSelect={setDate}
+              />
+
+              <div className="flex justify-end space-x-4">
+                <Button variant="outline" onClick={() => setContent("")}>
+                  Clear
+                </Button>
+                <Button onClick={handlePost}>
+                  {date ? "Schedule Post" : "Post Now"}
+                </Button>
+              </div>
             </div>
-          </div>
+          </Form>
         </Card>
       </main>
     </div>
