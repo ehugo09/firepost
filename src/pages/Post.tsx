@@ -7,17 +7,27 @@ import { Card } from "@/components/ui/card"
 import { Form } from "@/components/ui/form"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import { PostForm } from "@/types/post"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
+import * as z from "zod"
+
+const postFormSchema = z.object({
+  content: z.string().min(1, "Content is required"),
+  postType: z.enum(["now", "schedule"]),
+  platforms: z.array(z.string()),
+})
+
+type PostFormValues = z.infer<typeof postFormSchema>
 
 export default function Post() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
-  const [content, setContent] = useState("")
-  const [date, setDate] = useState<Date>()
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
+  const [date, setDate] = useState<Date>()
   const { toast } = useToast()
-  const form = useForm<PostForm>({
+
+  const form = useForm<PostFormValues>({
+    resolver: zodResolver(postFormSchema),
     defaultValues: {
       content: "",
       postType: "now",
@@ -35,7 +45,8 @@ export default function Post() {
       return
     }
 
-    if (!content.trim()) {
+    const values = form.getValues()
+    if (!values.content.trim()) {
       toast({
         title: "Error",
         description: "Please enter some content for your post",
@@ -44,7 +55,6 @@ export default function Post() {
       return
     }
 
-    // Handle post creation logic here
     toast({
       title: "Success",
       description: date 
@@ -76,6 +86,9 @@ export default function Post() {
     )
   }
 
+  console.log("Form values:", form.getValues())
+  console.log("Selected platforms:", selectedPlatforms)
+
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar />
@@ -84,7 +97,7 @@ export default function Post() {
           <h1 className="text-2xl font-bold mb-6">Create Post</h1>
           
           <Form {...form}>
-            <div className="space-y-6">
+            <form onSubmit={form.handleSubmit(handlePost)} className="space-y-6">
               <PlatformSelector 
                 selectedPlatforms={selectedPlatforms}
                 onPlatformToggle={handlePlatformToggle}
@@ -103,8 +116,7 @@ export default function Post() {
                 <Textarea
                   id="content"
                   placeholder="What's on your mind?"
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  {...form.register("content")}
                   className="min-h-[120px]"
                 />
               </div>
@@ -116,14 +128,18 @@ export default function Post() {
               />
 
               <div className="flex justify-end space-x-4">
-                <Button variant="outline" onClick={() => setContent("")}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => form.reset()}
+                >
                   Clear
                 </Button>
-                <Button onClick={handlePost}>
+                <Button type="submit">
                   {date ? "Schedule Post" : "Post Now"}
                 </Button>
               </div>
-            </div>
+            </form>
           </Form>
         </Card>
       </main>
