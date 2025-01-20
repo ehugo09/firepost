@@ -15,6 +15,12 @@ export const WeeklyCalendar = ({ selectedDate, onDateSelect }: WeeklyCalendarPro
   const [hoveredDate, setHoveredDate] = useState<Date | null>(null);
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { locale: fr }));
 
+  // Initialize with current date if no date is selected
+  const today = new Date();
+  if (!selectedDate) {
+    onDateSelect(today);
+  }
+
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -23,7 +29,7 @@ export const WeeklyCalendar = ({ selectedDate, onDateSelect }: WeeklyCalendarPro
     );
   };
 
-  const displayDate = hoveredDate || selectedDate || new Date();
+  const displayDate = hoveredDate || selectedDate || today;
 
   return (
     <div className="space-y-4">
