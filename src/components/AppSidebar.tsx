@@ -49,7 +49,7 @@ export function AppSidebar() {
         />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup className="flex flex-col justify-center h-[calc(100vh-12rem)] gap-12 pt-12">
+        <SidebarGroup className="flex flex-col justify-center h-[calc(100vh-12rem)] gap-12 pt-6">
           <Button 
             variant="default"
             size="lg"
