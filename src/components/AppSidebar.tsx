@@ -1,4 +1,4 @@
-import { Home, MessageSquare, BarChart, MessageCircle, Calendar, Settings, LogOut } from "lucide-react"
+import { Home, MessageSquare, BarChart, MessageCircle, Calendar, Settings, LogOut, PlusCircle } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom"
 import ThemeToggle from "./ThemeToggle"
 import { supabase } from "@/integrations/supabase/client"
+import { Button } from "./ui/button"
 
 const menuItems = [
   { title: "Home", icon: Home, path: "/dashboard" },
@@ -48,7 +49,16 @@ export function AppSidebar() {
         />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup className="h-full flex items-center justify-center">
+        <SidebarGroup className="flex flex-col gap-6">
+          <Button 
+            variant="default"
+            size="lg"
+            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+            onClick={() => navigate('/compose')}
+          >
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Create a post
+          </Button>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-3">
               {menuItems.map((item) => (
