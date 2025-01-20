@@ -3,16 +3,12 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { Form } from "@/components/ui/form"
 import { useToast } from "@/hooks/use-toast"
-import { PlatformSelector } from "./PlatformSelector"
-import { MediaUpload } from "./MediaUpload"
-import { PostScheduler } from "./PostScheduler"
 import type { PostForm } from "@/types/post"
-import { ArrowLeft } from "lucide-react"
+import { PostDialogHeader } from "./PostDialogHeader"
+import { PostContentStep } from "./PostContentStep"
+import { PostScheduleStep } from "./PostScheduleStep"
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -121,18 +117,10 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
         : `Your post has been scheduled for ${date!.toLocaleDateString()}`,
     })
 
-    // Reset form and state
-    form.reset()
-    setSelectedPlatforms([])
-    setMediaFile(null)
-    setMediaPreview(null)
-    setDate(undefined)
-    setStep(1)
-    onOpenChange(false)
+    handleClose()
   }
 
   const handleClose = () => {
-    // Reset form and state when dialog is closed
     form.reset()
     setSelectedPlatforms([])
     setMediaFile(null)
@@ -146,105 +134,35 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     <Dialog 
       open={open} 
       onOpenChange={handleClose}
-      modal // This ensures the dialog captures all interactions
+      modal
     >
       <DialogContent 
         className="max-w-2xl max-h-[80vh] overflow-y-auto"
-        onInteractOutside={(e) => e.preventDefault()} // Prevent closing on outside click
+        onInteractOutside={(e) => e.preventDefault()}
       >
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-2">
-            {step === 2 && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleBack}
-                className="h-8 w-8"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-            )}
-            <div>
-              <h1 className="text-2xl font-semibold">Create Post</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Step {step} of 2: {step === 1 ? "Content" : "Schedule"}
-              </p>
-            </div>
-          </div>
-        </div>
+        <PostDialogHeader step={step} onBack={handleBack} />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {step === 1 ? (
-              <>
-                <PlatformSelector 
-                  selectedPlatforms={selectedPlatforms}
-                  onPlatformToggle={togglePlatform}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your post title" {...field} />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="content"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Content</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="What would you like to share?" 
-                          className="min-h-[120px]"
-                          {...field}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-
-                <MediaUpload
-                  mediaPreview={mediaPreview}
-                  onFileChange={handleFileChange}
-                  onRemoveMedia={() => {
-                    setMediaFile(null)
-                    setMediaPreview(null)
-                  }}
-                />
-
-                <div className="flex justify-end">
-                  <Button 
-                    type="button" 
-                    onClick={handleContinue}
-                    className="bg-[#E86643] hover:bg-[#E86643]/90"
-                  >
-                    Continue
-                  </Button>
-                </div>
-              </>
+              <PostContentStep
+                form={form}
+                selectedPlatforms={selectedPlatforms}
+                onPlatformToggle={togglePlatform}
+                mediaPreview={mediaPreview}
+                onFileChange={handleFileChange}
+                onRemoveMedia={() => {
+                  setMediaFile(null)
+                  setMediaPreview(null)
+                }}
+                onContinue={handleContinue}
+              />
             ) : (
-              <>
-                <PostScheduler 
-                  form={form}
-                  date={date}
-                  onDateSelect={setDate}
-                />
-
-                <div className="flex justify-end gap-3">
-                  <Button type="submit">
-                    {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
-                  </Button>
-                </div>
-              </>
+              <PostScheduleStep
+                form={form}
+                date={date}
+                onDateSelect={setDate}
+              />
             )}
           </form>
         </Form>
