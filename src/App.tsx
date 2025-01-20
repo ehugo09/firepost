@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
 import Settings from './pages/Settings';
-import Post from './pages/Post';
 import TwitterCallback from './pages/auth/TwitterCallback';
 import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/integrations/supabase/client';
@@ -56,7 +55,6 @@ function App() {
           {/* Protected routes */}
           <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
           <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
-          <Route path="/post" element={session ? <Post /> : <Navigate to="/auth" replace />} />
           
           {/* Redirects */}
           <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />

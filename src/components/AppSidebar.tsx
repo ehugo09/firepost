@@ -1,4 +1,4 @@
-import { Home, MessageSquare, BarChart, MessageCircle, Calendar, Settings } from "lucide-react"
+import { Home, BarChart, MessageCircle, Calendar, Settings } from "lucide-react"
 import { Sidebar } from "@/components/ui/sidebar"
 import { useLocation, useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
@@ -9,7 +9,6 @@ import { MenuItem } from "./sidebar/types"
 
 const menuItems: MenuItem[] = [
   { title: "Home", icon: Home, path: "/dashboard" },
-  { title: "Post", icon: MessageSquare, path: "/post" },
   { title: "Analytics", icon: BarChart, path: "/analytics" },
   { title: "Messages", icon: MessageCircle, path: "/messages", notifications: 3 },
   { title: "Calendar", icon: Calendar, path: "/schedule" },
