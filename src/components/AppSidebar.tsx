@@ -24,7 +24,7 @@ export function AppSidebar() {
   const location = useLocation()
 
   return (
-    <Sidebar>
+    <Sidebar className="border-none">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
@@ -36,6 +36,11 @@ export function AppSidebar() {
                     asChild
                     tooltip={item.title}
                     isActive={location.pathname === item.path}
+                    className={`relative ${
+                      location.pathname === item.path
+                        ? "bg-primary/10 text-primary before:absolute before:left-0 before:top-0 before:h-full before:w-full before:rounded-lg before:border before:border-primary/20"
+                        : ""
+                    }`}
                   >
                     <a href={item.path}>
                       <item.icon />
