@@ -1,4 +1,4 @@
-import { Home, MessageSquare, BarChart, MessageCircle, Calendar, Settings } from "lucide-react"
+import { Home, MessageSquare, BarChart, MessageCircle, Calendar, Settings, LogOut } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -9,8 +9,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuBadge,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
-import { useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
+import ThemeToggle from "./ThemeToggle"
+import { supabase } from "@/integrations/supabase/client"
 
 const menuItems = [
   { title: "Home", icon: Home, path: "/dashboard" },
@@ -23,6 +26,12 @@ const menuItems = [
 
 export function AppSidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    navigate("/auth")
+  }
 
   return (
     <Sidebar className="border-none">
@@ -59,6 +68,18 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <div className="flex items-center justify-between px-4 py-2">
+          <ThemeToggle />
+          <button
+            onClick={handleSignOut}
+            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            title="Sign out"
+          >
+            <LogOut className="h-4 w-4 text-gray-600 dark:text-gray-300" />
+          </button>
+        </div>
+      </SidebarFooter>
     </Sidebar>
   )
 }
