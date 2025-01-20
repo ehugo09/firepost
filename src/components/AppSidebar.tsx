@@ -9,7 +9,7 @@ import { MenuItem } from "./sidebar/types"
 
 const menuItems: MenuItem[] = [
   { title: "Home", icon: Home, path: "/dashboard" },
-  { title: "Post", icon: MessageSquare, path: "/compose" },
+  { title: "Post", icon: MessageSquare, path: "/post" },
   { title: "Analytics", icon: BarChart, path: "/analytics" },
   { title: "Messages", icon: MessageCircle, path: "/messages", notifications: 3 },
   { title: "Calendar", icon: Calendar, path: "/schedule" },
