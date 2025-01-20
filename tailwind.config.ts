@@ -1,6 +1,14 @@
 import type { Config } from "tailwindcss";
 
-const colors = {
+const baseColors = {
+  background: {
+    light: "0 0% 100%",
+    dark: "222.2 84% 4.9%",
+  },
+  foreground: {
+    light: "222.2 84% 4.9%",
+    dark: "210 40% 98%",
+  },
   primary: {
     DEFAULT: "#2ECC71",
     foreground: "#FFFFFF",
@@ -17,6 +25,14 @@ const colors = {
     DEFAULT: "#F1F5F9",
     foreground: "#64748B",
   },
+  destructive: {
+    DEFAULT: "0 84.2% 60.2%",
+    foreground: "210 40% 98%",
+  },
+};
+
+const colors = {
+  ...baseColors,
   background: "hsl(var(--background))",
   foreground: "hsl(var(--foreground))",
   border: "hsl(var(--border))",
