@@ -11,14 +11,14 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useState } from "react"
 import * as z from "zod"
+import { PostForm } from "@/types/post"
 
 const postFormSchema = z.object({
+  title: z.string(),
   content: z.string().min(1, "Content is required"),
   postType: z.enum(["now", "schedule"]),
   platforms: z.array(z.string()),
 })
-
-type PostFormValues = z.infer<typeof postFormSchema>
 
 export default function Post() {
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
@@ -26,9 +26,10 @@ export default function Post() {
   const [date, setDate] = useState<Date>()
   const { toast } = useToast()
 
-  const form = useForm<PostFormValues>({
+  const form = useForm<PostForm>({
     resolver: zodResolver(postFormSchema),
     defaultValues: {
+      title: "",
       content: "",
       postType: "now",
       platforms: [],
@@ -108,6 +109,18 @@ export default function Post() {
                 onFileChange={handleFileChange}
                 onRemoveMedia={handleRemoveMedia}
               />
+
+              <div className="space-y-2">
+                <label htmlFor="title" className="text-sm font-medium">
+                  Title
+                </label>
+                <Textarea
+                  id="title"
+                  placeholder="Enter post title"
+                  {...form.register("title")}
+                  className="min-h-[60px]"
+                />
+              </div>
 
               <div className="space-y-2">
                 <label htmlFor="content" className="text-sm font-medium">
