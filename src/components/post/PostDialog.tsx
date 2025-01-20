@@ -143,8 +143,15 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+    <Dialog 
+      open={open} 
+      onOpenChange={handleClose}
+      modal // This ensures the dialog captures all interactions
+    >
+      <DialogContent 
+        className="max-w-2xl max-h-[80vh] overflow-y-auto"
+        onInteractOutside={(e) => e.preventDefault()} // Prevent closing on outside click
+      >
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-2">
             {step === 2 && (
