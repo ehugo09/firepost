@@ -47,24 +47,20 @@ function App() {
 
   return (
     <ThemeProvider attribute="class" defaultTheme="light">
-      <div className="min-h-screen flex flex-col">
-        <Router>
-          <div className="flex-1 flex">
-            <Routes>
-              <Route path="/auth" element={session ? <Navigate to="/dashboard" replace /> : <Auth />} />
-              <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
-              <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
-              <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
-              <Route path="/compose" element={session ? <ComposeTwitter /> : <Navigate to="/auth" replace />} />
-              <Route path="/analytics" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
-              <Route path="/schedule" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
-              <Route path="/messages" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
-              <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
-            </Routes>
-          </div>
-          <Toaster />
-        </Router>
-      </div>
+      <Router>
+        <Routes>
+          <Route path="/auth" element={session ? <Navigate to="/dashboard" replace /> : <Auth />} />
+          <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
+          <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
+          <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
+          <Route path="/compose" element={session ? <ComposeTwitter /> : <Navigate to="/auth" replace />} />
+          <Route path="/analytics" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
+          <Route path="/schedule" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
+          <Route path="/messages" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
+          <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
+        </Routes>
+        <Toaster />
+      </Router>
     </ThemeProvider>
   );
 }

@@ -6,13 +6,13 @@ import { motion } from "framer-motion";
 const Dashboard = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300 flex w-full">
+      <div className="h-screen bg-[#f8fafc] dark:bg-[#0B1121] transition-colors duration-300 flex w-full overflow-hidden">
         <AppSidebar />
-        <div className="flex-1">
+        <div className="flex-1 overflow-auto">
           <motion.main 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full flex items-center"
+            className="w-full h-full"
           >
             <DashboardGrid />
           </motion.main>
