@@ -4,7 +4,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -36,8 +35,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-none">
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+        <SidebarGroup className="h-full flex items-center">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-3">
               {menuItems.map((item) => (
