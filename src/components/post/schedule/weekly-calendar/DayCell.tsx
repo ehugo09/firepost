@@ -12,11 +12,11 @@ interface DayCellProps {
 export const DayCell = ({ date, isSelected, onSelect, onHover }: DayCellProps) => {
   // Mock data - will be replaced with real data from the database
   const mockPosts = [
-    { type: 'video' },
-    { type: 'image' },
-    { type: 'text' },
-    { type: 'video' },
-    { type: 'text' }
+    { type: 'video' as const },
+    { type: 'image' as const },
+    { type: 'text' as const },
+    { type: 'video' as const },
+    { type: 'text' as const }
   ];
 
   return (
