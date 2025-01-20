@@ -34,6 +34,10 @@ export function AppSidebar() {
     navigate("/auth")
   }
 
+  const handleNavigation = (path: string) => {
+    navigate(path)
+  }
+
   return (
     <Sidebar className="border-none rounded-lg">
       <SidebarHeader className="flex items-center justify-center p-4">
@@ -54,7 +58,7 @@ export function AppSidebar() {
             variant="default"
             size="lg"
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-            onClick={() => navigate('/compose')}
+            onClick={() => handleNavigation('/compose')}
           >
             <PlusCircle className="mr-2 h-5 w-5" />
             Create a post
@@ -64,7 +68,7 @@ export function AppSidebar() {
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    asChild
+                    onClick={() => handleNavigation(item.path)}
                     tooltip={item.title}
                     isActive={location.pathname === item.path}
                     className={`relative rounded-md ${
@@ -73,10 +77,8 @@ export function AppSidebar() {
                         : ""
                     }`}
                   >
-                    <a href={item.path} className="rounded-md">
-                      <item.icon />
-                      <span>{item.title}</span>
-                    </a>
+                    <item.icon />
+                    <span>{item.title}</span>
                   </SidebarMenuButton>
                   {item.notifications && (
                     <SidebarMenuBadge className="bg-accent/10 text-accent">
