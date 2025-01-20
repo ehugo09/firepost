@@ -34,7 +34,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="border-none">
+    <Sidebar className="border-none rounded-lg">
       <SidebarHeader className="flex items-center justify-center p-4">
         <img 
           src="/lovable-uploads/e40f7ad8-9054-4083-b59a-46d925fd8a93.png" 
@@ -57,7 +57,7 @@ export function AppSidebar() {
                     asChild
                     tooltip={item.title}
                     isActive={location.pathname === item.path}
-                    className={`relative ${
+                    className={`relative rounded-lg ${
                       location.pathname === item.path
                         ? "bg-primary/10 text-primary before:absolute before:left-0 before:top-0 before:h-full before:w-full before:rounded-lg before:border before:border-primary/20"
                         : ""
