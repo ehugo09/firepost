@@ -23,6 +23,8 @@ export const WeeklyCalendar = ({ selectedDate, onDateSelect }: WeeklyCalendarPro
     );
   };
 
+  const displayDate = hoveredDate || selectedDate || new Date();
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
@@ -57,7 +59,7 @@ export const WeeklyCalendar = ({ selectedDate, onDateSelect }: WeeklyCalendarPro
         ))}
       </div>
 
-      <ScheduledPostsList date={hoveredDate || selectedDate} />
+      <ScheduledPostsList date={displayDate} />
     </div>
   );
 };

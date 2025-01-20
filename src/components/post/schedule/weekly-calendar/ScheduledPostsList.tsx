@@ -4,12 +4,10 @@ import { fr } from "date-fns/locale";
 import { Video, Image, FileText } from "lucide-react";
 
 interface ScheduledPostsListProps {
-  date: Date | undefined;
+  date: Date;
 }
 
 export const ScheduledPostsList = ({ date }: ScheduledPostsListProps) => {
-  if (!date) return null;
-
   // Mock data - will be replaced with real data from the database
   const mockPosts = [
     { 
@@ -48,18 +46,24 @@ export const ScheduledPostsList = ({ date }: ScheduledPostsListProps) => {
       
       <ScrollArea className="h-[200px]">
         <div className="space-y-2">
-          {mockPosts.map((post, index) => (
-            <div
-              key={index}
-              className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-3"
-            >
-              {getIcon(post.type)}
-              <div className="flex-1">
-                <div className="text-sm font-medium">{post.title}</div>
-                <div className="text-xs text-gray-500">{post.time}</div>
-              </div>
+          {mockPosts.length === 0 ? (
+            <div className="text-sm text-gray-500 text-center py-4">
+              Aucun post prévu pour cette date
             </div>
-          ))}
+          ) : (
+            mockPosts.map((post, index) => (
+              <div
+                key={index}
+                className="p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-3"
+              >
+                {getIcon(post.type)}
+                <div className="flex-1">
+                  <div className="text-sm font-medium">{post.title}</div>
+                  <div className="text-xs text-gray-500">{post.time}</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </ScrollArea>
     </div>
