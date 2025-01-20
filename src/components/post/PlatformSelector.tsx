@@ -14,7 +14,7 @@ export const PlatformSelector = ({ selectedPlatforms, onPlatformToggle }: Platfo
         <Button
           variant={selectedPlatforms.includes("twitter") ? "default" : "outline"}
           onClick={() => onPlatformToggle("twitter")}
-          className="flex items-center gap-2"
+          className={`flex items-center gap-2 ${selectedPlatforms.includes("twitter") ? "bg-[#E86643] hover:bg-[#E86643]/90" : ""}`}
         >
           <Twitter className="w-4 h-4" />
           Twitter
@@ -22,7 +22,7 @@ export const PlatformSelector = ({ selectedPlatforms, onPlatformToggle }: Platfo
         <Button
           variant={selectedPlatforms.includes("instagram") ? "default" : "outline"}
           onClick={() => onPlatformToggle("instagram")}
-          className="flex items-center gap-2"
+          className={`flex items-center gap-2 ${selectedPlatforms.includes("instagram") ? "bg-[#E86643] hover:bg-[#E86643]/90" : ""}`}
         >
           <Instagram className="w-4 h-4" />
           Instagram
@@ -30,7 +30,7 @@ export const PlatformSelector = ({ selectedPlatforms, onPlatformToggle }: Platfo
         <Button
           variant={selectedPlatforms.includes("linkedin") ? "default" : "outline"}
           onClick={() => onPlatformToggle("linkedin")}
-          className="flex items-center gap-2"
+          className={`flex items-center gap-2 ${selectedPlatforms.includes("linkedin") ? "bg-[#E86643] hover:bg-[#E86643]/90" : ""}`}
         >
           <Linkedin className="w-4 h-4" />
           LinkedIn

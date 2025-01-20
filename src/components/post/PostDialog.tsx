@@ -215,7 +215,11 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
                 />
 
                 <div className="flex justify-end">
-                  <Button type="button" onClick={handleContinue}>
+                  <Button 
+                    type="button" 
+                    onClick={handleContinue}
+                    className="bg-[#E86643] hover:bg-[#E86643]/90"
+                  >
                     Continue
                   </Button>
                 </div>
