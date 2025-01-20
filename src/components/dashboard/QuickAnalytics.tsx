@@ -1,7 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { ArrowUp, Users, MessageSquare, Share2 } from "lucide-react";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const QuickAnalytics = () => {
   // Sample data for the charts
@@ -36,7 +35,7 @@ const QuickAnalytics = () => {
   ];
 
   return (
-    <Card className="p-4 h-full bg-white dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200 dark:border-gray-700/50">
+    <Card className="p-4 h-[280px] bg-white dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200 dark:border-gray-700/50">
       <h2 className="text-sm font-semibold mb-4 text-gray-800 dark:text-white">Quick Analytics</h2>
       
       {/* Top row with two charts */}
@@ -52,13 +51,13 @@ const QuickAnalytics = () => {
               +12%
             </span>
           </div>
-          <p className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
+          <p className="text-2xl font-semibold text-gray-800 dark:text-white mb-1">
             2,543
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
             Total Followers
           </p>
-          <div className="h-[100px]">
+          <div className="h-[60px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={followersData}>
                 <defs>
@@ -90,13 +89,13 @@ const QuickAnalytics = () => {
               +3%
             </span>
           </div>
-          <p className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
+          <p className="text-2xl font-semibold text-gray-800 dark:text-white mb-1">
             8.2%
           </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
             Engagement
           </p>
-          <div className="h-[100px]">
+          <div className="h-[60px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={engagementData}>
                 <defs>
@@ -129,13 +128,13 @@ const QuickAnalytics = () => {
             +28%
           </span>
         </div>
-        <p className="text-2xl font-semibold text-gray-800 dark:text-white mb-2">
+        <p className="text-2xl font-semibold text-gray-800 dark:text-white mb-1">
           147
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
           Messages
         </p>
-        <div className="h-[100px]">
+        <div className="h-[60px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={messagesData}>
               <defs>
