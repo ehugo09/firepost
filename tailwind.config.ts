@@ -41,7 +41,7 @@ export default {
           foreground: "#64748B",
         },
         accent: {
-          DEFAULT: "#818CF8",
+          DEFAULT: "#E86643",
           foreground: "#FFFFFF",
         },
       },
