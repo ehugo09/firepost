@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Auth from './pages/Auth';
 import Settings from './pages/Settings';
 import ComposeTwitter from './pages/ComposeTwitter';
+import Post from './pages/Post';
 import TwitterCallback from './pages/auth/TwitterCallback';
 import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,6 +55,7 @@ function App() {
           <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
           <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
           <Route path="/compose" element={session ? <ComposeTwitter /> : <Navigate to="/auth" replace />} />
+          <Route path="/post" element={session ? <Post /> : <Navigate to="/auth" replace />} />
           <Route path="/analytics" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
           <Route path="/schedule" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
           <Route path="/messages" element={session ? <Navigate to="/dashboard" replace /> : <Navigate to="/auth" replace />} />
