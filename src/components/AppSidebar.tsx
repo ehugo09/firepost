@@ -35,7 +35,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-none">
       <SidebarContent>
-        <SidebarGroup className="h-full flex items-center">
+        <SidebarGroup className="h-full flex items-center justify-center">
           <SidebarGroupContent>
             <SidebarMenu className="space-y-3">
               {menuItems.map((item) => (
