@@ -25,7 +25,7 @@ const ScheduleTimeline = () => {
   ];
 
   return (
-    <Card className="p-4 h-[280px] bg-white dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200 dark:border-gray-700/50">
+    <Card className="p-4 h-[400px] bg-white dark:bg-[#151B2E]/80 backdrop-blur-lg border-gray-200 dark:border-gray-700/50">
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Today's Schedule</h2>
@@ -41,7 +41,7 @@ const ScheduleTimeline = () => {
         </div>
       </div>
 
-      <ScrollArea className="h-[180px] pr-4">
+      <ScrollArea className="h-[300px] pr-4">
         <div className="space-y-4">
           {posts.map((post, index) => (
             <div
