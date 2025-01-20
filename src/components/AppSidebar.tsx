@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuBadge,
 } from "@/components/ui/sidebar"
 import { useLocation } from "react-router-dom"
 
@@ -15,7 +16,7 @@ const menuItems = [
   { title: "Home", icon: Home, path: "/dashboard" },
   { title: "Post", icon: MessageSquare, path: "/compose" },
   { title: "Analytics", icon: BarChart, path: "/analytics" },
-  { title: "Messages", icon: MessageCircle, path: "/messages" },
+  { title: "Messages", icon: MessageCircle, path: "/messages", notifications: 3 },
   { title: "Calendar", icon: Calendar, path: "/schedule" },
   { title: "Settings", icon: Settings, path: "/settings" },
 ]
@@ -29,7 +30,7 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="space-y-3">
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
@@ -47,6 +48,11 @@ export function AppSidebar() {
                       <span>{item.title}</span>
                     </a>
                   </SidebarMenuButton>
+                  {item.notifications && (
+                    <SidebarMenuBadge className="bg-primary/10 text-primary">
+                      {item.notifications}
+                    </SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
