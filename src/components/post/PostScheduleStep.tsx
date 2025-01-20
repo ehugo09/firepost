@@ -23,7 +23,10 @@ export const PostScheduleStep = ({
       />
 
       <div className="flex justify-end gap-3">
-        <Button type="submit">
+        <Button 
+          type="submit"
+          className="bg-[#E86643] hover:bg-[#E86643]/90 text-white"
+        >
           {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
         </Button>
       </div>
