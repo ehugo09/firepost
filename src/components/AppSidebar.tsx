@@ -63,7 +63,7 @@ export function AppSidebar() {
                         : ""
                     }`}
                   >
-                    <a href={item.path}>
+                    <a href={item.path} className="rounded-lg">
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
