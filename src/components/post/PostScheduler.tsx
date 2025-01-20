@@ -54,11 +54,19 @@ export const PostScheduler = ({ form, date, onDateSelect }: PostSchedulerProps) 
                 className="flex gap-4"
               >
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="now" id="now" />
+                  <RadioGroupItem 
+                    value="now" 
+                    id="now" 
+                    className="border-[#E86643] text-[#E86643] [&[data-state=checked]]:bg-[#E86643] [&[data-state=checked]]:text-white"
+                  />
                   <Label htmlFor="now">Post now</Label>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="schedule" id="schedule" />
+                  <RadioGroupItem 
+                    value="schedule" 
+                    id="schedule"
+                    className="border-[#E86643] text-[#E86643] [&[data-state=checked]]:bg-[#E86643] [&[data-state=checked]]:text-white"
+                  />
                   <Label htmlFor="schedule">Schedule</Label>
                 </div>
               </RadioGroup>
@@ -70,54 +78,40 @@ export const PostScheduler = ({ form, date, onDateSelect }: PostSchedulerProps) 
       {isScheduled && (
         <div className="space-y-4">
           <Label className="text-base">Select Date and Time</Label>
-          <div className="flex gap-4">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-[240px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={onDateSelect}
-                  initialFocus
-                  className="rounded-md border"
-                />
-                <ScrollArea className="h-[150px] p-4 border-t">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium mb-2">Scheduled Posts</h4>
-                    {mockScheduledPosts.map((post, index) => (
-                      <div 
-                        key={index}
-                        className="p-2 text-sm rounded-md bg-accent/10 border border-accent/20"
-                        style={{ borderColor: '#E86643', backgroundColor: 'rgba(232, 102, 67, 0.1)' }}
-                      >
-                        <div className="font-medium">{format(post.date, 'HH:mm')}</div>
-                        <div className="text-xs text-muted-foreground line-clamp-1">
-                          {post.title}
-                        </div>
-                      </div>
-                    ))}
+          <div className="flex flex-col gap-4">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={onDateSelect}
+              initialFocus
+              className="rounded-md border"
+            />
+            <div className="flex gap-4">
+              <Button
+                variant="outline"
+                className="w-[120px] justify-start text-left font-normal"
+              >
+                <Clock className="mr-2 h-4 w-4" />
+                <span>Set time</span>
+              </Button>
+            </div>
+            <ScrollArea className="h-[150px] p-4 border rounded-md">
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium mb-2">Scheduled Posts</h4>
+                {mockScheduledPosts.map((post, index) => (
+                  <div 
+                    key={index}
+                    className="p-2 text-sm rounded-md bg-accent/10 border border-accent/20"
+                    style={{ borderColor: '#E86643', backgroundColor: 'rgba(232, 102, 67, 0.1)' }}
+                  >
+                    <div className="font-medium">{format(post.date, 'HH:mm')}</div>
+                    <div className="text-xs text-muted-foreground line-clamp-1">
+                      {post.title}
+                    </div>
                   </div>
-                </ScrollArea>
-              </PopoverContent>
-            </Popover>
-            <Button
-              variant="outline"
-              className="w-[120px] justify-start text-left font-normal"
-            >
-              <Clock className="mr-2 h-4 w-4" />
-              <span>Set time</span>
-            </Button>
+                ))}
+              </div>
+            </ScrollArea>
           </div>
         </div>
       )}
