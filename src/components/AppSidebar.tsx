@@ -57,13 +57,13 @@ export function AppSidebar() {
                     asChild
                     tooltip={item.title}
                     isActive={location.pathname === item.path}
-                    className={`relative rounded-lg ${
+                    className={`relative rounded-md ${
                       location.pathname === item.path
-                        ? "bg-primary/10 text-primary before:absolute before:left-0 before:top-0 before:h-full before:w-full before:rounded-lg before:border before:border-primary/20"
+                        ? "bg-primary/10 text-primary before:absolute before:left-0 before:top-0 before:h-full before:w-full before:rounded-md before:border before:border-primary/20"
                         : ""
                     }`}
                   >
-                    <a href={item.path} className="rounded-lg">
+                    <a href={item.path} className="rounded-md">
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
