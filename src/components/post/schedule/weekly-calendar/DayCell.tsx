@@ -19,6 +19,11 @@ export const DayCell = ({ date, isSelected, onSelect, onHover }: DayCellProps) =
     { type: 'text' as const }
   ];
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent form submission
+    onSelect(date);
+  };
+
   return (
     <div
       className={`
@@ -28,7 +33,7 @@ export const DayCell = ({ date, isSelected, onSelect, onHover }: DayCellProps) =
           : 'border-gray-200 hover:border-[#E86643]/50 dark:border-gray-700'
         }
       `}
-      onClick={() => onSelect(date)}
+      onClick={handleClick}
       onMouseEnter={() => onHover(date)}
       onMouseLeave={() => onHover(null)}
     >

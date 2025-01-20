@@ -26,6 +26,7 @@ export const PostScheduleStep = ({
         <Button 
           type="submit"
           className="bg-[#E86643] hover:bg-[#E86643]/90 text-white"
+          disabled={form.watch("postType") === "schedule" && !date}
         >
           {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
         </Button>
