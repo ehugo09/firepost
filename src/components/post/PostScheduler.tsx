@@ -2,8 +2,8 @@ import { Label } from "@/components/ui/label";
 import { UseFormReturn } from "react-hook-form";
 import { PostForm } from "@/types/post";
 import { PostTypeSelector } from "./schedule/PostTypeSelector";
-import { ScheduleCalendar } from "./schedule/ScheduleCalendar";
-import { ScheduledPostsList } from "./schedule/ScheduledPostsList";
+import { WeeklyCalendar } from "./schedule/weekly-calendar/WeeklyCalendar";
+import { ScheduledPostsList } from "./schedule/weekly-calendar/ScheduledPostsList";
 
 const mockScheduledPosts = [
   {
@@ -35,7 +35,10 @@ export const PostScheduler = ({ form, date, onDateSelect }: PostSchedulerProps) 
         <div className="space-y-4">
           <Label className="text-base">Select Date and Time</Label>
           <div className="flex flex-col gap-4">
-            <ScheduleCalendar date={date} onDateSelect={onDateSelect} />
+            <WeeklyCalendar 
+              selectedDate={date}
+              onDateSelect={onDateSelect}
+            />
             <ScheduledPostsList posts={mockScheduledPosts} />
           </div>
         </div>
