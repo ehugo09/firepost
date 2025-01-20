@@ -1,4 +1,4 @@
-import { ThemeToggle } from "./ThemeToggle";
+import ThemeToggle from "./ThemeToggle";
 import { useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { LogOut } from "lucide-react";
