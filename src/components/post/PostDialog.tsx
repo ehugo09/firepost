@@ -12,6 +12,7 @@ import { PlatformSelector } from "./PlatformSelector"
 import { MediaUpload } from "./MediaUpload"
 import { PostScheduler } from "./PostScheduler"
 import type { PostForm } from "@/types/post"
+import { ArrowLeft } from "lucide-react"
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -26,6 +27,7 @@ interface PostDialogProps {
 }
 
 export function PostDialog({ open, onOpenChange }: PostDialogProps) {
+  const [step, setStep] = useState(1)
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
   const [mediaFile, setMediaFile] = useState<File | null>(null)
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
@@ -66,7 +68,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     )
   }
 
-  const onSubmit = async (data: PostForm) => {
+  const handleContinue = () => {
     if (selectedPlatforms.length === 0) {
       toast({
         title: "No platform selected",
@@ -76,6 +78,24 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
       return
     }
 
+    const { title, content } = form.getValues()
+    if (!title || !content) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setStep(2)
+  }
+
+  const handleBack = () => {
+    setStep(1)
+  }
+
+  const onSubmit = async (data: PostForm) => {
     if (data.postType === "schedule" && !date) {
       toast({
         title: "No date selected",
@@ -101,76 +121,120 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
         : `Your post has been scheduled for ${date!.toLocaleDateString()}`,
     })
 
+    // Reset form and state
+    form.reset()
+    setSelectedPlatforms([])
+    setMediaFile(null)
+    setMediaPreview(null)
+    setDate(undefined)
+    setStep(1)
+    onOpenChange(false)
+  }
+
+  const handleClose = () => {
+    // Reset form and state when dialog is closed
+    form.reset()
+    setSelectedPlatforms([])
+    setMediaFile(null)
+    setMediaPreview(null)
+    setDate(undefined)
+    setStep(1)
     onOpenChange(false)
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold mb-2">Create Post</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Share your content across multiple platforms
-          </p>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <div className="mb-6">
+          <div className="flex items-center gap-4 mb-2">
+            {step === 2 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleBack}
+                className="h-8 w-8"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <div>
+              <h1 className="text-2xl font-semibold">Create Post</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Step {step} of 2: {step === 1 ? "Content" : "Schedule"}
+              </p>
+            </div>
+          </div>
         </div>
-
-        <PlatformSelector 
-          selectedPlatforms={selectedPlatforms}
-          onPlatformToggle={togglePlatform}
-        />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your post title" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {step === 1 ? (
+              <>
+                <PlatformSelector 
+                  selectedPlatforms={selectedPlatforms}
+                  onPlatformToggle={togglePlatform}
+                />
 
-            <FormField
-              control={form.control}
-              name="content"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Content</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="What would you like to share?" 
-                      className="min-h-[120px]"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your post title" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-            <MediaUpload
-              mediaPreview={mediaPreview}
-              onFileChange={handleFileChange}
-              onRemoveMedia={() => {
-                setMediaFile(null)
-                setMediaPreview(null)
-              }}
-            />
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Content</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="What would you like to share?" 
+                          className="min-h-[120px]"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-            <PostScheduler 
-              form={form}
-              date={date}
-              onDateSelect={setDate}
-            />
+                <MediaUpload
+                  mediaPreview={mediaPreview}
+                  onFileChange={handleFileChange}
+                  onRemoveMedia={() => {
+                    setMediaFile(null)
+                    setMediaPreview(null)
+                  }}
+                />
 
-            <div className="flex justify-end gap-3">
-              <Button type="submit">
-                {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
-              </Button>
-            </div>
+                <div className="flex justify-end">
+                  <Button type="button" onClick={handleContinue}>
+                    Continue
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <PostScheduler 
+                  form={form}
+                  date={date}
+                  onDateSelect={setDate}
+                />
+
+                <div className="flex justify-end gap-3">
+                  <Button type="submit">
+                    {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
+                  </Button>
+                </div>
+              </>
+            )}
           </form>
         </Form>
       </DialogContent>
