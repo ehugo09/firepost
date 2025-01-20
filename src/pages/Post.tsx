@@ -1,138 +1,149 @@
-import { AppSidebar } from "@/components/AppSidebar"
-import { MediaUpload } from "@/components/post/MediaUpload"
-import { PlatformSelector } from "@/components/post/PlatformSelector"
-import { PostScheduler } from "@/components/post/PostScheduler"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Form } from "@/components/ui/form"
-import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/components/ui/use-toast"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { useState } from "react"
-import * as z from "zod"
-import { PostForm } from "@/types/post"
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { PlatformSelector } from "@/components/post/PlatformSelector";
+import { MediaUpload } from "@/components/post/MediaUpload";
+import { PostScheduler } from "@/components/post/PostScheduler";
+import type { PostForm } from "@/types/post";
 
-const postFormSchema = z.object({
-  title: z.string(),
-  content: z.string().min(1, "Content is required"),
-  postType: z.enum(["now", "schedule"]),
-  platforms: z.array(z.string()),
-})
-
-export default function Post() {
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
-  const [date, setDate] = useState<Date>()
-  const { toast } = useToast()
+const Post = () => {
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [date, setDate] = useState<Date>();
+  const { toast } = useToast();
 
   const form = useForm<PostForm>({
-    resolver: zodResolver(postFormSchema),
     defaultValues: {
       title: "",
       content: "",
       postType: "now",
       platforms: [],
     },
-  })
-
-  const handlePost = async () => {
-    if (selectedPlatforms.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please select at least one platform",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const values = form.getValues()
-    if (!values.content.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter some content for your post",
-        variant: "destructive",
-      })
-      return
-    }
-
-    toast({
-      title: "Success",
-      description: date 
-        ? `Post scheduled for ${date.toLocaleDateString()}` 
-        : "Post published successfully",
-    })
-  }
+  });
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setMediaPreview(reader.result as string)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please select a file smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
       }
-      reader.readAsDataURL(file)
+      setMediaFile(file);
+      setMediaPreview(URL.createObjectURL(file));
     }
-  }
+  };
 
-  const handleRemoveMedia = () => {
-    setMediaPreview(null)
-  }
-
-  const handlePlatformToggle = (platform: string) => {
-    setSelectedPlatforms(prev =>
-      prev.includes(platform)
+  const togglePlatform = (platform: string) => {
+    setSelectedPlatforms(prev => 
+      prev.includes(platform) 
         ? prev.filter(p => p !== platform)
         : [...prev, platform]
-    )
-  }
+    );
+  };
 
-  console.log("Form values:", form.getValues())
-  console.log("Selected platforms:", selectedPlatforms)
+  const onSubmit = async (data: PostForm) => {
+    if (selectedPlatforms.length === 0) {
+      toast({
+        title: "No platform selected",
+        description: "Please select at least one platform to post to",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data.postType === "schedule" && !date) {
+      toast({
+        title: "No date selected",
+        description: "Please select a date to schedule your post",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const finalData = {
+      ...data,
+      platforms: selectedPlatforms,
+      scheduledDate: date,
+      mediaFile,
+    };
+
+    console.log("Form submitted:", finalData);
+    
+    toast({
+      title: "Success!",
+      description: data.postType === "now" 
+        ? "Your post has been published" 
+        : `Your post has been scheduled for ${date!.toLocaleDateString()}`,
+    });
+  };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AppSidebar />
-      <main className="flex-1 p-6">
-        <Card className="max-w-3xl mx-auto p-6">
-          <h1 className="text-2xl font-bold mb-6">Create Post</h1>
-          
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 p-4">
+        <Card className="max-w-3xl mx-auto mt-8 p-6">
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold mb-2">Create Post</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Share your content across multiple platforms
+            </p>
+          </div>
+
+          <PlatformSelector 
+            selectedPlatforms={selectedPlatforms}
+            onPlatformToggle={togglePlatform}
+          />
+
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handlePost)} className="space-y-6">
-              <PlatformSelector 
-                selectedPlatforms={selectedPlatforms}
-                onPlatformToggle={handlePlatformToggle}
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your post title" {...field} />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
 
-              <MediaUpload 
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Content</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="What would you like to share?" 
+                        className="min-h-[120px]"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <MediaUpload
                 mediaPreview={mediaPreview}
                 onFileChange={handleFileChange}
-                onRemoveMedia={handleRemoveMedia}
+                onRemoveMedia={() => {
+                  setMediaFile(null);
+                  setMediaPreview(null);
+                }}
               />
-
-              <div className="space-y-2">
-                <label htmlFor="title" className="text-sm font-medium">
-                  Title
-                </label>
-                <Textarea
-                  id="title"
-                  placeholder="Enter post title"
-                  {...form.register("title")}
-                  className="min-h-[60px]"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="content" className="text-sm font-medium">
-                  Content
-                </label>
-                <Textarea
-                  id="content"
-                  placeholder="What's on your mind?"
-                  {...form.register("content")}
-                  className="min-h-[120px]"
-                />
-              </div>
 
               <PostScheduler 
                 form={form}
@@ -140,22 +151,24 @@ export default function Post() {
                 onDateSelect={setDate}
               />
 
-              <div className="flex justify-end space-x-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => form.reset()}
-                >
-                  Clear
-                </Button>
-                <Button type="submit">
-                  {date ? "Schedule Post" : "Post Now"}
+              <div className="flex justify-end gap-3">
+                <Button type="submit" className="flex items-center gap-2">
+                  {form.watch("postType") === "schedule" ? (
+                    <>
+                      <CalendarIcon className="w-4 h-4" />
+                      Schedule Post
+                    </>
+                  ) : (
+                    "Post Now"
+                  )}
                 </Button>
               </div>
             </form>
           </Form>
         </Card>
-      </main>
+      </div>
     </div>
-  )
-}
+  );
+};
+
+export default Post;
