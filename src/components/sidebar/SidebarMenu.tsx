@@ -10,6 +10,8 @@ import {
   SidebarMenuBadge,
 } from "@/components/ui/sidebar"
 import { MenuItem } from "./types"
+import { useState } from "react"
+import { PostDialog } from "../post/PostDialog"
 
 interface SidebarMenuProps {
   menuItems: MenuItem[];
@@ -18,6 +20,8 @@ interface SidebarMenuProps {
 }
 
 export const SidebarMenu = ({ menuItems, currentPath, onNavigate }: SidebarMenuProps) => {
+  const [isPostDialogOpen, setIsPostDialogOpen] = useState(false)
+
   return (
     <SidebarContent>
       <SidebarGroup className="flex flex-col justify-center h-[calc(100vh-12rem)] gap-12 pt-6">
@@ -25,7 +29,7 @@ export const SidebarMenu = ({ menuItems, currentPath, onNavigate }: SidebarMenuP
           variant="default"
           size="lg"
           className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-          onClick={() => onNavigate('/compose')}
+          onClick={() => setIsPostDialogOpen(true)}
         >
           <PlusCircle className="mr-2 h-5 w-5" />
           Create a post
@@ -57,6 +61,10 @@ export const SidebarMenu = ({ menuItems, currentPath, onNavigate }: SidebarMenuP
           </Menu>
         </SidebarGroupContent>
       </SidebarGroup>
+      <PostDialog 
+        open={isPostDialogOpen} 
+        onOpenChange={setIsPostDialogOpen}
+      />
     </SidebarContent>
   )
 }
