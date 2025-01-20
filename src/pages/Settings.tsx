@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LogOut } from "lucide-react";
+import NetworksCard from "@/components/dashboard/NetworksCard";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -25,30 +26,6 @@ const Settings = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const handleTwitterDisconnect = () => {
-    console.log("Twitter disconnect button clicked");
-    supabase
-      .from('social_connections')
-      .delete()
-      .eq('platform', 'twitter')
-      .then(({ error }) => {
-        if (error) {
-          console.error('Error:', error);
-          toast({
-            title: "Error disconnecting Twitter",
-            description: "There was a problem disconnecting your Twitter account.",
-            variant: "destructive",
-          });
-        } else {
-          console.log('Twitter disconnected successfully');
-          toast({
-            title: "Twitter disconnected",
-            description: "Your Twitter account has been disconnected successfully.",
-          });
-        }
-      });
   };
 
   return (
@@ -82,18 +59,8 @@ const Settings = () => {
               </Button>
             </div>
 
-            {/* Social Connections Section */}
-            <div className="bg-white dark:bg-[#151B2E] rounded-lg p-6 shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">Social Connections</h2>
-              <Button 
-                variant="destructive"
-                onClick={handleTwitterDisconnect}
-                className="gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Disconnect Twitter
-              </Button>
-            </div>
+            {/* Social Networks Section */}
+            <NetworksCard />
           </div>
         </div>
       </main>
