@@ -21,6 +21,15 @@ const ScheduleTimeline = () => {
       status: "scheduled",
       icon: <Linkedin className="w-4 h-4" />,
       color: "text-[#0A66C2]"
+    },
+    {
+      time: "4:30 PM",
+      title: "Platform Update",
+      content: "We've just rolled out new Instagram integration features! Share your content seamlessly...",
+      platform: "Instagram",
+      status: "scheduled",
+      icon: <Instagram className="w-4 h-4" />,
+      color: "text-[#E4405F]"
     }
   ];
 
@@ -29,7 +38,7 @@ const ScheduleTimeline = () => {
       <div className="flex justify-between items-center mb-4">
         <div>
           <h2 className="text-sm font-semibold text-gray-800 dark:text-white">Today's Schedule</h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2 posts scheduled for today</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">3 posts scheduled for today</p>
         </div>
         <div className="flex items-center gap-2">
           <button className="p-1.5 rounded-lg border hover:bg-gray-50 dark:hover:bg-[#1A2235] transition-colors">
