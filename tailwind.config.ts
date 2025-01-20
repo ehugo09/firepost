@@ -1,5 +1,33 @@
 import type { Config } from "tailwindcss";
 
+const colors = {
+  primary: {
+    DEFAULT: "#2ECC71",
+    foreground: "#FFFFFF",
+  },
+  secondary: {
+    DEFAULT: "#E2E8F0",
+    foreground: "#1E293B",
+  },
+  accent: {
+    DEFAULT: "#E86643",
+    foreground: "#FFFFFF",
+  },
+  muted: {
+    DEFAULT: "#F1F5F9",
+    foreground: "#64748B",
+  },
+  background: "hsl(var(--background))",
+  foreground: "hsl(var(--foreground))",
+  border: "hsl(var(--border))",
+  input: "hsl(var(--input))",
+  ring: "hsl(var(--ring))",
+  destructive: {
+    DEFAULT: "hsl(var(--destructive))",
+    foreground: "hsl(var(--destructive-foreground))",
+  },
+};
+
 export default {
   darkMode: ["class"],
   content: [
@@ -18,33 +46,7 @@ export default {
       },
     },
     extend: {
-      colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "#2ECC71",
-          foreground: "#FFFFFF",
-        },
-        secondary: {
-          DEFAULT: "#E2E8F0",
-          foreground: "#1E293B",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "#F1F5F9",
-          foreground: "#64748B",
-        },
-        accent: {
-          DEFAULT: "#E86643",
-          foreground: "#FFFFFF",
-        },
-      },
+      colors,
       borderRadius: {
         lg: "1rem",
         md: "0.75rem",
