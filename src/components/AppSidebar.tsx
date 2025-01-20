@@ -59,7 +59,7 @@ export function AppSidebar() {
                     isActive={location.pathname === item.path}
                     className={`relative rounded-md ${
                       location.pathname === item.path
-                        ? "bg-primary/10 text-primary before:absolute before:left-0 before:top-0 before:h-full before:w-full before:rounded-md before:border before:border-primary/20"
+                        ? "bg-accent/10 text-accent before:absolute before:left-0 before:top-0 before:h-full before:w-full before:rounded-md before:border before:border-accent/20"
                         : ""
                     }`}
                   >
@@ -69,7 +69,7 @@ export function AppSidebar() {
                     </a>
                   </SidebarMenuButton>
                   {item.notifications && (
-                    <SidebarMenuBadge className="bg-primary/10 text-primary">
+                    <SidebarMenuBadge className="bg-accent/10 text-accent">
                       {item.notifications}
                     </SidebarMenuBadge>
                   )}
