@@ -64,7 +64,8 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     )
   }
 
-  const handleContinue = () => {
+  const handleContinue = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent form submission
     if (selectedPlatforms.length === 0) {
       toast({
         title: "No platform selected",
@@ -87,7 +88,8 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     setStep(2)
   }
 
-  const handleBack = () => {
+  const handleBack = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent form submission
     setStep(1)
   }
 
