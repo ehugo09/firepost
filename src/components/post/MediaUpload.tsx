@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,15 +14,15 @@ interface MediaUploadProps {
 export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: MediaUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleButtonClick = () => {
     console.log("[MediaUpload] Upload button clicked");
-    const fileInput = document.getElementById("file-upload");
-    if (fileInput) {
+    if (fileInputRef.current) {
       console.log("[MediaUpload] Triggering file input click");
-      fileInput.click();
+      fileInputRef.current.click();
     } else {
-      console.error("[MediaUpload] File input element not found");
+      console.error("[MediaUpload] File input ref not found");
     }
   };
 
@@ -103,7 +103,7 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
           {isUploading ? "Uploading..." : "Upload Media"}
         </Button>
         <input
-          id="file-upload"
+          ref={fileInputRef}
           type="file"
           accept="image/*,video/*"
           onChange={handleFileUpload}

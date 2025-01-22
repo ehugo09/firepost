@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Form } from "@/components/ui/form"
 import { PostContentStep } from "./PostContentStep"
 import { PostScheduleStep } from "./PostScheduleStep"
@@ -59,6 +59,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
         className="max-w-[95vw] w-[1200px] h-[90vh] overflow-y-auto grid grid-cols-2 gap-6 p-0"
         onInteractOutside={(e) => e.preventDefault()}
       >
+        <DialogTitle className="sr-only">Create Post</DialogTitle>
         <div className="p-6 h-full">
           <header className="mb-6">
             <div className="flex items-center gap-4 mb-2">
