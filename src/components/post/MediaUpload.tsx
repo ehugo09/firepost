@@ -15,9 +15,26 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
   const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
+  const handleButtonClick = () => {
+    console.log("[MediaUpload] Upload button clicked");
+    const fileInput = document.getElementById("file-upload");
+    if (fileInput) {
+      console.log("[MediaUpload] Triggering file input click");
+      fileInput.click();
+    } else {
+      console.error("[MediaUpload] File input element not found");
+    }
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("[MediaUpload] File input change event triggered");
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log("[MediaUpload] No file selected");
+      return;
+    }
+
+    console.log("[MediaUpload] File selected:", file.name, "Type:", file.type, "Size:", file.size);
 
     // Validate file size (10MB limit)
     if (file.size > 10 * 1024 * 1024) {
@@ -78,7 +95,7 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
         <Button
           type="button"
           variant="outline"
-          onClick={() => document.getElementById("file-upload")?.click()}
+          onClick={handleButtonClick}
           className="flex items-center gap-2"
           disabled={isUploading}
         >
