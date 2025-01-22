@@ -32,22 +32,27 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
     setIsUploading(true);
 
     try {
-      console.log("Starting file upload...");
-      // Create form data
+      console.log("[MediaUpload] Starting file upload...");
       const formData = new FormData();
       formData.append('file', file);
 
-      // Upload to our edge function
       const response = await supabase.functions.invoke('media-upload', {
         body: formData,
       });
 
-      console.log("Upload response:", response);
+      console.log("[MediaUpload] Upload response:", response);
 
-      if (response.error) throw response.error;
-      if (!response.data?.url) throw new Error("No URL returned from upload");
+      if (response.error) {
+        console.error("[MediaUpload] Upload error from edge function:", response.error);
+        throw response.error;
+      }
 
-      console.log("Upload successful, URL:", response.data.url);
+      if (!response.data?.url) {
+        console.error("[MediaUpload] No URL in response data:", response.data);
+        throw new Error("No URL returned from upload");
+      }
+
+      console.log("[MediaUpload] Upload successful, calling onFileChange with URL:", response.data.url);
       onFileChange(response.data.url);
       
       toast({
@@ -55,7 +60,7 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
         description: "Your media has been uploaded successfully.",
       });
     } catch (error) {
-      console.error("Upload error:", error);
+      console.error("[MediaUpload] Upload error:", error);
       toast({
         title: "Upload failed",
         description: "There was an error uploading your file. Please try again.",

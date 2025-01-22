@@ -6,12 +6,12 @@ export const usePostMedia = () => {
   const { toast } = useToast()
 
   const handleFileChange = (url: string) => {
-    console.log("Setting media URL:", url);
+    console.log("[usePostMedia] Setting media URL:", url);
     setMediaUrl(url);
   }
 
   const removeMedia = () => {
-    console.log("Removing media");
+    console.log("[usePostMedia] Removing media");
     setMediaUrl(null)
   }
 

@@ -16,13 +16,14 @@ serve(async (req) => {
     const file = formData.get('file')
 
     if (!file) {
+      console.error("[media-upload] No file uploaded");
       return new Response(
         JSON.stringify({ error: 'No file uploaded' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
-    console.log("Received file:", file.name, "Type:", file.type, "Size:", file.size);
+    console.log("[media-upload] Received file:", file.name, "Type:", file.type, "Size:", file.size);
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -34,7 +35,7 @@ serve(async (req) => {
     const uniqueId = crypto.randomUUID()
     const filePath = `${uniqueId}.${fileExt}`
 
-    console.log("Uploading file to path:", filePath);
+    console.log("[media-upload] Uploading file to path:", filePath);
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('media')
@@ -44,28 +45,35 @@ serve(async (req) => {
       })
 
     if (uploadError) {
-      console.error("Upload error:", uploadError);
+      console.error("[media-upload] Upload error:", uploadError);
       return new Response(
         JSON.stringify({ error: 'Failed to upload file', details: uploadError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       )
     }
 
-    console.log("Upload successful:", uploadData);
+    console.log("[media-upload] Upload successful:", uploadData);
 
     // Get the public URL
     const { data: { publicUrl } } = supabase.storage
       .from('media')
       .getPublicUrl(filePath)
 
-    console.log("Generated public URL:", publicUrl);
+    console.log("[media-upload] Generated public URL:", publicUrl);
+
+    const response = {
+      url: publicUrl,
+      path: filePath
+    }
+
+    console.log("[media-upload] Sending response:", response);
 
     return new Response(
-      JSON.stringify({ url: publicUrl }),
+      JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   } catch (error) {
-    console.error("Unexpected error:", error);
+    console.error("[media-upload] Unexpected error:", error);
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
