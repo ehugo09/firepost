@@ -4,6 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useToast } from "@/hooks/use-toast"
 import type { PostForm } from "@/types/post"
+import { usePostMedia } from "./usePostMedia"
+import { usePlatforms } from "./usePlatforms"
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -14,11 +16,11 @@ const postSchema = z.object({
 
 export const usePostForm = (onClose: () => void) => {
   const [step, setStep] = useState(1)
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
-  const [mediaFile, setMediaFile] = useState<File | null>(null)
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [date, setDate] = useState<Date>()
   const { toast } = useToast()
+  
+  const { mediaFile, mediaPreview, handleFileChange, removeMedia } = usePostMedia()
+  const { selectedPlatforms, togglePlatform, validatePlatforms } = usePlatforms()
 
   const form = useForm<PostForm>({
     resolver: zodResolver(postSchema),
@@ -30,40 +32,9 @@ export const usePostForm = (onClose: () => void) => {
     },
   })
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File too large",
-          description: "Please select a file smaller than 10MB",
-          variant: "destructive",
-        })
-        return
-      }
-      setMediaFile(file)
-      setMediaPreview(URL.createObjectURL(file))
-    }
-  }
-
-  const togglePlatform = (platform: string) => {
-    setSelectedPlatforms(prev => 
-      prev.includes(platform) 
-        ? prev.filter(p => p !== platform)
-        : [...prev, platform]
-    )
-  }
-
   const handleContinue = () => {
-    if (selectedPlatforms.length === 0) {
-      toast({
-        title: "No platform selected",
-        description: "Please select at least one platform to post to",
-        variant: "destructive",
-      })
-      return
-    }
-
+    if (!validatePlatforms()) return
+    
     const { title, content } = form.getValues()
     if (!title || !content) {
       toast({
@@ -82,10 +53,7 @@ export const usePostForm = (onClose: () => void) => {
   }
 
   const handleSubmit = async (data: PostForm) => {
-    // Only proceed with submission if we're on step 2
-    if (step !== 2) {
-      return
-    }
+    if (step !== 2) return
 
     if (data.postType === "schedule" && !date) {
       toast({
@@ -117,11 +85,9 @@ export const usePostForm = (onClose: () => void) => {
 
   const handleClose = () => {
     form.reset()
-    setSelectedPlatforms([])
-    setMediaFile(null)
-    setMediaPreview(null)
-    setDate(undefined)
     setStep(1)
+    setDate(undefined)
+    removeMedia()
     onClose()
   }
 
@@ -138,9 +104,6 @@ export const usePostForm = (onClose: () => void) => {
     handleSubmit,
     handleClose,
     setDate,
-    removeMedia: () => {
-      setMediaFile(null)
-      setMediaPreview(null)
-    }
+    removeMedia
   }
 }
