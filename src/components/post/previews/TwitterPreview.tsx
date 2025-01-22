@@ -8,7 +8,7 @@ import { useTwitterValidation } from "../hooks/useTwitterValidation"
 import { useTwitterProfile } from "../hooks/useTwitterProfile"
 
 interface TwitterPreviewProps {
-  data: PostForm
+  data: PostForm & { scheduledDate?: Date }
   mediaPreview: string | null
 }
 
@@ -16,11 +16,11 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
   const { validationErrors, charCount, TWITTER_MAX_CHARS } = useTwitterValidation(
     data.content,
     mediaPreview
-  );
+  )
 
-  const { data: twitterProfile, isLoading } = useTwitterProfile();
+  const { data: profile, isLoading } = useTwitterProfile()
 
-  console.log("Twitter Preview Data:", { data, mediaPreview, twitterProfile, isLoading });
+  console.log("Twitter Profile:", profile)
 
   return (
     <div className="space-y-4">
@@ -40,24 +40,22 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
       <Card className="p-4 max-w-[598px]">
         <div className="flex gap-3">
           <Avatar className="w-12 h-12">
-            {twitterProfile?.profile_picture ? (
+            {profile?.profile_picture && (
               <img 
-                src={twitterProfile.profile_picture} 
-                alt="Profile" 
-                className="w-12 h-12 rounded-full"
+                src={profile.profile_picture} 
+                alt={profile.username || "Profile"} 
+                className="w-12 h-12 rounded-full object-cover"
               />
-            ) : (
-              <div className="w-12 h-12 rounded-full bg-gray-200" />
             )}
           </Avatar>
           
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
               <span className="font-bold">
-                {isLoading ? "Loading..." : (twitterProfile?.username || "Your Name")}
+                {isLoading ? "Loading..." : profile?.username || "Your Name"}
               </span>
               <span className="text-gray-500">
-                @{twitterProfile?.username || "username"}
+                @{profile?.username || "username"}
               </span>
             </div>
             
@@ -81,7 +79,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
               </Badge>
               {data.postType === "schedule" && data.scheduledDate && (
                 <span>
-                  Scheduled for {new Date(data.scheduledDate).toLocaleString()}
+                  Scheduled for {data.scheduledDate.toLocaleString()}
                 </span>
               )}
             </div>

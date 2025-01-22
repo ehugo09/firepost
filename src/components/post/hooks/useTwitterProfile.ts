@@ -5,7 +5,6 @@ export const useTwitterProfile = () => {
   return useQuery({
     queryKey: ["twitter-profile"],
     queryFn: async () => {
-      console.log("Fetching Twitter profile...");
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
