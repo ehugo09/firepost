@@ -11,19 +11,13 @@ export const useTwitterProfile = () => {
         throw new Error("No session found");
       }
 
-      const { data: connection, error } = await supabase
+      const { data: connection } = await supabase
         .from("social_connections")
         .select("username, profile_picture")
         .eq("user_id", session.user.id)
         .eq("platform", "twitter")
         .single();
 
-      if (error) {
-        console.error("Error fetching Twitter profile:", error);
-        throw error;
-      }
-
-      console.log("Twitter profile data:", connection);
       return connection;
     },
   });

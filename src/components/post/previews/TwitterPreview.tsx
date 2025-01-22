@@ -18,9 +18,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
     mediaPreview
   )
 
-  const { data: profile, isLoading } = useTwitterProfile()
-
-  console.log("Twitter Profile:", profile)
+  const { data: profile } = useTwitterProfile()
 
   return (
     <div className="space-y-4">
@@ -52,7 +50,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
               <span className="font-bold">
-                {isLoading ? "Loading..." : profile?.username || "Your Name"}
+                {profile?.username || "Your Name"}
               </span>
               <span className="text-gray-500">
                 @{profile?.username || "username"}
