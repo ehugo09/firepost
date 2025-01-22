@@ -35,9 +35,9 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
         </Alert>
       )}
 
-      <Card className="p-4 max-w-[598px]">
+      <Card className="p-4 w-[500px]">
         <div className="flex gap-3">
-          <Avatar className="w-12 h-12">
+          <Avatar className="w-12 h-12 shrink-0">
             {profile?.profile_picture && (
               <img 
                 src={profile.profile_picture} 
@@ -47,21 +47,23 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
             )}
           </Avatar>
           
-          <div className="flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="font-bold">{profile?.username || "Your Name"}</span>
-              <span className="text-gray-500">@{profile?.username || "username"}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="font-bold truncate">{profile?.username || "Your Name"}</span>
+              <span className="text-gray-500 text-sm truncate">@{profile?.username || "username"}</span>
             </div>
             
             <div className="space-y-3">
-              <p className="whitespace-pre-wrap">{data.content}</p>
+              <p className="whitespace-pre-wrap break-words text-[15px] leading-normal">
+                {data.content}
+              </p>
               
               {mediaPreview && (
-                <div className="relative rounded-2xl overflow-hidden border border-gray-200">
+                <div className="relative rounded-2xl overflow-hidden border border-gray-200 aspect-[16/9] max-h-[280px]">
                   <img 
                     src={mediaPreview} 
                     alt="Preview" 
-                    className="w-full h-auto max-h-[512px] object-cover"
+                    className="w-full h-full object-cover"
                   />
                 </div>
               )}
@@ -72,7 +74,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
                 {charCount}/{TWITTER_MAX_CHARS}
               </Badge>
               {data.postType === "schedule" && data.scheduledDate && (
-                <span>
+                <span className="truncate">
                   Scheduled for {data.scheduledDate.toLocaleString()}
                 </span>
               )}
