@@ -9,20 +9,15 @@ export async function uploadMediaToTwitter(mediaUrl: string): Promise<string | n
       console.error("[Twitter Media] Failed to fetch image:", await imageResponse.text());
       return null;
     }
-    
-    // Limiter la taille du buffer pour éviter les problèmes de mémoire
+
+    // Vérification de la taille avant de traiter l'image
     const contentLength = imageResponse.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) { // 5MB limit
-      throw new Error("Image size exceeds 5MB limit");
+    if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) { // 2MB limit
+      throw new Error("Image size exceeds 2MB limit");
     }
 
-    const imageBuffer = await imageResponse.arrayBuffer();
-    const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
-    
-    console.log("[Twitter Media] Image converted to base64, uploading to Twitter");
-    
-    // Ajouter un délai pour respecter les limites de taux
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const buffer = await imageResponse.arrayBuffer();
+    const base64Image = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
     const uploadUrl = "https://upload.twitter.com/1.1/media/upload.json";
     const formData = new FormData();
@@ -36,21 +31,14 @@ export async function uploadMediaToTwitter(mediaUrl: string): Promise<string | n
       body: formData,
     });
 
-    const responseText = await response.text();
-    console.log("[Twitter Media] Upload response:", responseText);
-
     if (!response.ok) {
-      if (response.status === 429) {
-        throw new Error("Twitter rate limit exceeded for media upload");
-      }
-      throw new Error(`Upload failed: ${response.status} ${responseText}`);
+      throw new Error(`Upload failed: ${response.status}`);
     }
 
-    const data = JSON.parse(responseText);
-    console.log("[Twitter Media] Upload successful, media ID:", data.media_id_string);
+    const data = await response.json();
     return data.media_id_string;
   } catch (error) {
     console.error("[Twitter Media] Error uploading media:", error);
-    throw error;
+    return null;
   }
 }
