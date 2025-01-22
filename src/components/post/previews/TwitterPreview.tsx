@@ -18,7 +18,10 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
     mediaPreview
   )
 
-  const { data: profile } = useTwitterProfile()
+  const { data: profile, isLoading } = useTwitterProfile()
+
+  console.log("Twitter Preview - Profile:", profile);
+  console.log("Twitter Preview - Loading:", isLoading);
 
   return (
     <div className="space-y-4">
