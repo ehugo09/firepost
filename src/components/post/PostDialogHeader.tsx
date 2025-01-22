@@ -7,11 +7,6 @@ interface PostDialogHeaderProps {
 }
 
 export const PostDialogHeader = ({ step, onBack }: PostDialogHeaderProps) => {
-  const handleBack = (e: React.MouseEvent) => {
-    e.preventDefault() // Prevent form submission
-    onBack?.()
-  }
-
   return (
     <div className="mb-6">
       <div className="flex items-center gap-4 mb-2">
@@ -19,9 +14,9 @@ export const PostDialogHeader = ({ step, onBack }: PostDialogHeaderProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleBack}
+            onClick={onBack}
             className="h-8 w-8"
-            type="button" // Explicitly set type to button
+            type="button"
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>

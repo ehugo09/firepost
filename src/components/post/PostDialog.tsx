@@ -142,7 +142,10 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
         className="max-w-2xl max-h-[80vh] overflow-y-auto"
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <PostDialogHeader step={step} onBack={handleBack} />
+        <PostDialogHeader 
+          step={step} 
+          onBack={() => handleBack({ } as React.MouseEvent)} 
+        />
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -157,7 +160,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
                   setMediaFile(null)
                   setMediaPreview(null)
                 }}
-                onContinue={handleContinue}
+                onContinue={() => handleContinue({ } as React.MouseEvent)}
               />
             ) : (
               <PostScheduleStep

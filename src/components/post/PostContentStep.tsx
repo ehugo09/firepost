@@ -26,11 +26,6 @@ export const PostContentStep = ({
   onRemoveMedia,
   onContinue,
 }: PostContentStepProps) => {
-  const handleContinue = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent form submission
-    onContinue();
-  };
-
   return (
     <>
       <PlatformSelector 
@@ -77,7 +72,7 @@ export const PostContentStep = ({
       <div className="flex justify-end">
         <Button 
           type="button"
-          onClick={handleContinue}
+          onClick={onContinue}
           className="bg-[#E86643] hover:bg-[#E86643]/90"
         >
           Continue
