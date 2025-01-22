@@ -46,10 +46,7 @@ function generateOAuthSignature(
   const hmacSha1 = createHmac("sha1", signingKey);
   const signature = hmacSha1.update(signatureBaseString).digest("base64");
 
-  console.log("Signature Base String:", signatureBaseString);
-  console.log("Signing Key:", signingKey);
-  console.log("Generated Signature:", signature);
-
+  console.log("[Twitter Edge] Generated OAuth signature");
   return signature;
 }
 
@@ -76,13 +73,10 @@ function generateOAuthHeader(method: string, url: string): string {
     oauth_signature: signature,
   };
 
-  const entries = Object.entries(signedOAuthParams).sort((a, b) =>
-    a[0].localeCompare(b[0])
-  );
-
   return (
     "OAuth " +
-    entries
+    Object.entries(signedOAuthParams)
+      .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([k, v]) => `${encodeURIComponent(k)}="${encodeURIComponent(v)}"`)
       .join(", ")
   );
@@ -90,12 +84,12 @@ function generateOAuthHeader(method: string, url: string): string {
 
 async function uploadMedia(mediaUrl: string): Promise<string | null> {
   try {
-    console.log("Starting media upload for URL:", mediaUrl);
+    console.log("[Twitter Edge] Starting media upload for URL:", mediaUrl);
     
-    // Fetch the image from our Supabase storage
+    // Fetch the image from Supabase storage
     const imageResponse = await fetch(mediaUrl);
     if (!imageResponse.ok) {
-      console.error("Failed to fetch image:", await imageResponse.text());
+      console.error("[Twitter Edge] Failed to fetch image:", await imageResponse.text());
       return null;
     }
     
@@ -110,7 +104,7 @@ async function uploadMedia(mediaUrl: string): Promise<string | null> {
     const formData = new FormData();
     formData.append("media_data", base64Image);
 
-    console.log("Sending media upload request to Twitter...");
+    console.log("[Twitter Edge] Sending media upload request to Twitter...");
     
     const uploadResponse = await fetch(uploadUrl, {
       method: method,
@@ -122,40 +116,43 @@ async function uploadMedia(mediaUrl: string): Promise<string | null> {
 
     if (!uploadResponse.ok) {
       const responseText = await uploadResponse.text();
-      console.error("Twitter upload failed:", responseText);
+      console.error("[Twitter Edge] Twitter upload failed:", responseText);
       throw new Error(`Upload failed: ${responseText}`);
     }
 
     const uploadData = await uploadResponse.json();
-    console.log("Media upload successful, ID:", uploadData.media_id_string);
+    console.log("[Twitter Edge] Media upload successful, ID:", uploadData.media_id_string);
     
     return uploadData.media_id_string;
   } catch (error) {
-    console.error("Error in uploadMedia:", error);
+    console.error("[Twitter Edge] Error in uploadMedia:", error);
     return null;
   }
 }
 
 async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
+  console.log("[Twitter Edge] Preparing to send tweet with content:", content);
+  console.log("[Twitter Edge] Media URL provided:", mediaUrl);
+
   const url = "https://api.twitter.com/2/tweets";
   const method = "POST";
   let params: any = { text: content };
 
   if (mediaUrl) {
-    console.log("Media URL provided, attempting upload:", mediaUrl);
+    console.log("[Twitter Edge] Media URL provided, attempting upload");
     const mediaId = await uploadMedia(mediaUrl);
     if (mediaId) {
-      console.log("Media uploaded successfully, adding to tweet params");
+      console.log("[Twitter Edge] Media uploaded successfully, adding to tweet params");
       params = {
         ...params,
         media: { media_ids: [mediaId] }
       };
     } else {
-      console.warn("Media upload failed, proceeding with text-only tweet");
+      console.warn("[Twitter Edge] Media upload failed, proceeding with text-only tweet");
     }
   }
 
-  console.log("Final tweet params:", params);
+  console.log("[Twitter Edge] Final tweet params:", params);
 
   const oauthHeader = generateOAuthHeader(method, url);
   const response = await fetch(url, {
@@ -168,7 +165,7 @@ async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
   });
 
   const responseText = await response.text();
-  console.log("Tweet response:", responseText);
+  console.log("[Twitter Edge] Tweet response:", responseText);
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
@@ -178,7 +175,6 @@ async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -191,8 +187,8 @@ Deno.serve(async (req) => {
       throw new Error("Tweet content is required");
     }
 
-    console.log("Attempting to send tweet with content:", content);
-    console.log("Media URL:", mediaUrl);
+    console.log("[Twitter Edge] Attempting to send tweet with content:", content);
+    console.log("[Twitter Edge] Media URL:", mediaUrl);
     
     const tweet = await sendTweet(content, mediaUrl);
     
@@ -200,7 +196,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error: any) {
-    console.error("An error occurred:", error);
+    console.error("[Twitter Edge] An error occurred:", error);
     return new Response(
       JSON.stringify({ error: error.message }), 
       { 
