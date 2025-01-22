@@ -10,12 +10,18 @@ export async function uploadMediaToTwitter(mediaUrl: string): Promise<string | n
       return null;
     }
     
+    // Limiter la taille du buffer pour éviter les problèmes de mémoire
+    const contentLength = imageResponse.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 5 * 1024 * 1024) { // 5MB limit
+      throw new Error("Image size exceeds 5MB limit");
+    }
+
     const imageBuffer = await imageResponse.arrayBuffer();
     const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
     
     console.log("[Twitter Media] Image converted to base64, uploading to Twitter");
     
-    // Add delay to respect rate limits
+    // Ajouter un délai pour respecter les limites de taux
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const uploadUrl = "https://upload.twitter.com/1.1/media/upload.json";
@@ -30,16 +36,17 @@ export async function uploadMediaToTwitter(mediaUrl: string): Promise<string | n
       body: formData,
     });
 
+    const responseText = await response.text();
+    console.log("[Twitter Media] Upload response:", responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[Twitter Media] Media upload failed:", errorText);
       if (response.status === 429) {
-        throw new Error("Twitter rate limit exceeded for media upload. Please wait a few minutes and try again.");
+        throw new Error("Twitter rate limit exceeded for media upload");
       }
-      throw new Error(`Upload failed: ${response.status} ${errorText}`);
+      throw new Error(`Upload failed: ${response.status} ${responseText}`);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     console.log("[Twitter Media] Upload successful, media ID:", data.media_id_string);
     return data.media_id_string;
   } catch (error) {

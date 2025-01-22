@@ -52,17 +52,30 @@ Deno.serve(async (req) => {
       body: JSON.stringify(params),
     });
 
-    const responseText = await response.text();
-    console.log("[Twitter] Tweet response:", responseText);
-
     if (!response.ok) {
+      const responseText = await response.text();
+      console.error("[Twitter] Tweet error response:", responseText);
+      
       if (response.status === 429) {
-        throw new Error("Twitter rate limit exceeded. Please wait a few minutes and try again.");
+        return new Response(
+          JSON.stringify({ 
+            error: "Rate limit exceeded",
+            message: "Please wait a few minutes before trying again"
+          }), 
+          { 
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
       }
+      
       throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
     }
 
-    return new Response(responseText, {
+    const responseData = await response.json();
+    console.log("[Twitter] Tweet response:", responseData);
+
+    return new Response(JSON.stringify(responseData), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
@@ -73,7 +86,7 @@ Deno.serve(async (req) => {
         details: error instanceof Error ? error.stack : undefined
       }), 
       { 
-        status: error.message.includes("rate limit") ? 429 : 500,
+        status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
