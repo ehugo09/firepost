@@ -12,71 +12,73 @@ serve(async (req) => {
   }
 
   try {
+    console.log("[Media Upload] Starting upload process");
     const formData = await req.formData()
     const file = formData.get('file')
 
     if (!file) {
-      console.error("[media-upload] No file uploaded");
-      return new Response(
-        JSON.stringify({ error: 'No file uploaded' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-      )
+      throw new Error('No file uploaded')
     }
 
-    console.log("[media-upload] Received file:", file.name, "Type:", file.type, "Size:", file.size);
+    // Vérification de la taille du fichier (2MB max)
+    if (file.size > 2 * 1024 * 1024) {
+      throw new Error('File size must be less than 2MB')
+    }
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Sanitize filename and generate unique path
+    // Génération d'un nom de fichier unique
     const fileExt = file.name.split('.').pop()
-    const uniqueId = crypto.randomUUID()
-    const filePath = `${uniqueId}.${fileExt}`
+    const fileName = `${crypto.randomUUID()}.${fileExt}`
 
-    console.log("[media-upload] Uploading file to path:", filePath);
+    console.log("[Media Upload] Uploading file:", fileName);
 
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { data, error: uploadError } = await supabase.storage
       .from('media')
-      .upload(filePath, file, {
+      .upload(fileName, file, {
         contentType: file.type,
         upsert: false
       })
 
     if (uploadError) {
-      console.error("[media-upload] Upload error:", uploadError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to upload file', details: uploadError }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-      )
+      console.error("[Media Upload] Upload error:", uploadError);
+      throw uploadError
     }
 
-    console.log("[media-upload] Upload successful:", uploadData);
-
-    // Get the public URL
+    // Récupération de l'URL publique
     const { data: { publicUrl } } = supabase.storage
       .from('media')
-      .getPublicUrl(filePath)
+      .getPublicUrl(fileName)
 
-    console.log("[media-upload] Generated public URL:", publicUrl);
-
-    const response = {
-      url: publicUrl,
-      path: filePath
-    }
-
-    console.log("[media-upload] Sending response:", response);
+    console.log("[Media Upload] Upload successful, public URL:", publicUrl);
 
     return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      JSON.stringify({ url: publicUrl }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        }
+      }
     )
+
   } catch (error) {
-    console.error("[media-upload] Unexpected error:", error);
+    console.error("[Media Upload] Error:", error);
     return new Response(
-      JSON.stringify({ error: 'An unexpected error occurred', details: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      JSON.stringify({ 
+        error: error.message || "An unexpected error occurred",
+        details: error.toString()
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        },
+        status: 500 
+      }
     )
   }
 })
