@@ -23,7 +23,8 @@ export const WeeklyCalendar = ({ selectedDate, onDateSelect }: WeeklyCalendarPro
 
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
 
-  const navigateWeek = (direction: 'prev' | 'next') => {
+  const navigateWeek = (e: React.MouseEvent, direction: 'prev' | 'next') => {
+    e.preventDefault(); // Prevent form submission
     setCurrentWeekStart(prev => 
       addDays(prev, direction === 'prev' ? -7 : 7)
     );
@@ -37,7 +38,8 @@ export const WeeklyCalendar = ({ selectedDate, onDateSelect }: WeeklyCalendarPro
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigateWeek('prev')}
+          onClick={(e) => navigateWeek(e, 'prev')}
+          type="button" // Explicitly set type to button
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
@@ -47,7 +49,8 @@ export const WeeklyCalendar = ({ selectedDate, onDateSelect }: WeeklyCalendarPro
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => navigateWeek('next')}
+          onClick={(e) => navigateWeek(e, 'next')}
+          type="button" // Explicitly set type to button
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
