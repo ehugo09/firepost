@@ -64,8 +64,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     )
   }
 
-  const handleContinue = (e: React.MouseEvent) => {
-    e.preventDefault() // Prevent form submission
+  const handleContinue = () => {
     if (selectedPlatforms.length === 0) {
       toast({
         title: "No platform selected",
@@ -88,8 +87,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     setStep(2)
   }
 
-  const handleBack = (e: React.MouseEvent) => {
-    e.preventDefault() // Prevent form submission
+  const handleBack = () => {
     setStep(1)
   }
 
@@ -144,7 +142,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
       >
         <PostDialogHeader 
           step={step} 
-          onBack={() => handleBack({ } as React.MouseEvent)} 
+          onBack={handleBack}
         />
 
         <Form {...form}>
@@ -160,7 +158,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
                   setMediaFile(null)
                   setMediaPreview(null)
                 }}
-                onContinue={() => handleContinue({ } as React.MouseEvent)}
+                onContinue={handleContinue}
               />
             ) : (
               <PostScheduleStep
