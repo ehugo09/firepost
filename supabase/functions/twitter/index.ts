@@ -104,8 +104,7 @@ async function uploadMedia(mediaUrl: string): Promise<string | null> {
     const oauthHeader = generateOAuthHeader(method, uploadUrl);
 
     const formData = new FormData();
-    const blob = new Blob([imageBuffer], { type: imageResponse.headers.get("content-type") || "image/jpeg" });
-    formData.append("media", blob);
+    formData.append("media_data", btoa(String.fromCharCode(...new Uint8Array(imageBuffer))));
 
     const uploadResponse = await fetch(uploadUrl, {
       method: method,
@@ -115,12 +114,15 @@ async function uploadMedia(mediaUrl: string): Promise<string | null> {
       body: formData,
     });
 
+    const responseText = await uploadResponse.text();
+    console.log("Media upload response:", responseText);
+
     if (!uploadResponse.ok) {
-      console.error("Media upload failed:", await uploadResponse.text());
+      console.error("Media upload failed:", responseText);
       return null;
     }
 
-    const uploadData = await uploadResponse.json();
+    const uploadData = JSON.parse(responseText);
     return uploadData.media_id_string;
   } catch (error) {
     console.error("Error uploading media:", error);
@@ -138,14 +140,18 @@ async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
     console.log("Uploading media:", mediaUrl);
     const mediaId = await uploadMedia(mediaUrl);
     if (mediaId) {
-      params.media = { media_ids: [mediaId] };
+      console.log("Media uploaded successfully, ID:", mediaId);
+      params = {
+        ...params,
+        media: { media_ids: [mediaId] }
+      };
     } else {
       console.warn("Media upload failed, proceeding with text-only tweet");
     }
   }
 
   const oauthHeader = generateOAuthHeader(method, url);
-  console.log("OAuth Header:", oauthHeader);
+  console.log("Tweet params:", params);
 
   const response = await fetch(url, {
     method: method,
@@ -157,7 +163,7 @@ async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
   });
 
   const responseText = await response.text();
-  console.log("Response Body:", responseText);
+  console.log("Tweet response:", responseText);
 
   if (!response.ok) {
     throw new Error(

@@ -20,6 +20,13 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
 
   const { data: profile } = useTwitterProfile()
 
+  // Format the content to match Twitter's line breaks
+  const formattedContent = data.content
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+    .join('\n')
+
   return (
     <div className="space-y-4">
       {validationErrors.length > 0 && (
@@ -61,20 +68,18 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
             
             <div className="mt-1 space-y-3 max-w-full">
               <div className="text-content">
-                <p className="text-[15px] leading-5 break-words whitespace-pre-wrap">
-                  {data.content}
+                <p className="text-[15px] leading-[1.3125] break-words whitespace-pre-wrap">
+                  {formattedContent}
                 </p>
               </div>
               
               {mediaPreview && (
                 <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
-                  <div className="relative pt-[56.25%]">
-                    <img 
-                      src={mediaPreview} 
-                      alt="Preview" 
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  </div>
+                  <img 
+                    src={mediaPreview} 
+                    alt="Preview" 
+                    className="w-full h-auto max-h-[512px] object-cover"
+                  />
                 </div>
               )}
 
