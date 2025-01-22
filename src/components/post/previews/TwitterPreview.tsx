@@ -4,42 +4,18 @@ import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useState, useEffect } from "react"
+import { useTwitterValidation } from "../hooks/useTwitterValidation"
 
 interface TwitterPreviewProps {
   data: PostForm
   mediaPreview: string | null
 }
 
-const TWITTER_MAX_CHARS = 280
-
 export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
-  const [validationErrors, setValidationErrors] = useState<string[]>([])
-  const [charCount, setCharCount] = useState(0)
-
-  useEffect(() => {
-    const errors: string[] = []
-    const contentLength = data.content.length
-
-    // Validate content length
-    setCharCount(contentLength)
-    if (contentLength > TWITTER_MAX_CHARS) {
-      errors.push(`Content exceeds Twitter's ${TWITTER_MAX_CHARS} character limit`)
-    }
-
-    // Validate media if present
-    if (mediaPreview) {
-      const img = new Image()
-      img.onload = () => {
-        if (img.width * img.height > 5120 * 5120) {
-          errors.push("Image resolution exceeds Twitter's maximum size (5120x5120)")
-        }
-      }
-      img.src = mediaPreview
-    }
-
-    setValidationErrors(errors)
-  }, [data.content, mediaPreview])
+  const { validationErrors, charCount, TWITTER_MAX_CHARS } = useTwitterValidation(
+    data.content,
+    mediaPreview
+  )
 
   return (
     <div className="space-y-4">

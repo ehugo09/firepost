@@ -4,6 +4,8 @@ import { PostForm } from "@/types/post"
 import { Button } from "@/components/ui/button"
 import { Twitter, Instagram, Linkedin } from "lucide-react"
 import { TwitterPreview } from "./previews/TwitterPreview"
+import { InstagramPreview } from "./previews/InstagramPreview"
+import { LinkedInPreview } from "./previews/LinkedInPreview"
 
 interface PreviewStepProps {
   form: UseFormReturn<PostForm>
@@ -18,54 +20,23 @@ export const PreviewStep = ({
   form,
   selectedPlatforms,
   mediaPreview,
-  date,
   onBack,
   onSubmit,
 }: PreviewStepProps) => {
-  const getPlatformIcon = (platform: string) => {
-    switch (platform) {
-      case "twitter":
-        return <Twitter className="w-4 h-4" />
-      case "instagram":
-        return <Instagram className="w-4 h-4" />
-      case "linkedin":
-        return <Linkedin className="w-4 h-4" />
-      default:
-        return null
-    }
-  }
-
-  const renderPlatformPreview = (platform: string) => {
-    switch (platform) {
-      case "twitter":
-        return (
-          <TwitterPreview 
-            data={form.getValues()} 
-            mediaPreview={mediaPreview}
-          />
-        )
-      case "instagram":
-        return (
-          <div className="border rounded-lg p-4 space-y-4">
-            <h3 className="font-medium">Instagram Preview</h3>
-            <p className="text-sm text-gray-600">
-              Instagram preview coming soon...
-            </p>
-          </div>
-        )
-      case "linkedin":
-        return (
-          <div className="border rounded-lg p-4 space-y-4">
-            <h3 className="font-medium">LinkedIn Preview</h3>
-            <p className="text-sm text-gray-600">
-              LinkedIn preview coming soon...
-            </p>
-          </div>
-        )
-      default:
-        return null
-    }
-  }
+  const platformConfig = {
+    twitter: {
+      icon: <Twitter className="w-4 h-4" />,
+      component: TwitterPreview,
+    },
+    instagram: {
+      icon: <Instagram className="w-4 h-4" />,
+      component: InstagramPreview,
+    },
+    linkedin: {
+      icon: <Linkedin className="w-4 h-4" />,
+      component: LinkedInPreview,
+    },
+  } as const
 
   return (
     <div className="space-y-6">
@@ -77,17 +48,20 @@ export const PreviewStep = ({
               value={platform}
               className="flex items-center gap-2"
             >
-              {getPlatformIcon(platform)}
+              {platformConfig[platform as keyof typeof platformConfig]?.icon}
               <span className="capitalize">{platform}</span>
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {selectedPlatforms.map((platform) => (
-          <TabsContent key={platform} value={platform} className="space-y-4">
-            {renderPlatformPreview(platform)}
-          </TabsContent>
-        ))}
+        {selectedPlatforms.map((platform) => {
+          const Preview = platformConfig[platform as keyof typeof platformConfig]?.component
+          return (
+            <TabsContent key={platform} value={platform} className="space-y-4">
+              {Preview && <Preview data={form.getValues()} mediaPreview={mediaPreview} />}
+            </TabsContent>
+          )
+        })}
       </Tabs>
 
       <div className="flex justify-end gap-3">
