@@ -90,22 +90,28 @@ function generateOAuthHeader(method: string, url: string): string {
 
 async function uploadMedia(mediaUrl: string): Promise<string | null> {
   try {
-    // Fetch the image from the URL
+    console.log("Starting media upload for URL:", mediaUrl);
+    
+    // Fetch the image
     const imageResponse = await fetch(mediaUrl);
     if (!imageResponse.ok) {
       console.error("Failed to fetch image:", await imageResponse.text());
       return null;
     }
+    
     const imageBuffer = await imageResponse.arrayBuffer();
-
-    // Upload to Twitter's media endpoint
+    const base64Image = btoa(String.fromCharCode(...new Uint8Array(imageBuffer)));
+    
+    // Upload to Twitter
     const uploadUrl = "https://upload.twitter.com/1.1/media/upload.json";
     const method = "POST";
     const oauthHeader = generateOAuthHeader(method, uploadUrl);
 
     const formData = new FormData();
-    formData.append("media_data", btoa(String.fromCharCode(...new Uint8Array(imageBuffer))));
+    formData.append("media_data", base64Image);
 
+    console.log("Sending media upload request to Twitter...");
+    
     const uploadResponse = await fetch(uploadUrl, {
       method: method,
       headers: {
@@ -115,17 +121,18 @@ async function uploadMedia(mediaUrl: string): Promise<string | null> {
     });
 
     const responseText = await uploadResponse.text();
-    console.log("Media upload response:", responseText);
+    console.log("Twitter media upload response:", responseText);
 
     if (!uploadResponse.ok) {
-      console.error("Media upload failed:", responseText);
-      return null;
+      throw new Error(`Upload failed: ${responseText}`);
     }
 
     const uploadData = JSON.parse(responseText);
+    console.log("Media upload successful, ID:", uploadData.media_id_string);
+    
     return uploadData.media_id_string;
   } catch (error) {
-    console.error("Error uploading media:", error);
+    console.error("Error in uploadMedia:", error);
     return null;
   }
 }
@@ -135,12 +142,11 @@ async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
   const method = "POST";
   let params: any = { text: content };
 
-  // If we have a media URL, upload it first
   if (mediaUrl) {
-    console.log("Uploading media:", mediaUrl);
+    console.log("Media URL provided, attempting upload:", mediaUrl);
     const mediaId = await uploadMedia(mediaUrl);
     if (mediaId) {
-      console.log("Media uploaded successfully, ID:", mediaId);
+      console.log("Media uploaded successfully, adding to tweet params");
       params = {
         ...params,
         media: { media_ids: [mediaId] }
@@ -150,9 +156,9 @@ async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
     }
   }
 
-  const oauthHeader = generateOAuthHeader(method, url);
-  console.log("Tweet params:", params);
+  console.log("Final tweet params:", params);
 
+  const oauthHeader = generateOAuthHeader(method, url);
   const response = await fetch(url, {
     method: method,
     headers: {
@@ -166,9 +172,7 @@ async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
   console.log("Tweet response:", responseText);
 
   if (!response.ok) {
-    throw new Error(
-      `HTTP error! status: ${response.status}, body: ${responseText}`
-    );
+    throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
   }
 
   return JSON.parse(responseText);

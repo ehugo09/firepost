@@ -20,12 +20,11 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
 
   const { data: profile } = useTwitterProfile()
 
-  // Format the content to match Twitter's line breaks
+  // Format the content to match Twitter's mobile display
   const formattedContent = data.content
     .split('\n')
     .map(line => line.trim())
-    .filter(line => line.length > 0)
-    .join('\n')
+    .join(' ')
 
   return (
     <div className="space-y-4">
@@ -42,53 +41,49 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
         </Alert>
       )}
 
-      <Card className="p-4 w-[500px] bg-white dark:bg-black">
+      <Card className="p-4 w-[350px] bg-black text-white">
         <div className="flex gap-3">
-          <Avatar className="w-10 h-10 shrink-0">
+          <Avatar className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-gray-800">
             {profile?.profile_picture && (
               <img 
                 src={profile.profile_picture} 
                 alt="Profile" 
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-full h-full object-cover"
               />
             )}
           </Avatar>
           
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col">
-              <div className="flex items-center gap-1">
-                <span className="font-bold text-[15px] leading-5 truncate max-w-[200px]">
-                  {profile?.username || "Your Name"}
-                </span>
-                <span className="text-gray-500 text-[15px] leading-5 truncate">
-                  @{profile?.username || "username"}
-                </span>
-              </div>
+            <div className="flex items-center gap-1">
+              <span className="font-bold text-[15px] leading-5 truncate">
+                {profile?.username || "Your Name"}
+              </span>
+              <span className="text-gray-500 text-[15px]">
+                @{profile?.username || "username"}
+              </span>
             </div>
             
-            <div className="mt-1 space-y-3 max-w-full">
-              <div className="text-content">
-                <p className="text-[15px] leading-[1.3125] break-words whitespace-pre-wrap">
-                  {formattedContent}
-                </p>
-              </div>
+            <div className="mt-1 space-y-3">
+              <p className="text-[15px] leading-[1.3125] break-words">
+                {formattedContent}
+              </p>
               
               {mediaPreview && (
-                <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
+                <div className="mt-3 rounded-2xl overflow-hidden">
                   <img 
                     src={mediaPreview} 
                     alt="Preview" 
-                    className="w-full h-auto max-h-[512px] object-cover"
+                    className="w-full h-auto"
                   />
                 </div>
               )}
 
-              <div className="flex items-center gap-2 text-sm text-gray-500 mt-3">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Badge variant="secondary" className="rounded-full text-xs px-2 py-0.5">
                   {charCount}/{TWITTER_MAX_CHARS}
                 </Badge>
                 {data.postType === "schedule" && data.scheduledDate && (
-                  <span className="text-xs truncate max-w-[200px]">
+                  <span className="text-xs">
                     Scheduled for {data.scheduledDate.toLocaleString()}
                   </span>
                 )}
