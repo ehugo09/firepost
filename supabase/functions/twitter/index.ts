@@ -88,10 +88,61 @@ function generateOAuthHeader(method: string, url: string): string {
   );
 }
 
-async function sendTweet(tweetText: string): Promise<any> {
+async function uploadMedia(mediaUrl: string): Promise<string | null> {
+  try {
+    // Fetch the image from the URL
+    const imageResponse = await fetch(mediaUrl);
+    if (!imageResponse.ok) {
+      console.error("Failed to fetch image:", await imageResponse.text());
+      return null;
+    }
+    const imageBuffer = await imageResponse.arrayBuffer();
+
+    // Upload to Twitter's media endpoint
+    const uploadUrl = "https://upload.twitter.com/1.1/media/upload.json";
+    const method = "POST";
+    const oauthHeader = generateOAuthHeader(method, uploadUrl);
+
+    const formData = new FormData();
+    const blob = new Blob([imageBuffer], { type: imageResponse.headers.get("content-type") || "image/jpeg" });
+    formData.append("media", blob);
+
+    const uploadResponse = await fetch(uploadUrl, {
+      method: method,
+      headers: {
+        Authorization: oauthHeader,
+      },
+      body: formData,
+    });
+
+    if (!uploadResponse.ok) {
+      console.error("Media upload failed:", await uploadResponse.text());
+      return null;
+    }
+
+    const uploadData = await uploadResponse.json();
+    return uploadData.media_id_string;
+  } catch (error) {
+    console.error("Error uploading media:", error);
+    return null;
+  }
+}
+
+async function sendTweet(content: string, mediaUrl?: string): Promise<any> {
   const url = "https://api.twitter.com/2/tweets";
   const method = "POST";
-  const params = { text: tweetText };
+  let params: any = { text: content };
+
+  // If we have a media URL, upload it first
+  if (mediaUrl) {
+    console.log("Uploading media:", mediaUrl);
+    const mediaId = await uploadMedia(mediaUrl);
+    if (mediaId) {
+      params.media = { media_ids: [mediaId] };
+    } else {
+      console.warn("Media upload failed, proceeding with text-only tweet");
+    }
+  }
 
   const oauthHeader = generateOAuthHeader(method, url);
   console.log("OAuth Header:", oauthHeader);
@@ -125,14 +176,16 @@ Deno.serve(async (req) => {
 
   try {
     validateEnvironmentVariables();
-    const { content } = await req.json();
+    const { content, mediaUrl } = await req.json();
     
     if (!content) {
       throw new Error("Tweet content is required");
     }
 
     console.log("Attempting to send tweet with content:", content);
-    const tweet = await sendTweet(content);
+    console.log("Media URL:", mediaUrl);
+    
+    const tweet = await sendTweet(content, mediaUrl);
     
     return new Response(JSON.stringify(tweet), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -57,7 +57,10 @@ export const usePostForm = (onClose: () => void) => {
   const postToTwitter = async (content: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('twitter', {
-        body: { content }
+        body: { 
+          content,
+          mediaUrl: mediaPreview 
+        }
       })
       
       if (error) throw error
