@@ -8,6 +8,7 @@ export const usePostSubmission = () => {
   const postToTwitter = async (content: string, mediaUrl: string | null) => {
     try {
       console.log('Attempting to post to Twitter with:', { content, mediaUrl })
+      
       const { data, error } = await supabase.functions.invoke('twitter', {
         body: { 
           content,
@@ -19,14 +20,25 @@ export const usePostSubmission = () => {
         console.error('Error from Twitter edge function:', error)
         throw error
       }
+
+      if (data?.error) {
+        console.error('Error from Twitter API:', data.error)
+        throw new Error(data.error)
+      }
       
       console.log('Twitter API response:', data)
       return true
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error posting tweet:', error)
+      
+      // Message d'erreur personnalisé pour la limite de taux
+      const errorMessage = error.message?.includes("Rate limit") 
+        ? "Twitter's rate limit reached. Please wait a few minutes before trying again."
+        : "There was an error posting your tweet. Please try again.";
+      
       toast({
         title: "Error posting to Twitter",
-        description: "There was an error posting your tweet. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       })
       return false

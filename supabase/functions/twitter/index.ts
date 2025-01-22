@@ -5,7 +5,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Validation des variables d'environnement
 const API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY")?.trim();
 const API_SECRET = Deno.env.get("TWITTER_CONSUMER_SECRET")?.trim();
 const ACCESS_TOKEN = Deno.env.get("TWITTER_ACCESS_TOKEN")?.trim();
@@ -53,18 +52,22 @@ function generateOAuthHeader(method: string, url: string): string {
 }
 
 async function postTweet(content: string, mediaUrl: string | null = null) {
-  console.log("[Twitter] Posting tweet:", { content, mediaUrl });
+  console.log("[Twitter] Attempting to post tweet:", { content, mediaUrl });
   
   const tweetUrl = "https://api.twitter.com/2/tweets";
-  const params: any = { text: content };
+  let finalContent = content;
 
-  // Si on a une URL de média, on l'ajoute simplement comme texte pour l'instant
-  // pour éviter les problèmes de mémoire avec l'upload
+  // Si on a une URL de média, on l'ajoute au contenu
   if (mediaUrl) {
-    params.text += ` ${mediaUrl}`;
+    finalContent = `${content} ${mediaUrl}`;
   }
 
+  const params = { text: finalContent };
+
   try {
+    // Attendre un court instant avant d'envoyer la requête pour éviter les limites de taux
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const response = await fetch(tweetUrl, {
       method: "POST",
       headers: {
@@ -74,13 +77,18 @@ async function postTweet(content: string, mediaUrl: string | null = null) {
       body: JSON.stringify(params),
     });
 
+    const responseText = await response.text();
+    console.log("[Twitter] API Response:", responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[Twitter] Error response:", errorText);
-      throw new Error(`Tweet failed: ${response.status} ${errorText}`);
+      if (response.status === 429) {
+        console.error("[Twitter] Rate limit exceeded. Waiting before retry...");
+        throw new Error("Rate limit exceeded. Please try again in a few minutes.");
+      }
+      throw new Error(`Tweet failed: ${response.status} ${responseText}`);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(responseText);
     console.log("[Twitter] Tweet posted successfully:", data);
     return data;
   } catch (error) {
@@ -126,7 +134,7 @@ Deno.serve(async (req) => {
           ...corsHeaders,
           'Content-Type': 'application/json' 
         },
-        status: 500
+        status: error.message?.includes("Rate limit") ? 429 : 500
       }
     );
   }
