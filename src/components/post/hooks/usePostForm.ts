@@ -82,6 +82,11 @@ export const usePostForm = (onClose: () => void) => {
   }
 
   const handleSubmit = async (data: PostForm) => {
+    // Only proceed with submission if we're on step 2
+    if (step !== 2) {
+      return
+    }
+
     if (data.postType === "schedule" && !date) {
       toast({
         title: "No date selected",
