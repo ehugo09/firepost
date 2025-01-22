@@ -39,7 +39,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
         onInteractOutside={(e) => e.preventDefault()}
       >
         <div className="p-6 h-full">
-          <div className="mb-6">
+          <header className="mb-6">
             <div className="flex items-center gap-4 mb-2">
               {step > 1 && (
                 <Button
@@ -59,7 +59,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
                 </p>
               </div>
             </div>
-          </div>
+          </header>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
