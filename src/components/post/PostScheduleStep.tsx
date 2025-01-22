@@ -7,7 +7,7 @@ interface PostScheduleStepProps {
   form: UseFormReturn<PostForm>
   date: Date | undefined
   onDateSelect: (date: Date | undefined) => void
-  onContinue: () => void
+  onContinue: (data: PostForm) => void
 }
 
 export const PostScheduleStep = ({
@@ -27,7 +27,7 @@ export const PostScheduleStep = ({
       <div className="flex justify-end">
         <Button 
           type="button"
-          onClick={onContinue}
+          onClick={() => onContinue(form.getValues())}
           className="bg-[#E86643] hover:bg-[#E86643]/90"
           disabled={form.watch("postType") === "schedule" && !date}
         >
