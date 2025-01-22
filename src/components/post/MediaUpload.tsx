@@ -38,18 +38,22 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
       formData.append('file', file);
 
       // Upload to our edge function
-      const { data, error } = await supabase.functions.invoke('media-upload', {
+      const response = await supabase.functions.invoke('media-upload', {
         body: formData,
       });
 
-      if (error) throw error;
+      console.log("Upload response:", response);
 
-      console.log("Upload response:", data);
-      if (data?.url) {
-        onFileChange(data.url);
-      } else {
-        throw new Error("No URL returned from upload");
-      }
+      if (response.error) throw response.error;
+      if (!response.data?.url) throw new Error("No URL returned from upload");
+
+      console.log("Upload successful, URL:", response.data.url);
+      onFileChange(response.data.url);
+      
+      toast({
+        title: "Upload successful",
+        description: "Your media has been uploaded successfully.",
+      });
     } catch (error) {
       console.error("Upload error:", error);
       toast({

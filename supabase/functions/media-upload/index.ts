@@ -36,7 +36,7 @@ serve(async (req) => {
 
     console.log("Uploading file to path:", filePath);
 
-    const { data, error: uploadError } = await supabase.storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
       .from('media')
       .upload(filePath, file, {
         contentType: file.type,
@@ -51,9 +51,9 @@ serve(async (req) => {
       )
     }
 
-    console.log("Upload successful:", data);
+    console.log("Upload successful:", uploadData);
 
-    // Get the public URL for the uploaded file
+    // Get the public URL
     const { data: { publicUrl } } = supabase.storage
       .from('media')
       .getPublicUrl(filePath)
