@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { createHmac } from "https://deno.land/std@0.208.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -6,6 +7,8 @@ const corsHeaders = {
 };
 
 async function getUserTwitterCredentials(supabase: any, userId: string) {
+  console.log("[Twitter] Getting credentials for user:", userId);
+  
   const { data, error } = await supabase
     .from('social_connections')
     .select('access_token, twitter_credentials')
@@ -13,9 +16,16 @@ async function getUserTwitterCredentials(supabase: any, userId: string) {
     .eq('platform', 'twitter')
     .single();
 
-  if (error) throw error;
-  if (!data) throw new Error('No Twitter credentials found for user');
+  if (error) {
+    console.error("[Twitter] Error fetching credentials:", error);
+    throw error;
+  }
+  if (!data) {
+    console.error("[Twitter] No Twitter credentials found for user");
+    throw new Error('No Twitter credentials found for user');
+  }
 
+  console.log("[Twitter] Successfully retrieved credentials");
   return {
     accessToken: data.access_token,
     credentials: data.twitter_credentials
@@ -90,8 +100,10 @@ async function postTweet(
   const params = { text: finalContent };
 
   try {
-    // Petit délai pour éviter les problèmes de rate limit
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
+    // Add a small random delay to help with rate limiting
+    const delay = Math.floor(Math.random() * 2000) + 1000; // Random delay between 1-3 seconds
+    console.log(`[Twitter] Adding delay of ${delay}ms before posting`);
+    await new Promise(resolve => setTimeout(resolve, delay));
 
     const response = await fetch(tweetUrl, {
       method: "POST",
@@ -137,7 +149,7 @@ Deno.serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Récupérer l'utilisateur à partir du token JWT
+    // Get user from JWT token
     const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
     if (userError || !user) throw new Error('Invalid user token');
 
@@ -148,7 +160,7 @@ Deno.serve(async (req) => {
       throw new Error("Content is required");
     }
 
-    // Récupérer les credentials Twitter de l'utilisateur
+    // Get user's Twitter credentials
     const { accessToken, credentials } = await getUserTwitterCredentials(supabase, user.id);
     
     const result = await postTweet(content, mediaUrl, credentials, accessToken);
