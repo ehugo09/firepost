@@ -6,15 +6,17 @@ export const usePostMedia = () => {
   const { toast } = useToast()
 
   const handleFileChange = (url: string) => {
+    console.log("Setting media URL:", url);
     setMediaUrl(url);
   }
 
   const removeMedia = () => {
+    console.log("Removing media");
     setMediaUrl(null)
   }
 
   return {
-    mediaFile: null, // Keep for backward compatibility
+    mediaFile: null,
     mediaPreview: mediaUrl,
     handleFileChange,
     removeMedia

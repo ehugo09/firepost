@@ -32,6 +32,7 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
     setIsUploading(true);
 
     try {
+      console.log("Starting file upload...");
       // Create form data
       const formData = new FormData();
       formData.append('file', file);
@@ -43,8 +44,12 @@ export const MediaUpload = ({ mediaPreview, onFileChange, onRemoveMedia }: Media
 
       if (error) throw error;
 
-      console.log("Upload successful:", data);
-      onFileChange(data.url);
+      console.log("Upload response:", data);
+      if (data?.url) {
+        onFileChange(data.url);
+      } else {
+        throw new Error("No URL returned from upload");
+      }
     } catch (error) {
       console.error("Upload error:", error);
       toast({
