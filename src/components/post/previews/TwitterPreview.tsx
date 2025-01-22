@@ -35,53 +35,59 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
         </Alert>
       )}
 
-      <Card className="p-4 w-[500px]">
+      <Card className="p-4 w-[500px] bg-white dark:bg-black">
         <div className="flex gap-3">
-          <Avatar className="w-12 h-12 shrink-0">
+          <Avatar className="w-10 h-10 shrink-0">
             {profile?.profile_picture && (
               <img 
                 src={profile.profile_picture} 
                 alt="Profile" 
-                className="w-12 h-12 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover"
               />
             )}
           </Avatar>
           
-          <div className="flex-1 min-w-0 max-w-[calc(100%-4rem)]">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold truncate max-w-[120px]">{profile?.username || "Your Name"}</span>
-              <span className="text-gray-500 text-sm truncate">@{profile?.username || "username"}</span>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1">
+                <span className="font-bold text-[15px] leading-5 truncate max-w-[200px]">
+                  {profile?.username || "Your Name"}
+                </span>
+                <span className="text-gray-500 text-[15px] leading-5 truncate">
+                  @{profile?.username || "username"}
+                </span>
+              </div>
             </div>
             
-            <div className="space-y-3">
-              <div className="min-h-[40px] max-h-[400px] overflow-y-auto">
-                <p className="whitespace-pre-wrap break-words text-[15px] leading-normal">
+            <div className="mt-1 space-y-3 max-w-full">
+              <div className="text-content">
+                <p className="text-[15px] leading-5 break-words whitespace-pre-wrap">
                   {data.content}
                 </p>
               </div>
               
               {mediaPreview && (
-                <div className="relative rounded-2xl overflow-hidden border border-gray-200 w-full">
-                  <div className="aspect-[16/9]">
+                <div className="mt-3 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800">
+                  <div className="relative pt-[56.25%]">
                     <img 
                       src={mediaPreview} 
                       alt="Preview" 
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="flex items-center gap-2 text-sm text-gray-500 mt-2">
-              <Badge variant="secondary" className="rounded-full">
-                {charCount}/{TWITTER_MAX_CHARS}
-              </Badge>
-              {data.postType === "schedule" && data.scheduledDate && (
-                <span className="truncate max-w-[200px]">
-                  Scheduled for {data.scheduledDate.toLocaleString()}
-                </span>
-              )}
+              <div className="flex items-center gap-2 text-sm text-gray-500 mt-3">
+                <Badge variant="secondary" className="rounded-full text-xs px-2 py-0.5">
+                  {charCount}/{TWITTER_MAX_CHARS}
+                </Badge>
+                {data.postType === "schedule" && data.scheduledDate && (
+                  <span className="text-xs truncate max-w-[200px]">
+                    Scheduled for {data.scheduledDate.toLocaleString()}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>
