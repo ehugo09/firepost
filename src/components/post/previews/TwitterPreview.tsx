@@ -18,7 +18,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
     mediaPreview
   )
 
-  const { data: profile, isLoading } = useTwitterProfile()
+  const { data: profile } = useTwitterProfile()
 
   // Format the content to match Twitter's mobile display
   const formattedContent = data.content
@@ -41,13 +41,13 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
         </Alert>
       )}
 
-      <Card className="p-4 w-[350px]">
+      <Card className="p-4 w-[350px] bg-background/50 backdrop-blur-sm border border-border/50">
         <div className="flex gap-3">
-          <Avatar className="w-10 h-10 shrink-0 rounded-full overflow-hidden">
+          <Avatar className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-muted">
             {profile?.profile_picture && (
               <img 
                 src={profile.profile_picture} 
-                alt={profile.username || "Profile"} 
+                alt={profile.username || "Your name"} 
                 className="w-full h-full object-cover"
               />
             )}
@@ -56,7 +56,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1">
               <span className="font-bold text-[15px] leading-5 truncate">
-                {profile?.username || "Loading..."}
+                {profile?.username || "Your name"}
               </span>
               <span className="text-muted-foreground text-[15px]">
                 @{profile?.username || "username"}
@@ -69,7 +69,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
               </p>
               
               {mediaPreview && (
-                <div className="mt-3 rounded-2xl overflow-hidden">
+                <div className="mt-3 rounded-2xl overflow-hidden border border-border/50">
                   <img 
                     src={mediaPreview} 
                     alt="Preview" 
