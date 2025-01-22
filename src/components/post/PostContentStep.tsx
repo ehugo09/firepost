@@ -12,7 +12,7 @@ interface PostContentStepProps {
   selectedPlatforms: string[]
   onPlatformToggle: (platform: string) => void
   mediaPreview: string | null
-  onFileChange: (event: React.ChangeEvent<HTMLInputElement>) => void
+  onFileChange: (url: string) => void
   onRemoveMedia: () => void
   onContinue: () => void
 }
