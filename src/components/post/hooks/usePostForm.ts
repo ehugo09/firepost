@@ -87,6 +87,17 @@ export const usePostForm = (onClose: () => void) => {
     
     let success = true
 
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      toast({
+        title: "Authentication error",
+        description: "Please sign in to post.",
+        variant: "destructive",
+      })
+      return
+    }
+
     // Post to each selected platform
     if (selectedPlatforms.includes('twitter')) {
       success = await postToTwitter(data.content)
@@ -101,9 +112,10 @@ export const usePostForm = (onClose: () => void) => {
           content: data.content,
           post_type: data.postType,
           platforms: selectedPlatforms,
-          scheduled_date: date,
+          scheduled_date: date?.toISOString(),
           media_url: mediaPreview,
-          status: data.postType === 'schedule' ? 'scheduled' : 'published'
+          status: data.postType === 'schedule' ? 'scheduled' : 'published',
+          user_id: user.id
         })
 
       if (error) {
