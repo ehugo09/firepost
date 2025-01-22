@@ -19,10 +19,11 @@ export function PreviewPanel({
   mediaPreview,
   date,
 }: PreviewPanelProps) {
-  // Watch for form changes in real-time
+  // Watch for form changes in real-time with proper typing
   const formValues = useWatch({
     control: form.control,
-  })
+    defaultValue: form.getValues() // This ensures we have the initial values
+  }) as PostForm // Assert the type since we know the structure
 
   if (selectedPlatforms.length === 0) {
     return (
