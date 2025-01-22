@@ -12,20 +12,22 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log("[Twitter] Received request");
     const { content, mediaUrl } = await req.json();
-    console.log("[Twitter] Received request:", { content, mediaUrl });
     
     if (!content) {
       throw new Error("Tweet content is required");
     }
 
+    console.log("[Twitter] Processing request:", { content, mediaUrl });
+    
     let params: any = { text: content };
 
     if (mediaUrl) {
-      console.log("[Twitter] Uploading media...");
+      console.log("[Twitter] Media URL detected, uploading to Twitter");
       const mediaId = await uploadMediaToTwitter(mediaUrl);
       if (mediaId) {
-        console.log("[Twitter] Adding media to tweet params");
+        console.log("[Twitter] Adding media to tweet params, ID:", mediaId);
         params.media = { media_ids: [mediaId] };
       }
     }
