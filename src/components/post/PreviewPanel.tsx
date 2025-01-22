@@ -1,4 +1,4 @@
-import { UseFormReturn } from "react-hook-form"
+import { UseFormReturn, useWatch } from "react-hook-form"
 import { PostForm } from "@/types/post"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Twitter, Instagram, Linkedin } from "lucide-react"
@@ -19,6 +19,11 @@ export function PreviewPanel({
   mediaPreview,
   date,
 }: PreviewPanelProps) {
+  // Watch for form changes in real-time
+  const formValues = useWatch({
+    control: form.control,
+  })
+
   if (selectedPlatforms.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-gray-500">
@@ -67,7 +72,7 @@ export function PreviewPanel({
               {Preview && (
                 <Preview 
                   data={{
-                    ...form.getValues(),
+                    ...formValues,
                     scheduledDate: date
                   }} 
                   mediaPreview={mediaPreview}

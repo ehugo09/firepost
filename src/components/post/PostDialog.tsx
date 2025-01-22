@@ -35,7 +35,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
       onOpenChange={handleClose}
     >
       <DialogContent 
-        className="max-w-[90vw] max-h-[90vh] overflow-hidden grid grid-cols-2 gap-6 p-0"
+        className="max-w-[95vw] w-[1200px] max-h-[95vh] overflow-hidden grid grid-cols-2 gap-6 p-0"
         onInteractOutside={(e) => e.preventDefault()}
       >
         <div className="p-6 overflow-y-auto border-r">
