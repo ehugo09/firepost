@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast"
 import type { PostForm } from "@/types/post"
 import { usePostMedia } from "./usePostMedia"
 import { usePlatforms } from "./usePlatforms"
+import { supabase } from "@/integrations/supabase/client"
 
 const postSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -46,16 +47,6 @@ export const usePostForm = (onClose: () => void) => {
         return
       }
       setStep(2)
-    } else if (step === 2) {
-      if (form.watch("postType") === "schedule" && !date) {
-        toast({
-          title: "No date selected",
-          description: "Please select a date to schedule your post",
-          variant: "destructive",
-        })
-        return
-      }
-      setStep(3)
     }
   }
 
@@ -63,9 +54,28 @@ export const usePostForm = (onClose: () => void) => {
     setStep(prev => prev - 1)
   }
 
-  const handleSubmit = async (data: PostForm) => {
-    if (step !== 3) return
+  const postToTwitter = async (content: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('twitter', {
+        body: { content }
+      })
+      
+      if (error) throw error
+      
+      console.log('Tweet posted successfully:', data)
+      return true
+    } catch (error) {
+      console.error('Error posting tweet:', error)
+      toast({
+        title: "Error posting to Twitter",
+        description: "There was an error posting your tweet. Please try again.",
+        variant: "destructive",
+      })
+      return false
+    }
+  }
 
+  const handleSubmit = async (data: PostForm) => {
     const finalData = {
       ...data,
       platforms: selectedPlatforms,
@@ -75,14 +85,45 @@ export const usePostForm = (onClose: () => void) => {
 
     console.log("Form submitted:", finalData)
     
-    toast({
-      title: "Success!",
-      description: data.postType === "now" 
-        ? "Your post has been published" 
-        : `Your post has been scheduled for ${date!.toLocaleDateString()}`,
-    })
+    let success = true
 
-    handleClose()
+    // Post to each selected platform
+    if (selectedPlatforms.includes('twitter')) {
+      success = await postToTwitter(data.content)
+    }
+
+    if (success) {
+      // Save to database
+      const { error } = await supabase
+        .from('posts')
+        .insert({
+          title: data.title,
+          content: data.content,
+          post_type: data.postType,
+          platforms: selectedPlatforms,
+          scheduled_date: date,
+          media_url: mediaPreview,
+          status: data.postType === 'schedule' ? 'scheduled' : 'published'
+        })
+
+      if (error) {
+        console.error('Error saving post:', error)
+        toast({
+          title: "Error saving post",
+          description: "Your post was sent but couldn't be saved to your history.",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Success!",
+          description: data.postType === "now" 
+            ? "Your post has been published" 
+            : `Your post has been scheduled for ${date!.toLocaleDateString()}`,
+        })
+      }
+
+      handleClose()
+    }
   }
 
   const handleClose = () => {
