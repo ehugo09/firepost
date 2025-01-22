@@ -11,7 +11,7 @@ interface PreviewStepProps {
   mediaPreview: string | null
   date?: Date
   onBack: () => void
-  onSubmit: () => void
+  onSubmit: (data: PostForm) => void
 }
 
 export const PreviewStep = ({
@@ -96,7 +96,7 @@ export const PreviewStep = ({
         </Button>
         <Button 
           type="button"
-          onClick={onSubmit}
+          onClick={() => onSubmit(form.getValues())}
           className="bg-[#E86643] hover:bg-[#E86643]/90"
         >
           {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
