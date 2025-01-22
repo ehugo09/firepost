@@ -29,11 +29,32 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     removeMedia
   } = usePostForm(() => onOpenChange(false))
 
+  const renderStep = () => {
+    if (step === 1) {
+      return (
+        <PostContentStep
+          form={form}
+          selectedPlatforms={selectedPlatforms}
+          onPlatformToggle={togglePlatform}
+          mediaPreview={mediaPreview}
+          onFileChange={handleFileChange}
+          onRemoveMedia={removeMedia}
+          onContinue={handleContinue}
+        />
+      )
+    }
+    return (
+      <PostScheduleStep
+        form={form}
+        date={date}
+        onDateSelect={setDate}
+        onContinue={handleSubmit}
+      />
+    )
+  }
+
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={handleClose}
-    >
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent 
         className="max-w-[95vw] w-[1200px] h-[90vh] overflow-y-auto grid grid-cols-2 gap-6 p-0"
         onInteractOutside={(e) => e.preventDefault()}
@@ -63,24 +84,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              {step === 1 ? (
-                <PostContentStep
-                  form={form}
-                  selectedPlatforms={selectedPlatforms}
-                  onPlatformToggle={togglePlatform}
-                  mediaPreview={mediaPreview}
-                  onFileChange={handleFileChange}
-                  onRemoveMedia={removeMedia}
-                  onContinue={handleContinue}
-                />
-              ) : (
-                <PostScheduleStep
-                  form={form}
-                  date={date}
-                  onDateSelect={setDate}
-                  onContinue={handleSubmit}
-                />
-              )}
+              {renderStep()}
             </form>
           </Form>
         </div>

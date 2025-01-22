@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import { Twitter, Instagram, Linkedin } from "lucide-react";
+import { Button } from "@/components/ui/button"
+import { platformConfig } from "./config/platformConfig"
 
 interface PlatformSelectorProps {
-  selectedPlatforms: string[];
-  onPlatformToggle: (platform: string) => void;
+  selectedPlatforms: string[]
+  onPlatformToggle: (platform: string) => void
 }
 
 export const PlatformSelector = ({ selectedPlatforms, onPlatformToggle }: PlatformSelectorProps) => {
@@ -11,31 +11,20 @@ export const PlatformSelector = ({ selectedPlatforms, onPlatformToggle }: Platfo
     <div className="mb-8">
       <h2 className="text-sm font-medium mb-3">Select Platforms</h2>
       <div className="flex gap-3">
-        <Button
-          variant={selectedPlatforms.includes("twitter") ? "default" : "outline"}
-          onClick={() => onPlatformToggle("twitter")}
-          className={`flex items-center gap-2 ${selectedPlatforms.includes("twitter") ? "bg-[#E86643] hover:bg-[#E86643]/90" : ""}`}
-        >
-          <Twitter className="w-4 h-4" />
-          Twitter
-        </Button>
-        <Button
-          variant={selectedPlatforms.includes("instagram") ? "default" : "outline"}
-          onClick={() => onPlatformToggle("instagram")}
-          className={`flex items-center gap-2 ${selectedPlatforms.includes("instagram") ? "bg-[#E86643] hover:bg-[#E86643]/90" : ""}`}
-        >
-          <Instagram className="w-4 h-4" />
-          Instagram
-        </Button>
-        <Button
-          variant={selectedPlatforms.includes("linkedin") ? "default" : "outline"}
-          onClick={() => onPlatformToggle("linkedin")}
-          className={`flex items-center gap-2 ${selectedPlatforms.includes("linkedin") ? "bg-[#E86643] hover:bg-[#E86643]/90" : ""}`}
-        >
-          <Linkedin className="w-4 h-4" />
-          LinkedIn
-        </Button>
+        {Object.entries(platformConfig).map(([platform, { icon }]) => (
+          <Button
+            key={platform}
+            variant={selectedPlatforms.includes(platform) ? "default" : "outline"}
+            onClick={() => onPlatformToggle(platform)}
+            className={`flex items-center gap-2 ${
+              selectedPlatforms.includes(platform) ? "bg-[#E86643] hover:bg-[#E86643]/90" : ""
+            }`}
+          >
+            {icon}
+            {platform.charAt(0).toUpperCase() + platform.slice(1)}
+          </Button>
+        ))}
       </div>
     </div>
-  );
-};
+  )
+}
