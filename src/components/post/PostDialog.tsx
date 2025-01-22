@@ -32,7 +32,6 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
     <Dialog 
       open={open} 
       onOpenChange={handleClose}
-      modal
     >
       <DialogContent 
         className="max-w-2xl max-h-[80vh] overflow-y-auto"
@@ -45,7 +44,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {step === 1 ? (
+            {step === 1 && (
               <PostContentStep
                 form={form}
                 selectedPlatforms={selectedPlatforms}
@@ -55,14 +54,16 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
                 onRemoveMedia={removeMedia}
                 onContinue={handleContinue}
               />
-            ) : step === 2 ? (
+            )}
+            {step === 2 && (
               <PostScheduleStep
                 form={form}
                 date={date}
                 onDateSelect={setDate}
                 onContinue={handleContinue}
               />
-            ) : (
+            )}
+            {step === 3 && (
               <PreviewStep
                 form={form}
                 selectedPlatforms={selectedPlatforms}

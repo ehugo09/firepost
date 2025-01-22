@@ -24,13 +24,6 @@ export const PreviewStep = ({
   onBack,
   onSubmit,
 }: PreviewStepProps) => {
-  console.log("Preview Step Data:", {
-    formValues: form.getValues(),
-    selectedPlatforms,
-    mediaPreview,
-    date
-  });
-
   const platformConfig = {
     twitter: {
       icon: <Twitter className="w-4 h-4" />,
@@ -64,15 +57,13 @@ export const PreviewStep = ({
 
         {selectedPlatforms.map((platform) => {
           const Preview = platformConfig[platform as keyof typeof platformConfig]?.component;
-          const formData = form.getValues();
-          console.log(`Rendering preview for ${platform}:`, { formData, mediaPreview });
           
           return (
             <TabsContent key={platform} value={platform} className="space-y-4">
               {Preview && (
                 <Preview 
                   data={{
-                    ...formData,
+                    ...form.getValues(),
                     scheduledDate: date
                   }} 
                   mediaPreview={mediaPreview}
@@ -95,7 +86,6 @@ export const PreviewStep = ({
           type="button"
           onClick={() => onSubmit(form.getValues())}
           className="bg-[#E86643] hover:bg-[#E86643]/90"
-          disabled={form.formState.isSubmitting}
         >
           {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
         </Button>

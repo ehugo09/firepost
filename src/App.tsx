@@ -7,6 +7,10 @@ import TwitterCallback from './pages/auth/TwitterCallback';
 import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/integrations/supabase/client';
 import { ThemeProvider } from 'next-themes';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Create a client
+const queryClient = new QueryClient();
 
 function App() {
   const [session, setSession] = useState<boolean | null>(null);
@@ -45,24 +49,26 @@ function App() {
   }
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="light">
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/auth" element={session ? <Navigate to="/dashboard" replace /> : <Auth />} />
-          <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
-          
-          {/* Protected routes */}
-          <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
-          <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
-          
-          {/* Redirects */}
-          <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
-          <Route path="*" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
-        </Routes>
-        <Toaster />
-      </Router>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="light">
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/auth" element={session ? <Navigate to="/dashboard" replace /> : <Auth />} />
+            <Route path="/auth/twitter/callback" element={<TwitterCallback />} />
+            
+            {/* Protected routes */}
+            <Route path="/dashboard" element={session ? <Dashboard /> : <Navigate to="/auth" replace />} />
+            <Route path="/settings" element={session ? <Settings /> : <Navigate to="/auth" replace />} />
+            
+            {/* Redirects */}
+            <Route path="/" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
+            <Route path="*" element={<Navigate to={session ? "/dashboard" : "/auth"} replace />} />
+          </Routes>
+          <Toaster />
+        </Router>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
