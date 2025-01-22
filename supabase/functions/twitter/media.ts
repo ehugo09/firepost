@@ -15,6 +15,9 @@ export async function uploadMediaToTwitter(mediaUrl: string): Promise<string | n
     
     console.log("[Twitter Media] Image converted to base64, uploading to Twitter");
     
+    // Add delay to respect rate limits
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
     const uploadUrl = "https://upload.twitter.com/1.1/media/upload.json";
     const formData = new FormData();
     formData.append("media_data", base64Image);
@@ -30,7 +33,10 @@ export async function uploadMediaToTwitter(mediaUrl: string): Promise<string | n
     if (!response.ok) {
       const errorText = await response.text();
       console.error("[Twitter Media] Media upload failed:", errorText);
-      return null;
+      if (response.status === 429) {
+        throw new Error("Twitter rate limit exceeded for media upload. Please wait a few minutes and try again.");
+      }
+      throw new Error(`Upload failed: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
@@ -38,6 +44,6 @@ export async function uploadMediaToTwitter(mediaUrl: string): Promise<string | n
     return data.media_id_string;
   } catch (error) {
     console.error("[Twitter Media] Error uploading media:", error);
-    return null;
+    throw error;
   }
 }
