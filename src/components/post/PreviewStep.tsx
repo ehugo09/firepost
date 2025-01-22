@@ -3,7 +3,7 @@ import { UseFormReturn } from "react-hook-form"
 import { PostForm } from "@/types/post"
 import { Button } from "@/components/ui/button"
 import { Twitter, Instagram, Linkedin } from "lucide-react"
-import { format } from "date-fns"
+import { TwitterPreview } from "./previews/TwitterPreview"
 
 interface PreviewStepProps {
   form: UseFormReturn<PostForm>
@@ -35,6 +35,38 @@ export const PreviewStep = ({
     }
   }
 
+  const renderPlatformPreview = (platform: string) => {
+    switch (platform) {
+      case "twitter":
+        return (
+          <TwitterPreview 
+            data={form.getValues()} 
+            mediaPreview={mediaPreview}
+          />
+        )
+      case "instagram":
+        return (
+          <div className="border rounded-lg p-4 space-y-4">
+            <h3 className="font-medium">Instagram Preview</h3>
+            <p className="text-sm text-gray-600">
+              Instagram preview coming soon...
+            </p>
+          </div>
+        )
+      case "linkedin":
+        return (
+          <div className="border rounded-lg p-4 space-y-4">
+            <h3 className="font-medium">LinkedIn Preview</h3>
+            <p className="text-sm text-gray-600">
+              LinkedIn preview coming soon...
+            </p>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue={selectedPlatforms[0]} className="w-full">
@@ -53,38 +85,10 @@ export const PreviewStep = ({
 
         {selectedPlatforms.map((platform) => (
           <TabsContent key={platform} value={platform} className="space-y-4">
-            <div className="border rounded-lg p-4 space-y-4">
-              <h3 className="font-medium">Preview for {platform}</h3>
-              
-              <div className="space-y-2">
-                <p className="text-sm font-medium">{form.watch("title")}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {form.watch("content")}
-                </p>
-                {mediaPreview && (
-                  <div className="relative w-full max-w-md">
-                    <img
-                      src={mediaPreview}
-                      alt="Preview"
-                      className="rounded-lg w-full"
-                    />
-                    {/* TODO: Add image editing controls */}
-                  </div>
-                )}
-              </div>
-            </div>
+            {renderPlatformPreview(platform)}
           </TabsContent>
         ))}
       </Tabs>
-
-      {date && (
-        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
-          <h3 className="font-medium mb-2">Scheduled Time</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Your post will be published on {format(date, "EEEE, MMMM d, yyyy 'at' h:mm a")}
-          </p>
-        </div>
-      )}
 
       <div className="flex justify-end gap-3">
         <Button
@@ -98,6 +102,7 @@ export const PreviewStep = ({
           type="button"
           onClick={() => onSubmit(form.getValues())}
           className="bg-[#E86643] hover:bg-[#E86643]/90"
+          disabled={form.formState.isSubmitting}
         >
           {form.watch("postType") === "schedule" ? "Schedule Post" : "Post Now"}
         </Button>
