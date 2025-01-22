@@ -63,7 +63,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-              {step === 1 && (
+              {step === 1 ? (
                 <PostContentStep
                   form={form}
                   selectedPlatforms={selectedPlatforms}
@@ -73,8 +73,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
                   onRemoveMedia={removeMedia}
                   onContinue={handleContinue}
                 />
-              )}
-              {step === 2 && (
+              ) : (
                 <PostScheduleStep
                   form={form}
                   date={date}
