@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useTwitterValidation } from "../hooks/useTwitterValidation"
+import { useTwitterProfile } from "../hooks/useTwitterProfile"
 
 interface TwitterPreviewProps {
   data: PostForm
@@ -15,7 +16,9 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
   const { validationErrors, charCount, TWITTER_MAX_CHARS } = useTwitterValidation(
     data.content,
     mediaPreview
-  )
+  );
+
+  const { data: twitterProfile, isLoading } = useTwitterProfile();
 
   return (
     <div className="space-y-4">
@@ -35,13 +38,25 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
       <Card className="p-4 max-w-[598px]">
         <div className="flex gap-3">
           <Avatar className="w-12 h-12">
-            <div className="w-12 h-12 rounded-full bg-gray-200" />
+            {twitterProfile?.profile_picture ? (
+              <img 
+                src={twitterProfile.profile_picture} 
+                alt="Profile" 
+                className="w-12 h-12 rounded-full"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-gray-200" />
+            )}
           </Avatar>
           
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
-              <span className="font-bold">Your Name</span>
-              <span className="text-gray-500">@username</span>
+              <span className="font-bold">
+                {isLoading ? "Loading..." : (twitterProfile?.username || "Your Name")}
+              </span>
+              <span className="text-gray-500">
+                @{twitterProfile?.username || "username"}
+              </span>
             </div>
             
             <div className="space-y-3">
