@@ -33,36 +33,38 @@ export const usePostForm = (onClose: () => void) => {
   })
 
   const handleContinue = () => {
-    if (!validatePlatforms()) return
-    
-    const { title, content } = form.getValues()
-    if (!title || !content) {
-      toast({
-        title: "Missing information",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      })
-      return
+    if (step === 1) {
+      if (!validatePlatforms()) return
+      
+      const { title, content } = form.getValues()
+      if (!title || !content) {
+        toast({
+          title: "Missing information",
+          description: "Please fill in all required fields",
+          variant: "destructive",
+        })
+        return
+      }
+      setStep(2)
+    } else if (step === 2) {
+      if (form.watch("postType") === "schedule" && !date) {
+        toast({
+          title: "No date selected",
+          description: "Please select a date to schedule your post",
+          variant: "destructive",
+        })
+        return
+      }
+      setStep(3)
     }
-
-    setStep(2)
   }
 
   const handleBack = () => {
-    setStep(1)
+    setStep(prev => prev - 1)
   }
 
   const handleSubmit = async (data: PostForm) => {
-    if (step !== 2) return
-
-    if (data.postType === "schedule" && !date) {
-      toast({
-        title: "No date selected",
-        description: "Please select a date to schedule your post",
-        variant: "destructive",
-      })
-      return
-    }
+    if (step !== 3) return
 
     const finalData = {
       ...data,

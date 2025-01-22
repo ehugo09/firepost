@@ -10,7 +10,7 @@ export const PostDialogHeader = ({ step, onBack }: PostDialogHeaderProps) => {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-4 mb-2">
-        {step === 2 && (
+        {step > 1 && (
           <Button
             variant="ghost"
             size="icon"
@@ -24,7 +24,11 @@ export const PostDialogHeader = ({ step, onBack }: PostDialogHeaderProps) => {
         <div>
           <h1 className="text-2xl font-semibold">Create Post</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Step {step} of 2: {step === 1 ? "Content" : "Schedule"}
+            Step {step} of 3: {
+              step === 1 ? "Content" : 
+              step === 2 ? "Schedule" : 
+              "Preview"
+            }
           </p>
         </div>
       </div>
