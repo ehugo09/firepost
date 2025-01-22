@@ -35,10 +35,10 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
       onOpenChange={handleClose}
     >
       <DialogContent 
-        className="max-w-[95vw] w-[1200px] max-h-[95vh] overflow-hidden grid grid-cols-2 gap-6 p-0"
+        className="max-w-[95vw] w-[1200px] h-[90vh] overflow-y-auto grid grid-cols-2 gap-6 p-0"
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <div className="p-6 overflow-y-auto border-r">
+        <div className="p-6 h-full">
           <div className="mb-6">
             <div className="flex items-center gap-4 mb-2">
               {step > 1 && (
@@ -86,7 +86,7 @@ export function PostDialog({ open, onOpenChange }: PostDialogProps) {
           </Form>
         </div>
 
-        <div className="p-6 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+        <div className="p-6 bg-gray-50 dark:bg-gray-900">
           <PreviewPanel
             form={form}
             selectedPlatforms={selectedPlatforms}
