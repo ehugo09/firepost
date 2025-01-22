@@ -1,23 +1,33 @@
-import { createHmac } from "node:crypto";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY")?.trim();
-const API_SECRET = Deno.env.get("TWITTER_CONSUMER_SECRET")?.trim();
-const ACCESS_TOKEN = Deno.env.get("TWITTER_ACCESS_TOKEN")?.trim();
-const ACCESS_TOKEN_SECRET = Deno.env.get("TWITTER_ACCESS_TOKEN_SECRET")?.trim();
+async function getUserTwitterCredentials(supabase: any, userId: string) {
+  const { data, error } = await supabase
+    .from('social_connections')
+    .select('access_token, twitter_credentials')
+    .eq('user_id', userId)
+    .eq('platform', 'twitter')
+    .single();
 
-if (!API_KEY || !API_SECRET || !ACCESS_TOKEN || !ACCESS_TOKEN_SECRET) {
-  throw new Error("Missing required Twitter API credentials");
+  if (error) throw error;
+  if (!data) throw new Error('No Twitter credentials found for user');
+
+  return {
+    accessToken: data.access_token,
+    credentials: data.twitter_credentials
+  };
 }
 
 function generateOAuthSignature(
   method: string,
   url: string,
   oauthParams: Record<string, string>,
+  apiSecret: string,
+  tokenSecret: string
 ): string {
   const signatureBaseString = `${method}&${encodeURIComponent(url)}&${encodeURIComponent(
     Object.entries(oauthParams)
@@ -26,21 +36,32 @@ function generateOAuthSignature(
       .join("&")
   )}`;
 
-  const signingKey = `${encodeURIComponent(API_SECRET)}&${encodeURIComponent(ACCESS_TOKEN_SECRET)}`;
+  const signingKey = `${encodeURIComponent(apiSecret)}&${encodeURIComponent(tokenSecret)}`;
   return createHmac("sha1", signingKey).update(signatureBaseString).digest("base64");
 }
 
-function generateOAuthHeader(method: string, url: string): string {
+function generateOAuthHeader(
+  method: string, 
+  url: string, 
+  credentials: any,
+  accessToken: string
+): string {
   const oauthParams = {
-    oauth_consumer_key: API_KEY,
+    oauth_consumer_key: credentials.api_key,
     oauth_nonce: Math.random().toString(36).substring(2),
     oauth_signature_method: "HMAC-SHA1",
     oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-    oauth_token: ACCESS_TOKEN,
+    oauth_token: accessToken,
     oauth_version: "1.0",
   };
 
-  const signature = generateOAuthSignature(method, url, oauthParams);
+  const signature = generateOAuthSignature(
+    method,
+    url,
+    oauthParams,
+    credentials.api_secret,
+    credentials.token_secret
+  );
 
   return "OAuth " + Object.entries({
     ...oauthParams,
@@ -51,13 +72,17 @@ function generateOAuthHeader(method: string, url: string): string {
     .join(", ");
 }
 
-async function postTweet(content: string, mediaUrl: string | null = null) {
+async function postTweet(
+  content: string, 
+  mediaUrl: string | null = null,
+  credentials: any,
+  accessToken: string
+) {
   console.log("[Twitter] Attempting to post tweet:", { content, mediaUrl });
   
   const tweetUrl = "https://api.twitter.com/2/tweets";
   let finalContent = content;
 
-  // Si on a une URL de média, on l'ajoute au contenu
   if (mediaUrl) {
     finalContent = `${content} ${mediaUrl}`;
   }
@@ -65,13 +90,13 @@ async function postTweet(content: string, mediaUrl: string | null = null) {
   const params = { text: finalContent };
 
   try {
-    // Attendre un court instant avant d'envoyer la requête pour éviter les limites de taux
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Petit délai pour éviter les problèmes de rate limit
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 1000));
 
     const response = await fetch(tweetUrl, {
       method: "POST",
       headers: {
-        Authorization: generateOAuthHeader("POST", tweetUrl),
+        Authorization: generateOAuthHeader("POST", tweetUrl, credentials, accessToken),
         "Content-Type": "application/json",
       },
       body: JSON.stringify(params),
@@ -82,7 +107,7 @@ async function postTweet(content: string, mediaUrl: string | null = null) {
 
     if (!response.ok) {
       if (response.status === 429) {
-        console.error("[Twitter] Rate limit exceeded. Waiting before retry...");
+        console.error("[Twitter] Rate limit exceeded for user");
         throw new Error("Rate limit exceeded. Please try again in a few minutes.");
       }
       throw new Error(`Tweet failed: ${response.status} ${responseText}`);
@@ -98,20 +123,35 @@ async function postTweet(content: string, mediaUrl: string | null = null) {
 }
 
 Deno.serve(async (req) => {
-  // Gestion des CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    // Récupérer l'utilisateur à partir du token JWT
+    const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (userError || !user) throw new Error('Invalid user token');
+
     const { content, mediaUrl } = await req.json();
-    console.log("[Twitter] Received request:", { content, mediaUrl });
+    console.log("[Twitter] Received request:", { content, mediaUrl, userId: user.id });
 
     if (!content) {
       throw new Error("Content is required");
     }
 
-    const result = await postTweet(content, mediaUrl);
+    // Récupérer les credentials Twitter de l'utilisateur
+    const { accessToken, credentials } = await getUserTwitterCredentials(supabase, user.id);
+    
+    const result = await postTweet(content, mediaUrl, credentials, accessToken);
 
     return new Response(
       JSON.stringify(result),
