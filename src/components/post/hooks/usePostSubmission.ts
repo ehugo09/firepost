@@ -7,7 +7,7 @@ export const usePostSubmission = () => {
 
   const postToTwitter = async (content: string, mediaUrl: string | null) => {
     try {
-      console.log('Attempting to post to Twitter with content:', content)
+      console.log('Attempting to post to Twitter with:', { content, mediaUrl })
       const { data, error } = await supabase.functions.invoke('twitter', {
         body: { 
           content,
@@ -15,9 +15,12 @@ export const usePostSubmission = () => {
         }
       })
       
-      if (error) throw error
+      if (error) {
+        console.error('Error from Twitter edge function:', error)
+        throw error
+      }
       
-      console.log('Tweet posted successfully:', data)
+      console.log('Twitter API response:', data)
       return true
     } catch (error) {
       console.error('Error posting tweet:', error)
@@ -36,6 +39,8 @@ export const usePostSubmission = () => {
     date: Date | undefined,
     mediaPreview: string | null
   ) => {
+    console.log('Saving post to database:', { data, selectedPlatforms, date, mediaPreview })
+    
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       toast({
@@ -78,6 +83,7 @@ export const usePostSubmission = () => {
     date: Date | undefined,
     mediaPreview: string | null
   ) => {
+    console.log('Starting post submission:', { data, selectedPlatforms, date, mediaPreview })
     let success = true
 
     if (selectedPlatforms.includes('twitter')) {
