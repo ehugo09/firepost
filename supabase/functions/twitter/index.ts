@@ -92,7 +92,7 @@ async function uploadMedia(mediaUrl: string): Promise<string | null> {
   try {
     console.log("Starting media upload for URL:", mediaUrl);
     
-    // Fetch the image
+    // Fetch the image from our Supabase storage
     const imageResponse = await fetch(mediaUrl);
     if (!imageResponse.ok) {
       console.error("Failed to fetch image:", await imageResponse.text());
@@ -120,14 +120,13 @@ async function uploadMedia(mediaUrl: string): Promise<string | null> {
       body: formData,
     });
 
-    const responseText = await uploadResponse.text();
-    console.log("Twitter media upload response:", responseText);
-
     if (!uploadResponse.ok) {
+      const responseText = await uploadResponse.text();
+      console.error("Twitter upload failed:", responseText);
       throw new Error(`Upload failed: ${responseText}`);
     }
 
-    const uploadData = JSON.parse(responseText);
+    const uploadData = await uploadResponse.json();
     console.log("Media upload successful, ID:", uploadData.media_id_string);
     
     return uploadData.media_id_string;
