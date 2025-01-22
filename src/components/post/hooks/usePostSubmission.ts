@@ -7,6 +7,7 @@ export const usePostSubmission = () => {
 
   const postToTwitter = async (content: string, mediaUrl: string | null) => {
     try {
+      console.log('Attempting to post to Twitter with content:', content)
       const { data, error } = await supabase.functions.invoke('twitter', {
         body: { 
           content,
