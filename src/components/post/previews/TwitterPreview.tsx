@@ -47,24 +47,28 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
             )}
           </Avatar>
           
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-bold truncate">{profile?.username || "Your Name"}</span>
+          <div className="flex-1 min-w-0 max-w-[calc(100%-4rem)]">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-bold truncate max-w-[120px]">{profile?.username || "Your Name"}</span>
               <span className="text-gray-500 text-sm truncate">@{profile?.username || "username"}</span>
             </div>
             
             <div className="space-y-3">
-              <p className="whitespace-pre-wrap break-words text-[15px] leading-normal">
-                {data.content}
-              </p>
+              <div className="min-h-[40px] max-h-[400px] overflow-y-auto">
+                <p className="whitespace-pre-wrap break-words text-[15px] leading-normal">
+                  {data.content}
+                </p>
+              </div>
               
               {mediaPreview && (
-                <div className="relative rounded-2xl overflow-hidden border border-gray-200 aspect-[16/9] max-h-[280px]">
-                  <img 
-                    src={mediaPreview} 
-                    alt="Preview" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative rounded-2xl overflow-hidden border border-gray-200 w-full">
+                  <div className="aspect-[16/9]">
+                    <img 
+                      src={mediaPreview} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -74,7 +78,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
                 {charCount}/{TWITTER_MAX_CHARS}
               </Badge>
               {data.postType === "schedule" && data.scheduledDate && (
-                <span className="truncate">
+                <span className="truncate max-w-[200px]">
                   Scheduled for {data.scheduledDate.toLocaleString()}
                 </span>
               )}
