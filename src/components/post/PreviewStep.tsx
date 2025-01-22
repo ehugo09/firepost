@@ -20,9 +20,17 @@ export const PreviewStep = ({
   form,
   selectedPlatforms,
   mediaPreview,
+  date,
   onBack,
   onSubmit,
 }: PreviewStepProps) => {
+  console.log("Preview Step Data:", {
+    formValues: form.getValues(),
+    selectedPlatforms,
+    mediaPreview,
+    date
+  });
+
   const platformConfig = {
     twitter: {
       icon: <Twitter className="w-4 h-4" />,
@@ -36,7 +44,7 @@ export const PreviewStep = ({
       icon: <Linkedin className="w-4 h-4" />,
       component: LinkedInPreview,
     },
-  } as const
+  } as const;
 
   return (
     <div className="space-y-6">
@@ -55,12 +63,23 @@ export const PreviewStep = ({
         </TabsList>
 
         {selectedPlatforms.map((platform) => {
-          const Preview = platformConfig[platform as keyof typeof platformConfig]?.component
+          const Preview = platformConfig[platform as keyof typeof platformConfig]?.component;
+          const formData = form.getValues();
+          console.log(`Rendering preview for ${platform}:`, { formData, mediaPreview });
+          
           return (
             <TabsContent key={platform} value={platform} className="space-y-4">
-              {Preview && <Preview data={form.getValues()} mediaPreview={mediaPreview} />}
+              {Preview && (
+                <Preview 
+                  data={{
+                    ...formData,
+                    scheduledDate: date
+                  }} 
+                  mediaPreview={mediaPreview}
+                />
+              )}
             </TabsContent>
-          )
+          );
         })}
       </Tabs>
 
@@ -82,5 +101,5 @@ export const PreviewStep = ({
         </Button>
       </div>
     </div>
-  )
-}
+  );
+};

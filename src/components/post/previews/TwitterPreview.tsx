@@ -20,6 +20,8 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
 
   const { data: twitterProfile, isLoading } = useTwitterProfile();
 
+  console.log("Twitter Preview Data:", { data, mediaPreview, twitterProfile, isLoading });
+
   return (
     <div className="space-y-4">
       {validationErrors.length > 0 && (
