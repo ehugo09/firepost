@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { createHmac } from "https://deno.land/std@0.208.0/crypto/mod.ts";
+import { generateOAuthHeader } from "./oauth.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -32,56 +32,6 @@ async function getUserTwitterCredentials(supabase: any, userId: string) {
   };
 }
 
-function generateOAuthSignature(
-  method: string,
-  url: string,
-  oauthParams: Record<string, string>,
-  apiSecret: string,
-  tokenSecret: string
-): string {
-  const signatureBaseString = `${method}&${encodeURIComponent(url)}&${encodeURIComponent(
-    Object.entries(oauthParams)
-      .sort()
-      .map(([k, v]) => `${k}=${v}`)
-      .join("&")
-  )}`;
-
-  const signingKey = `${encodeURIComponent(apiSecret)}&${encodeURIComponent(tokenSecret)}`;
-  return createHmac("sha1", signingKey).update(signatureBaseString).digest("base64");
-}
-
-function generateOAuthHeader(
-  method: string, 
-  url: string, 
-  credentials: any,
-  accessToken: string
-): string {
-  const oauthParams = {
-    oauth_consumer_key: credentials.api_key,
-    oauth_nonce: Math.random().toString(36).substring(2),
-    oauth_signature_method: "HMAC-SHA1",
-    oauth_timestamp: Math.floor(Date.now() / 1000).toString(),
-    oauth_token: accessToken,
-    oauth_version: "1.0",
-  };
-
-  const signature = generateOAuthSignature(
-    method,
-    url,
-    oauthParams,
-    credentials.api_secret,
-    credentials.token_secret
-  );
-
-  return "OAuth " + Object.entries({
-    ...oauthParams,
-    oauth_signature: signature,
-  })
-    .sort()
-    .map(([k, v]) => `${encodeURIComponent(k)}="${encodeURIComponent(v)}"`)
-    .join(", ");
-}
-
 async function postTweet(
   content: string, 
   mediaUrl: string | null = null,
@@ -100,8 +50,8 @@ async function postTweet(
   const params = { text: finalContent };
 
   try {
-    // Add a small random delay to help with rate limiting
-    const delay = Math.floor(Math.random() * 2000) + 1000; // Random delay between 1-3 seconds
+    // Add a random delay between 1-3 seconds to help with rate limiting
+    const delay = Math.floor(Math.random() * 2000) + 1000;
     console.log(`[Twitter] Adding delay of ${delay}ms before posting`);
     await new Promise(resolve => setTimeout(resolve, delay));
 
