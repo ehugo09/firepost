@@ -18,13 +18,13 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
     mediaPreview
   )
 
-  const { data: profile } = useTwitterProfile()
+  const { data: profile, isLoading } = useTwitterProfile()
 
   // Format the content to match Twitter's mobile display
   const formattedContent = data.content
     .split('\n')
     .map(line => line.trim())
-    .join(' ')
+    .join('\n')
 
   return (
     <div className="space-y-4">
@@ -41,13 +41,13 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
         </Alert>
       )}
 
-      <Card className="p-4 w-[350px] bg-black text-white">
+      <Card className="p-4 w-[350px]">
         <div className="flex gap-3">
-          <Avatar className="w-10 h-10 shrink-0 rounded-full overflow-hidden bg-gray-800">
+          <Avatar className="w-10 h-10 shrink-0 rounded-full overflow-hidden">
             {profile?.profile_picture && (
               <img 
                 src={profile.profile_picture} 
-                alt="Profile" 
+                alt={profile.username || "Profile"} 
                 className="w-full h-full object-cover"
               />
             )}
@@ -56,15 +56,15 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1">
               <span className="font-bold text-[15px] leading-5 truncate">
-                {profile?.username || "Your Name"}
+                {profile?.username || "Loading..."}
               </span>
-              <span className="text-gray-500 text-[15px]">
+              <span className="text-muted-foreground text-[15px]">
                 @{profile?.username || "username"}
               </span>
             </div>
             
             <div className="mt-1 space-y-3">
-              <p className="text-[15px] leading-[1.3125] break-words">
+              <p className="text-[15px] leading-[1.3125] whitespace-pre-wrap break-words">
                 {formattedContent}
               </p>
               
@@ -78,7 +78,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
                 </div>
               )}
 
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Badge variant="secondary" className="rounded-full text-xs px-2 py-0.5">
                   {charCount}/{TWITTER_MAX_CHARS}
                 </Badge>
