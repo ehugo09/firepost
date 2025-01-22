@@ -41,7 +41,7 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
             {profile?.profile_picture && (
               <img 
                 src={profile.profile_picture} 
-                alt={profile.username || "Profile"} 
+                alt="Profile" 
                 className="w-12 h-12 rounded-full object-cover"
               />
             )}
@@ -49,12 +49,8 @@ export function TwitterPreview({ data, mediaPreview }: TwitterPreviewProps) {
           
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
-              <span className="font-bold">
-                {profile?.username || "Your Name"}
-              </span>
-              <span className="text-gray-500">
-                @{profile?.username || "username"}
-              </span>
+              <span className="font-bold">{profile?.username || "Your Name"}</span>
+              <span className="text-gray-500">@{profile?.username || "username"}</span>
             </div>
             
             <div className="space-y-3">
